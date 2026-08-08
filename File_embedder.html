@@ -2,60 +2,268 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
   <title>Krynet File Embedder</title>
+
   <style>
-    body { font-family: sans-serif; background: #0e0e0e; color: #fff; }
-    .container { max-width: 600px; margin: 50px auto; text-align: center; }
-    .preview { margin-top: 20px; }
-    embed, audio, video, img { max-width: 100%; border-radius: 10px; margin-top: 10px; }
-    input[type="file"] { margin: 10px; }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #0e0e0e;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .preview {
+      margin-top: 20px;
+    }
+
+    .preview img,
+    .preview video,
+    .preview audio {
+      display: block;
+      max-width: 100%;
+      margin: 10px auto 0;
+      border-radius: 10px;
+    }
+
+    input[type="file"] {
+      margin: 10px;
+    }
+
+    button {
+      padding: 9px 15px;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .status {
+      margin-top: 15px;
+      min-height: 1.5em;
+    }
+
+    .error {
+      color: #ff6b6b;
+    }
   </style>
 </head>
+
 <body>
-  <div class="container">
+  <main class="container">
     <h2>Krynet File Embed</h2>
-    <input type="file" id="fileInput" accept=".he-aac,.heif,.avif">
-    <button onclick="uploadFile()">Upload & Embed</button>
-    <div class="preview" id="preview"></div>
-  </div>
+
+    <input
+      type="file"
+      id="fileInput"
+      accept=".he-aac,.heif,.heic,.avif"
+    >
+
+    <button id="uploadButton" type="button">
+      Upload &amp; Embed
+    </button>
+
+    <div
+      id="status"
+      class="status"
+      role="status"
+      aria-live="polite"
+    ></div>
+
+    <div id="preview" class="preview"></div>
+  </main>
 
   <script>
-    async function uploadFile() {
-      const fileInput = document.getElementById('fileInput');
-      const file = fileInput.files[0];
-      if (!file) return alert('No file selected');
+    'use strict';
 
-      const formData = new FormData();
-      formData.append('file', file);
+    const fileInput = document.getElementById('fileInput');
+    const uploadButton = document.getElementById('uploadButton');
+    const preview = document.getElementById('preview');
+    const status = document.getElementById('status');
 
-      const res = await fetch('/upload', {
-        method: 'POST',
-        body: formData
-      });
+    const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
-      const data = await res.json();
-      if (res.status !== 200) {
-        alert("Upload failed: " + data.message || "Unknown error");
+    const ALLOWED_TYPES = new Set([
+      'audio/aac',
+      'audio/aacp',
+      'image/avif',
+      'image/heif',
+      'image/heic'
+    ]);
+
+    function setStatus(message, error = false) {
+      status.textContent = message;
+      status.classList.toggle('error', error);
+    }
+
+    function clearPreview() {
+      preview.replaceChildren();
+    }
+
+    function createPreview(mime, src) {
+      clearPreview();
+
+      let element;
+
+      if (mime.startsWith('audio/')) {
+        element = document.createElement('audio');
+        element.controls = true;
+        element.preload = 'metadata';
+
+      } else if (mime.startsWith('video/')) {
+        element = document.createElement('video');
+        element.controls = true;
+        element.preload = 'metadata';
+
+      } else if (mime.startsWith('image/')) {
+        element = document.createElement('img');
+        element.alt = 'Uploaded image';
+        element.loading = 'lazy';
+
+      } else {
+        setStatus('Unsupported file type.', true);
         return;
       }
 
-      // Embed preview
-      const preview = document.getElementById('preview');
-      const mime = data.mime_type;
-      const src = data.embed_url || data.filename;
+      element.src = src;
 
-      let tag = '';
-      if (mime === 'audio/aac') {
-        tag = `<audio controls src="${src}" type="${mime}"></audio>`;
-      } else if (mime.startsWith('video/')) {
-        tag = `<video controls src="${src}" type="${mime}"></video>`;
-      } else if (mime.startsWith('image/')) {
-        tag = `<img src="${src}" alt="Embedded Image">`;
-      } else {
-        tag = `<embed src="${src}" type="${mime}">`;
-      }
-      preview.innerHTML = tag;
+      element.addEventListener(
+        'error',
+        () => {
+          clearPreview();
+          setStatus(
+            'Your browser could not render this file.',
+            true
+          );
+        },
+        { once: true }
+      );
+
+      preview.appendChild(element);
     }
+
+    async function uploadFile() {
+      const file = fileInput.files?.[0];
+
+      if (!file) {
+        setStatus('Select a file first.', true);
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        setStatus(
+          'File is too large. Maximum size is 25 MB.',
+          true
+        );
+        return;
+      }
+
+      uploadButton.disabled = true;
+      clearPreview();
+      setStatus('Uploading...');
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file, file.name);
+
+        const response = await fetch('/upload', {
+          method: 'POST',
+          body: formData,
+          credentials: 'same-origin',
+          headers: {
+            Accept: 'application/json'
+          }
+        });
+
+        let data;
+
+        try {
+          data = await response.json();
+        } catch {
+          throw new Error(
+            'Server returned invalid JSON.'
+          );
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            data?.message ||
+            `Upload failed (${response.status}).`
+          );
+        }
+
+        if (!data || typeof data !== 'object') {
+          throw new Error(
+            'Invalid server response.'
+          );
+        }
+
+        const mime = data.mime_type;
+        const src = data.embed_url;
+
+        if (
+          typeof mime !== 'string' ||
+          typeof src !== 'string'
+        ) {
+          throw new Error(
+            'Server response is missing file metadata.'
+          );
+        }
+
+        if (!ALLOWED_TYPES.has(mime)) {
+          throw new Error(
+            'Server returned an unsupported file type.'
+          );
+        }
+
+        const url = new URL(
+          src,
+          window.location.origin
+        );
+
+        if (
+          url.origin !== window.location.origin ||
+          !['http:', 'https:'].includes(url.protocol)
+        ) {
+          throw new Error(
+            'Invalid file URL.'
+          );
+        }
+
+        createPreview(mime, url.href);
+        setStatus('Upload complete.');
+
+      } catch (error) {
+        console.error('Upload failed:', error);
+
+        setStatus(
+          error instanceof Error
+            ? error.message
+            : 'Upload failed.',
+          true
+        );
+
+      } finally {
+        uploadButton.disabled = false;
+      }
+    }
+
+    uploadButton.addEventListener(
+      'click',
+      uploadFile
+    );
   </script>
 </body>
 </html>
