@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
+
   <title>Krynet File Embedder</title>
 
   <style>
@@ -11,30 +12,23 @@
       margin: 0;
       font-family: system-ui, sans-serif;
       background: #0e0e0e;
-      color: #fff;
+      color: white;
     }
 
     .container {
-      max-width: 650px;
+      max-width: 700px;
       margin: 50px auto;
       padding: 20px;
       text-align: center;
     }
 
-    input[type="file"] {
+    input {
       margin: 15px 0;
     }
 
     button {
       padding: 9px 16px;
-      border: 0;
-      border-radius: 7px;
       cursor: pointer;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
     }
 
     .status {
@@ -51,16 +45,15 @@
     }
 
     .preview img,
-    .preview video,
-    .preview audio {
+    .preview audio,
+    .preview video {
       display: block;
       max-width: 100%;
-      margin: 15px auto 0;
+      margin: 15px auto;
       border-radius: 10px;
     }
 
     .filename {
-      margin-top: 10px;
       opacity: 0.7;
       word-break: break-word;
     }
@@ -68,18 +61,20 @@
 </head>
 
 <body>
+
   <main class="container">
+
     <h2>Krynet File Embed</h2>
 
     <input
-      type="file"
       id="fileInput"
-      accept=".he-aac,.heif,.heic,.avif,audio/aac,image/avif,image/heif,image/heic"
+      type="file"
+      accept=".avif,.heif,.heic,.aac,.m4a,.mp4"
     >
 
     <br>
 
-    <button id="embedButton" type="button">
+    <button id="embedButton">
       Embed File
     </button>
 
@@ -90,132 +85,275 @@
       aria-live="polite"
     ></div>
 
-    <div id="preview" class="preview"></div>
+    <div
+      id="preview"
+      class="preview"
+    ></div>
+
   </main>
 
   <script>
     'use strict';
 
-    const fileInput = document.getElementById('fileInput');
-    const embedButton = document.getElementById('embedButton');
-    const preview = document.getElementById('preview');
-    const status = document.getElementById('status');
+    const fileInput =
+      document.getElementById('fileInput');
 
-    let currentObjectURL = null;
+    const embedButton =
+      document.getElementById('embedButton');
 
-    const MAX_FILE_SIZE = 25 * 1024 * 1024;
+    const preview =
+      document.getElementById('preview');
 
-    const ALLOWED_TYPES = new Set([
-      'audio/aac',
-      'audio/aacp',
-      'image/avif',
-      'image/heif',
-      'image/heic'
-    ]);
+    const status =
+      document.getElementById('status');
 
-    function setStatus(message, error = false) {
-      status.textContent = message;
+    let objectURL = null;
+
+
+    function setStatus(text, error = false) {
+      status.textContent = text;
       status.classList.toggle('error', error);
     }
 
-    function clearPreview() {
+
+    function cleanup() {
       preview.replaceChildren();
 
-      if (currentObjectURL) {
-        URL.revokeObjectURL(currentObjectURL);
-        currentObjectURL = null;
+      if (objectURL) {
+        URL.revokeObjectURL(objectURL);
+        objectURL = null;
       }
     }
 
-    function createPreview(file) {
-      clearPreview();
 
-      const mime = file.type;
+    function getExtension(filename) {
+      const parts = filename.toLowerCase().split('.');
 
-      if (!ALLOWED_TYPES.has(mime)) {
-        setStatus(
-          `Unsupported file type: ${mime || 'unknown'}`,
-          true
-        );
-        return;
-      }
+      return parts.length > 1
+        ? parts.pop()
+        : '';
+    }
 
-      currentObjectURL = URL.createObjectURL(file);
 
-      let element;
+    function createMediaElement(file) {
 
-      if (mime.startsWith('audio/')) {
-        element = document.createElement('audio');
-        element.controls = true;
-        element.preload = 'metadata';
+      const extension =
+        getExtension(file.name);
 
-      } else if (mime.startsWith('image/')) {
-        element = document.createElement('img');
-        element.alt = file.name;
-        element.loading = 'lazy';
+      objectURL =
+        URL.createObjectURL(file);
 
-      } else {
-        setStatus('Unsupported media type.', true);
-        return;
-      }
 
-      element.src = currentObjectURL;
+      /*
+       * AVIF
+       */
 
-      element.addEventListener(
-        'error',
-        () => {
+      if (extension === 'avif') {
+
+        const img =
+          document.createElement('img');
+
+        img.alt = file.name;
+        img.src = objectURL;
+
+        img.onload = () => {
+          setStatus('AVIF loaded successfully.');
+        };
+
+        img.onerror = () => {
           setStatus(
-            'Your browser cannot decode this file.',
+            'This browser cannot decode this AVIF file.',
             true
           );
-        },
-        { once: true }
-      );
+        };
 
-      const filename = document.createElement('div');
-      filename.className = 'filename';
-      filename.textContent = file.name;
+        preview.appendChild(img);
 
-      preview.appendChild(element);
-      preview.appendChild(filename);
-    }
-
-    function embedFile() {
-      const file = fileInput.files?.[0];
-
-      if (!file) {
-        setStatus('Select a file first.', true);
         return;
       }
 
-      if (file.size > MAX_FILE_SIZE) {
+
+      /*
+       * HEIF / HEIC
+       */
+
+      if (
+        extension === 'heif' ||
+        extension === 'heic'
+      ) {
+
+        const img =
+          document.createElement('img');
+
+        img.alt = file.name;
+        img.src = objectURL;
+
+        img.onload = () => {
+          setStatus(
+            'HEIF/HEIC loaded successfully.'
+          );
+        };
+
+        img.onerror = () => {
+          setStatus(
+            'This browser does not support HEIF/HEIC decoding.',
+            true
+          );
+        };
+
+        preview.appendChild(img);
+
+        return;
+      }
+
+
+      /*
+       * AAC
+       */
+
+      if (extension === 'aac') {
+
+        const audio =
+          document.createElement('audio');
+
+        audio.controls = true;
+        audio.preload = 'metadata';
+        audio.src = objectURL;
+
+        audio.onloadedmetadata = () => {
+          setStatus(
+            'AAC loaded successfully.'
+          );
+        };
+
+        audio.onerror = () => {
+          setStatus(
+            'This browser cannot decode this AAC file.',
+            true
+          );
+        };
+
+        preview.appendChild(audio);
+
+        return;
+      }
+
+
+      /*
+       * M4A
+       */
+
+      if (extension === 'm4a') {
+
+        const audio =
+          document.createElement('audio');
+
+        audio.controls = true;
+        audio.preload = 'metadata';
+        audio.src = objectURL;
+
+        audio.onloadedmetadata = () => {
+          setStatus(
+            'M4A loaded successfully.'
+          );
+        };
+
+        audio.onerror = () => {
+          setStatus(
+            'This browser cannot decode this audio file.',
+            true
+          );
+        };
+
+        preview.appendChild(audio);
+
+        return;
+      }
+
+
+      /*
+       * MP4
+       */
+
+      if (extension === 'mp4') {
+
+        const video =
+          document.createElement('video');
+
+        video.controls = true;
+        video.preload = 'metadata';
+        video.src = objectURL;
+
+        video.onloadedmetadata = () => {
+          setStatus(
+            'Video loaded successfully.'
+          );
+        };
+
+        video.onerror = () => {
+          setStatus(
+            'This browser cannot decode this video.',
+            true
+          );
+        };
+
+        preview.appendChild(video);
+
+        return;
+      }
+
+
+      setStatus(
+        'Unsupported file format.',
+        true
+      );
+    }
+
+
+    function embedFile() {
+
+      cleanup();
+
+      const file =
+        fileInput.files?.[0];
+
+      if (!file) {
         setStatus(
-          'File is too large. Maximum size is 25 MB.',
+          'Select a file first.',
           true
         );
         return;
       }
 
-      setStatus('Loading...');
-      createPreview(file);
+      const filename =
+        document.createElement('div');
 
-      if (currentObjectURL) {
-        setStatus('File embedded locally.');
-      }
+      filename.className =
+        'filename';
+
+      filename.textContent =
+        file.name;
+
+      preview.appendChild(filename);
+
+      setStatus('Loading...');
+
+      createMediaElement(file);
     }
+
 
     embedButton.addEventListener(
       'click',
       embedFile
     );
 
+
     fileInput.addEventListener(
       'change',
-      () => {
-        clearPreview();
-        setStatus('');
-      }
+      cleanup
     );
+
   </script>
+
 </body>
 </html>
