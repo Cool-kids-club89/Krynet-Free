@@ -15,33 +15,20 @@
     }
 
     .container {
-      max-width: 600px;
+      max-width: 650px;
       margin: 50px auto;
       padding: 20px;
       text-align: center;
     }
 
-    .preview {
-      margin-top: 20px;
-    }
-
-    .preview img,
-    .preview video,
-    .preview audio {
-      display: block;
-      max-width: 100%;
-      margin: 10px auto 0;
-      border-radius: 10px;
-    }
-
     input[type="file"] {
-      margin: 10px;
+      margin: 15px 0;
     }
 
     button {
-      padding: 9px 15px;
+      padding: 9px 16px;
       border: 0;
-      border-radius: 6px;
+      border-radius: 7px;
       cursor: pointer;
     }
 
@@ -58,6 +45,25 @@
     .error {
       color: #ff6b6b;
     }
+
+    .preview {
+      margin-top: 25px;
+    }
+
+    .preview img,
+    .preview video,
+    .preview audio {
+      display: block;
+      max-width: 100%;
+      margin: 15px auto 0;
+      border-radius: 10px;
+    }
+
+    .filename {
+      margin-top: 10px;
+      opacity: 0.7;
+      word-break: break-word;
+    }
   </style>
 </head>
 
@@ -68,11 +74,13 @@
     <input
       type="file"
       id="fileInput"
-      accept=".he-aac,.heif,.heic,.avif"
+      accept=".he-aac,.heif,.heic,.avif,audio/aac,image/avif,image/heif,image/heic"
     >
 
-    <button id="uploadButton" type="button">
-      Upload &amp; Embed
+    <br>
+
+    <button id="embedButton" type="button">
+      Embed File
     </button>
 
     <div
@@ -89,9 +97,11 @@
     'use strict';
 
     const fileInput = document.getElementById('fileInput');
-    const uploadButton = document.getElementById('uploadButton');
+    const embedButton = document.getElementById('embedButton');
     const preview = document.getElementById('preview');
     const status = document.getElementById('status');
+
+    let currentObjectURL = null;
 
     const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
@@ -110,10 +120,27 @@
 
     function clearPreview() {
       preview.replaceChildren();
+
+      if (currentObjectURL) {
+        URL.revokeObjectURL(currentObjectURL);
+        currentObjectURL = null;
+      }
     }
 
-    function createPreview(mime, src) {
+    function createPreview(file) {
       clearPreview();
+
+      const mime = file.type;
+
+      if (!ALLOWED_TYPES.has(mime)) {
+        setStatus(
+          `Unsupported file type: ${mime || 'unknown'}`,
+          true
+        );
+        return;
+      }
+
+      currentObjectURL = URL.createObjectURL(file);
 
       let element;
 
@@ -122,39 +149,38 @@
         element.controls = true;
         element.preload = 'metadata';
 
-      } else if (mime.startsWith('video/')) {
-        element = document.createElement('video');
-        element.controls = true;
-        element.preload = 'metadata';
-
       } else if (mime.startsWith('image/')) {
         element = document.createElement('img');
-        element.alt = 'Uploaded image';
+        element.alt = file.name;
         element.loading = 'lazy';
 
       } else {
-        setStatus('Unsupported file type.', true);
+        setStatus('Unsupported media type.', true);
         return;
       }
 
-      element.src = src;
+      element.src = currentObjectURL;
 
       element.addEventListener(
         'error',
         () => {
-          clearPreview();
           setStatus(
-            'Your browser could not render this file.',
+            'Your browser cannot decode this file.',
             true
           );
         },
         { once: true }
       );
 
+      const filename = document.createElement('div');
+      filename.className = 'filename';
+      filename.textContent = file.name;
+
       preview.appendChild(element);
+      preview.appendChild(filename);
     }
 
-    async function uploadFile() {
+    function embedFile() {
       const file = fileInput.files?.[0];
 
       if (!file) {
@@ -170,99 +196,25 @@
         return;
       }
 
-      uploadButton.disabled = true;
-      clearPreview();
-      setStatus('Uploading...');
+      setStatus('Loading...');
+      createPreview(file);
 
-      try {
-        const formData = new FormData();
-        formData.append('file', file, file.name);
-
-        const response = await fetch('/upload', {
-          method: 'POST',
-          body: formData,
-          credentials: 'same-origin',
-          headers: {
-            Accept: 'application/json'
-          }
-        });
-
-        let data;
-
-        try {
-          data = await response.json();
-        } catch {
-          throw new Error(
-            'Server returned invalid JSON.'
-          );
-        }
-
-        if (!response.ok) {
-          throw new Error(
-            data?.message ||
-            `Upload failed (${response.status}).`
-          );
-        }
-
-        if (!data || typeof data !== 'object') {
-          throw new Error(
-            'Invalid server response.'
-          );
-        }
-
-        const mime = data.mime_type;
-        const src = data.embed_url;
-
-        if (
-          typeof mime !== 'string' ||
-          typeof src !== 'string'
-        ) {
-          throw new Error(
-            'Server response is missing file metadata.'
-          );
-        }
-
-        if (!ALLOWED_TYPES.has(mime)) {
-          throw new Error(
-            'Server returned an unsupported file type.'
-          );
-        }
-
-        const url = new URL(
-          src,
-          window.location.origin
-        );
-
-        if (
-          url.origin !== window.location.origin ||
-          !['http:', 'https:'].includes(url.protocol)
-        ) {
-          throw new Error(
-            'Invalid file URL.'
-          );
-        }
-
-        createPreview(mime, url.href);
-        setStatus('Upload complete.');
-
-      } catch (error) {
-        console.error('Upload failed:', error);
-
-        setStatus(
-          error instanceof Error
-            ? error.message
-            : 'Upload failed.',
-          true
-        );
-
-      } finally {
-        uploadButton.disabled = false;
+      if (currentObjectURL) {
+        setStatus('File embedded locally.');
       }
     }
 
-    uploadButton.addEventListener(
+    embedButton.addEventListener(
       'click',
-      uploadFile
+      embedFile
+    );
+
+    fileInput.addEventListener(
+      'change',
+      () => {
+        clearPreview();
+        setStatus('');
+      }
     );
   </script>
 </body>
