@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
 
-  <title>KrynetAI.free – Chat UI</title>
+  <title>KrynetAI.free – Chat</title>
 
   <link rel="icon" href="favicon.ico" type="image/x-icon">
 
@@ -14,30 +14,51 @@
     rel="stylesheet"
   >
 
+  <!-- =========================================================
+       KRYNET JAVASCRIPT IMPORTS
+  ========================================================== -->
+
+  <script src="./js/Cloudflare.js"></script>
+  <script src="./js/anonymous-upload.js"></script>
+  <script src="./js/blurNSFW.js"></script>
+  <script src="./js/clearURLS.js"></script>
+  <script src="./js/copyFileContents.js"></script>
+  <script src="./js/country-blocker.js"></script>
+  <script src="./js/dearrow.js"></script>
+  <script src="./js/openInApp.js"></script>
+  <script src="./js/reactions.js"></script>
+  <script src="./js/screenshare.js"></script>
+  <script src="./js/sponsorblock.js"></script>
+  <script src="./js/tpm.js"></script>
+  <script src="./js/voicechat.js"></script>
+  <script src="./js/webcam.js"></script>
+  <script src="./js/youtubeAdblock.js"></script>
+
+  <!-- ES modules -->
+  <script type="module" src="./js/markdownRenderer.js"></script>
+  <script type="module" src="./js/krysearch.js"></script>
+
+  <!-- =========================================================
+       ADS
+  ========================================================== -->
+
   <script
     async
     src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3940256099942544"
-    crossorigin="anonymous"
-  ></script>
+    crossorigin="anonymous">
+  </script>
 
   <style>
     * {
       box-sizing: border-box;
     }
 
-    html,
     body {
       margin: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    body {
       font-family: Inter, system-ui, sans-serif;
       background: #0a0a0a;
       color: #fff;
-      display: flex;
-      flex-direction: column;
+      height: 100vh;
       overflow: hidden;
     }
 
@@ -46,43 +67,27 @@
       font: inherit;
     }
 
-    /* ---------------------------------------------------------
-       AD
-    --------------------------------------------------------- */
-
-    .ad-banner {
-      min-height: 52px;
-      background: #111;
-      border-bottom: 1px solid #400000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 6px 12px;
-      flex-shrink: 0;
+    button {
+      cursor: pointer;
     }
 
-    /* ---------------------------------------------------------
-       MAIN LAYOUT
-    --------------------------------------------------------- */
+    /* =========================================================
+       LAYOUT
+    ========================================================== */
 
     .main-content {
       display: flex;
-      flex: 1;
-      min-height: 0;
+      height: calc(100vh - 42px);
     }
-
-    /* ---------------------------------------------------------
-       SIDEBAR
-    --------------------------------------------------------- */
 
     .sidebar {
       width: 240px;
+      flex-shrink: 0;
       background: #1a0000;
       border-right: 1px solid #400000;
       display: flex;
       flex-direction: column;
       padding: 1rem 0;
-      flex-shrink: 0;
     }
 
     .sidebar-title {
@@ -98,23 +103,21 @@
 
     .channel {
       padding: 0.6rem 1.25rem;
-      border-radius: 5px;
+      color: #aaa;
       cursor: pointer;
-      color: #fff;
-      font-size: 0.95rem;
+      border-radius: 5px;
+      margin: 2px 8px;
     }
 
-    .channel:hover {
-      background: #330000;
-    }
-
+    .channel:hover,
     .channel.active {
-      background: #400000;
+      background: #330000;
+      color: #fff;
     }
 
-    /* ---------------------------------------------------------
+    /* =========================================================
        CHAT
-    --------------------------------------------------------- */
+    ========================================================== */
 
     .chat-container {
       flex: 1;
@@ -124,18 +127,20 @@
     }
 
     .chat-header {
-      padding: 1rem;
+      height: 58px;
+      flex-shrink: 0;
+      padding: 0 1rem;
+      display: flex;
+      align-items: center;
       background: #1a0000;
       border-bottom: 1px solid #400000;
-      font-size: 1rem;
       font-weight: 600;
-      flex-shrink: 0;
     }
 
     .chat-main {
-      display: flex;
       flex: 1;
       min-height: 0;
+      display: flex;
     }
 
     .chat-messages {
@@ -145,17 +150,17 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
+      gap: 0.7rem;
     }
 
-    /* ---------------------------------------------------------
+    /* =========================================================
        MESSAGES
-    --------------------------------------------------------- */
+    ========================================================== */
 
     .message {
       display: flex;
-      gap: 0.6rem;
-      max-width: min(760px, 85%);
+      gap: 0.65rem;
+      max-width: 800px;
       align-items: flex-start;
     }
 
@@ -164,16 +169,8 @@
       flex-direction: row-reverse;
     }
 
-    .message-content {
-      background: #1a1a1a;
-      padding: 0.6rem 0.9rem;
-      border-radius: 0.6rem;
+    .message-content-wrap {
       min-width: 0;
-      overflow-wrap: anywhere;
-    }
-
-    .message.self .message-content {
-      background: #330000;
     }
 
     .message-meta {
@@ -182,77 +179,184 @@
       margin-bottom: 0.25rem;
     }
 
-    .message-text {
-      white-space: pre-wrap;
+    .message-content {
+      background: #1a1a1a;
+      padding: 0.65rem 0.85rem;
+      border-radius: 0.65rem;
       overflow-wrap: anywhere;
+    }
+
+    .message.self .message-content {
+      background: #330000;
     }
 
     .avatar {
       width: 36px;
       height: 36px;
+      flex-shrink: 0;
       border-radius: 50%;
       object-fit: cover;
-      flex-shrink: 0;
     }
 
-    /* ---------------------------------------------------------
-       FILE EMBEDS
-    --------------------------------------------------------- */
+    /* =========================================================
+       FILE ATTACHMENTS
+    ========================================================== */
 
-    .file-embed {
+    .attachment {
       margin-top: 8px;
-      padding: 10px;
+      max-width: 480px;
+      background: #151515;
+      border: 1px solid #333;
       border-radius: 8px;
-      background: #242424;
-      border: 1px solid #3a3a3a;
-      max-width: 500px;
+      overflow: hidden;
     }
 
-    .file-embed-name {
-      font-size: 13px;
-      color: #ddd;
-      overflow-wrap: anywhere;
-      margin-bottom: 8px;
+    .attachment img {
+      display: block;
+      max-width: 100%;
+      max-height: 420px;
+      object-fit: contain;
     }
 
-    .file-embed img,
-    .file-embed video {
+    .attachment video {
       display: block;
       width: 100%;
-      max-width: 460px;
-      max-height: 500px;
-      object-fit: contain;
-      border-radius: 7px;
+      max-height: 420px;
     }
 
-    .file-embed audio {
+    .attachment audio {
+      display: block;
       width: 100%;
     }
 
-    .file-download {
-      display: inline-block;
-      margin-top: 8px;
-      color: #ff6b6b;
-      text-decoration: none;
-      font-size: 13px;
+    .file-card {
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .file-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 7px;
+      background: #330000;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+    }
+
+    .file-info {
+      min-width: 0;
+    }
+
+    .file-name {
+      font-size: 14px;
       font-weight: 600;
+      overflow-wrap: anywhere;
     }
 
-    .file-download:hover {
-      text-decoration: underline;
+    .file-size {
+      margin-top: 3px;
+      font-size: 11px;
+      color: #888;
     }
 
-    /* ---------------------------------------------------------
+    /* =========================================================
+       DISCORD-LIKE URL EMBEDS
+    ========================================================== */
+
+    .kr-embed {
+      display: flex;
+      background: #2f3136;
+      border-radius: 8px;
+      max-width: 480px;
+      margin-top: 8px;
+      overflow: hidden;
+      font-family: Inter, Arial, sans-serif;
+    }
+
+    .kr-embed-bar {
+      width: 4px;
+      flex-shrink: 0;
+      background: #5865f2;
+    }
+
+    .kr-embed-body {
+      padding: 10px;
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .kr-embed-title {
+      color: #00aff4;
+      font-weight: 600;
+      font-size: 14px;
+      text-decoration: none;
+      overflow-wrap: anywhere;
+    }
+
+    .kr-embed-description {
+      font-size: 12px;
+      color: #b9bbbe;
+      overflow-wrap: anywhere;
+    }
+
+    .kr-embed-provider {
+      font-size: 11px;
+      color: #72767d;
+      margin-top: 4px;
+    }
+
+    .kr-embed img {
+      display: block;
+      max-width: 400px;
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 6px;
+      margin-top: 6px;
+    }
+
+    .kr-embed video {
+      display: block;
+      max-width: 400px;
+      width: 100%;
+      border-radius: 6px;
+      margin-top: 6px;
+    }
+
+    .kr-embed audio {
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    .kr-embed iframe {
+      width: 100%;
+      height: 300px;
+      border: 0;
+      border-radius: 6px;
+      margin-top: 6px;
+    }
+
+    .kr-embed-reactions {
+      margin-top: 6px;
+    }
+
+    /* =========================================================
        USERS
-    --------------------------------------------------------- */
+    ========================================================== */
 
     .user-list {
       width: 200px;
+      flex-shrink: 0;
       background: #1a0000;
       border-left: 1px solid #400000;
       padding: 1rem 0.75rem;
       overflow-y: auto;
-      flex-shrink: 0;
     }
 
     .user {
@@ -266,121 +370,134 @@
     .status-dot {
       width: 10px;
       height: 10px;
+      flex-shrink: 0;
       border-radius: 50%;
       background: #43b581;
-      flex-shrink: 0;
     }
 
-    .status-away {
-      background: #faa61a;
-    }
-
-    /* ---------------------------------------------------------
-       INPUT
-    --------------------------------------------------------- */
+    /* =========================================================
+       COMPOSER
+    ========================================================== */
 
     .chat-input {
-      display: flex;
-      gap: 8px;
-      padding: 1rem;
-      border-top: 1px solid #400000;
-      background: #1a0000;
       flex-shrink: 0;
+      padding: 12px;
+      background: #1a0000;
+      border-top: 1px solid #400000;
+    }
+
+    .attachment-preview {
+      display: none;
+      margin-bottom: 8px;
+      padding: 8px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 8px;
+    }
+
+    .attachment-preview.visible {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .attachment-preview-name {
+      flex: 1;
+      min-width: 0;
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .remove-attachment {
+      border: 0;
+      background: #333;
+      color: #fff;
+      width: 28px;
+      height: 28px;
+      border-radius: 5px;
+    }
+
+    .composer-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .chat-input input[type="text"] {
       flex: 1;
       min-width: 0;
-      padding: 0.7rem 0.8rem;
-      border: none;
-      border-radius: 0.5rem;
+      padding: 11px 13px;
+      border: 0;
+      outline: 0;
+      border-radius: 8px;
       background: #333;
       color: #fff;
       font-size: 1rem;
-      outline: none;
     }
 
     .chat-input input[type="text"]:focus {
       box-shadow: 0 0 0 1px #ff4d4d;
     }
 
-    .chat-button {
-      background: #ff4d4d;
-      border: none;
-      padding: 0.6rem 1rem;
-      border-radius: 0.5rem;
-      color: white;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .chat-button:hover {
-      background: #cc0000;
-    }
-
-    .upload-button {
+    .icon-button {
       width: 42px;
-      padding: 0;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      height: 42px;
+      border: 0;
+      border-radius: 8px;
+      background: #333;
+      color: #fff;
+      font-size: 19px;
+    }
+
+    .icon-button:hover {
+      background: #444;
+    }
+
+    .send-button {
+      height: 42px;
+      border: 0;
+      border-radius: 8px;
+      background: #ff4d4d;
+      color: #fff;
+      padding: 0 16px;
+      font-weight: 600;
+    }
+
+    .send-button:hover {
+      background: #cc0000;
     }
 
     #fileInput {
       display: none;
     }
 
-    /* ---------------------------------------------------------
-       DROP ZONE
-    --------------------------------------------------------- */
+    /* =========================================================
+       ADS
+    ========================================================== */
 
-    body.dragging-files::after {
-      content: "Drop files to upload";
-      position: fixed;
-      inset: 15px;
-      border: 2px dashed #ff4d4d;
-      border-radius: 14px;
-      background: rgba(40, 0, 0, 0.92);
+    .ad-banner {
+      height: 42px;
+      flex-shrink: 0;
+      background: #111;
+      border-bottom: 1px solid #400000;
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 9999;
-      font-size: 22px;
-      font-weight: 700;
-      pointer-events: none;
+      overflow: hidden;
     }
 
-    /* ---------------------------------------------------------
-       RESPONSIVE
-    --------------------------------------------------------- */
+    /* =========================================================
+       MOBILE
+    ========================================================== */
 
     @media (max-width: 800px) {
-      .sidebar {
-        width: 180px;
-      }
-
+      .sidebar,
       .user-list {
         display: none;
       }
 
       .message {
-        max-width: 90%;
-      }
-    }
-
-    @media (max-width: 600px) {
-      .sidebar {
-        display: none;
-      }
-
-      .chat-input {
-        padding: 0.7rem;
-      }
-
-      .chat-button {
-        padding-left: 0.8rem;
-        padding-right: 0.8rem;
+        max-width: 92%;
       }
     }
   </style>
@@ -389,33 +506,29 @@
 <body>
 
   <!-- =========================================================
-       ADS
+       TOP AD
   ========================================================== -->
 
   <div class="ad-banner">
     <ins
       class="adsbygoogle"
-      style="display:block"
+      style="display:block;width:100%;height:40px"
       data-ad-client="ca-pub-3940256099942544"
       data-ad-slot="6300978111"
       data-ad-format="auto"
-      data-full-width-responsive="true"
-    ></ins>
+      data-full-width-responsive="true">
+    </ins>
 
     <script>
-      window.adsbygoogle = window.adsbygoogle || [];
-      window.adsbygoogle.push({});
+      (adsbygoogle = window.adsbygoogle || []).push({});
     </script>
   </div>
 
-
-  <!-- =========================================================
-       APP
-  ========================================================== -->
-
   <div class="main-content">
 
-    <!-- SIDEBAR -->
+    <!-- =======================================================
+         SIDEBAR
+    ======================================================== -->
 
     <aside class="sidebar">
 
@@ -441,29 +554,28 @@
 
     </aside>
 
+    <!-- =======================================================
+         CHAT
+    ======================================================== -->
 
-    <!-- CHAT -->
-
-    <section class="chat-container">
+    <main class="chat-container">
 
       <header class="chat-header">
         # general
       </header>
 
-
       <div class="chat-main">
 
-        <main
+        <!-- =====================================================
+             MESSAGES
+        ====================================================== -->
+
+        <section
           class="chat-messages"
           id="chatMessages"
         >
 
-          <!-- Initial message -->
-
-          <div
-            class="message other"
-            data-message
-          >
+          <div class="message">
 
             <img
               class="avatar"
@@ -471,7 +583,7 @@
               alt="UserA"
             >
 
-            <div>
+            <div class="message-content-wrap">
 
               <div class="message-meta">
                 <strong>UserA</strong>
@@ -479,21 +591,18 @@
               </div>
 
               <div class="message-content">
-
-                <div class="message-text">
-                  Welcome to KrynetAI.free
-                </div>
-
+                Welcome to KrynetAI.free
               </div>
 
             </div>
 
           </div>
 
-        </main>
+        </section>
 
-
-        <!-- USERS -->
+        <!-- =====================================================
+             USERS
+        ====================================================== -->
 
         <aside class="user-list">
 
@@ -511,10 +620,12 @@
 
           </div>
 
-
           <div class="user">
 
-            <div class="status-dot status-away"></div>
+            <div
+              class="status-dot"
+              style="background:#faa61a"
+            ></div>
 
             <img
               class="avatar"
@@ -530,179 +641,75 @@
 
       </div>
 
-
-      <!-- INPUT -->
+      <!-- =====================================================
+           COMPOSER
+      ====================================================== -->
 
       <div class="chat-input">
 
-        <input
-          id="fileInput"
-          type="file"
-          multiple
+        <div
+          class="attachment-preview"
+          id="attachmentPreview"
         >
 
-        <button
-          id="uploadBtn"
-          class="chat-button upload-button"
-          type="button"
-          title="Upload files"
-          aria-label="Upload files"
-        >
-          +
-        </button>
+          <span
+            class="attachment-preview-name"
+            id="attachmentPreviewName"
+          ></span>
 
-        <input
-          type="text"
-          id="chatInput"
-          placeholder="Type your message..."
-          autocomplete="off"
-        >
+          <button
+            class="remove-attachment"
+            id="removeAttachment"
+            type="button"
+          >×</button>
 
-        <button
-          id="sendBtn"
-          class="chat-button"
-          type="button"
-        >
-          Send
-        </button>
+        </div>
+
+        <div class="composer-row">
+
+          <input
+            id="fileInput"
+            type="file"
+            multiple
+            accept="image/*,video/*,audio/*,.pdf,.txt,.md,.json,.zip,.avif,.heif,.heic,.aac,.m4a,.mp4"
+          >
+
+          <button
+            class="icon-button"
+            id="fileButton"
+            type="button"
+            title="Attach file"
+          >📎</button>
+
+          <input
+            type="text"
+            id="chatInput"
+            placeholder="Message #general"
+            autocomplete="off"
+          >
+
+          <button
+            class="send-button"
+            id="sendBtn"
+            type="button"
+          >
+            Send
+          </button>
+
+        </div>
 
       </div>
 
-    </section>
+    </main>
 
   </div>
 
-
   <!-- =========================================================
-       KRYNET JAVASCRIPT
-       
-       These are your repository scripts.
+       CHAT APPLICATION
   ========================================================== -->
 
-  <script
-    type="module"
-    src="./js/Cloudflare.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/anonymous-upload.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/blurNSFW.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/clearURLS.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/copyFileContents.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/country-blocker.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/dearrow.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/openInApp.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/reactions.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/screenshare.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/sponsorblock.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/tpm.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/voicechat.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/webcam.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/youtubeAdblock.js"
-  ></script>
-
-
-  <!-- =========================================================
-       MARKDOWN
-  ========================================================== -->
-
-  <script
-    type="module"
-    src="./js/markdownRenderer.js"
-  ></script>
-
-
-  <!-- =========================================================
-       SEARCH
-  ========================================================== -->
-
-  <script
-    type="module"
-    src="./js/krysearch.js"
-  ></script>
-
-
-  <!-- =========================================================
-       EMBED SYSTEM
-       
-       embed.js imports:
-       
-         import { Reactions } from "./reactions.js";
-       
-       so it must live at ./js/embed.js.
-  ========================================================== -->
-
-  <script
-    type="module"
-    src="./js/embed.js"
-  ></script>
-
-
-  <!-- =========================================================
-       CHAT APP
-  ========================================================== -->
-
-  <script type="module">
-
-    import { Embed } from "./js/embed.js";
-
-
-    /* ---------------------------------------------------------
-       ELEMENTS
-    --------------------------------------------------------- */
+  <script>
+    "use strict";
 
     const input =
       document.getElementById("chatInput");
@@ -710,59 +717,695 @@
     const button =
       document.getElementById("sendBtn");
 
-    const uploadButton =
-      document.getElementById("uploadBtn");
+    const chat =
+      document.getElementById("chatMessages");
 
     const fileInput =
       document.getElementById("fileInput");
 
-    const chat =
-      document.getElementById("chatMessages");
+    const fileButton =
+      document.getElementById("fileButton");
 
+    const attachmentPreview =
+      document.getElementById("attachmentPreview");
 
-    /* ---------------------------------------------------------
-       STATE
-    --------------------------------------------------------- */
+    const attachmentPreviewName =
+      document.getElementById("attachmentPreviewName");
 
-    let msgCount = 0;
+    const removeAttachment =
+      document.getElementById("removeAttachment");
 
+    let selectedFiles = [];
 
-    /* ---------------------------------------------------------
-       HELPERS
-    --------------------------------------------------------- */
+    let messageCount = 0;
 
-    function getTime() {
-      return new Date().toLocaleTimeString(
-        [],
-        {
-          hour: "2-digit",
-          minute: "2-digit"
+    /* =========================================================
+       FILE HELPERS
+    ========================================================== */
+
+    function formatFileSize(bytes) {
+      if (bytes < 1024) {
+        return `${bytes} B`;
+      }
+
+      if (bytes < 1024 * 1024) {
+        return `${(bytes / 1024).toFixed(1)} KB`;
+      }
+
+      if (bytes < 1024 * 1024 * 1024) {
+        return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+      }
+
+      return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
+    }
+
+    function getFileIcon(file) {
+      if (file.type.startsWith("image/")) {
+        return "🖼️";
+      }
+
+      if (file.type.startsWith("video/")) {
+        return "🎬";
+      }
+
+      if (file.type.startsWith("audio/")) {
+        return "🎵";
+      }
+
+      if (file.type === "application/pdf") {
+        return "📕";
+      }
+
+      return "📄";
+    }
+
+    /* =========================================================
+       FILE ATTACHMENT
+    ========================================================== */
+
+    function createFileAttachment(file) {
+      const attachment =
+        document.createElement("div");
+
+      attachment.className =
+        "attachment";
+
+      /*
+       * Images
+       */
+
+      if (file.type.startsWith("image/")) {
+        const image =
+          document.createElement("img");
+
+        const url =
+          URL.createObjectURL(file);
+
+        image.src = url;
+        image.alt = file.name;
+        image.loading = "lazy";
+
+        image.onload = () => {
+          URL.revokeObjectURL(url);
+        };
+
+        image.onerror = () => {
+          URL.revokeObjectURL(url);
+          attachment.replaceChildren(
+            createGenericFileCard(file)
+          );
+        };
+
+        attachment.appendChild(image);
+
+        return attachment;
+      }
+
+      /*
+       * Video
+       */
+
+      if (file.type.startsWith("video/")) {
+        const video =
+          document.createElement("video");
+
+        video.controls = true;
+        video.preload = "metadata";
+
+        const url =
+          URL.createObjectURL(file);
+
+        video.src = url;
+
+        video.onloadeddata = () => {
+          URL.revokeObjectURL(url);
+        };
+
+        attachment.appendChild(video);
+
+        return attachment;
+      }
+
+      /*
+       * Audio
+       */
+
+      if (file.type.startsWith("audio/")) {
+        const audio =
+          document.createElement("audio");
+
+        audio.controls = true;
+        audio.preload = "metadata";
+
+        const url =
+          URL.createObjectURL(file);
+
+        audio.src = url;
+
+        attachment.appendChild(audio);
+
+        return attachment;
+      }
+
+      /*
+       * PDF
+       */
+
+      if (file.type === "application/pdf") {
+        const frame =
+          document.createElement("iframe");
+
+        frame.src =
+          URL.createObjectURL(file);
+
+        frame.title =
+          file.name;
+
+        frame.style.width =
+          "100%";
+
+        frame.style.height =
+          "400px";
+
+        frame.style.border =
+          "0";
+
+        attachment.appendChild(frame);
+
+        return attachment;
+      }
+
+      /*
+       * Generic file
+       */
+
+      attachment.appendChild(
+        createGenericFileCard(file)
+      );
+
+      return attachment;
+    }
+
+    function createGenericFileCard(file) {
+      const card =
+        document.createElement("div");
+
+      card.className =
+        "file-card";
+
+      const icon =
+        document.createElement("div");
+
+      icon.className =
+        "file-icon";
+
+      icon.textContent =
+        getFileIcon(file);
+
+      const info =
+        document.createElement("div");
+
+      info.className =
+        "file-info";
+
+      const name =
+        document.createElement("div");
+
+      name.className =
+        "file-name";
+
+      name.textContent =
+        file.name;
+
+      const size =
+        document.createElement("div");
+
+      size.className =
+        "file-size";
+
+      size.textContent =
+        formatFileSize(file.size);
+
+      info.append(
+        name,
+        size
+      );
+
+      card.append(
+        icon,
+        info
+      );
+
+      return card;
+    }
+
+    /* =========================================================
+       FILE SELECTION
+    ========================================================== */
+
+    fileButton.addEventListener(
+      "click",
+      () => {
+        fileInput.click();
+      }
+    );
+
+    fileInput.addEventListener(
+      "change",
+      () => {
+        selectedFiles =
+          Array.from(fileInput.files || []);
+
+        if (!selectedFiles.length) {
+          attachmentPreview.classList.remove(
+            "visible"
+          );
+
+          return;
         }
+
+        attachmentPreviewName.textContent =
+          selectedFiles.length === 1
+            ? selectedFiles[0].name
+            : `${selectedFiles.length} files selected`;
+
+        attachmentPreview.classList.add(
+          "visible"
+        );
+      }
+    );
+
+    removeAttachment.addEventListener(
+      "click",
+      clearFiles
+    );
+
+    function clearFiles() {
+      selectedFiles = [];
+
+      fileInput.value = "";
+
+      attachmentPreview.classList.remove(
+        "visible"
       );
     }
 
+    /* =========================================================
+       URL EMBEDS
+    ========================================================== */
 
-    function scrollChat() {
-      chat.scrollTop =
-        chat.scrollHeight;
+    const URL_REGEX =
+      /https?:\/\/[^\s<>"']+?(?=[\s<>"']|$)/gi;
+
+    const NOEMBED_API =
+      "https://noembed.com/embed";
+
+    const embedCache =
+      new Map();
+
+    function normalizeURL(value) {
+      try {
+        const url =
+          new URL(value);
+
+        if (
+          url.protocol !== "http:" &&
+          url.protocol !== "https:"
+        ) {
+          return null;
+        }
+
+        return url.href;
+      } catch {
+        return null;
+      }
     }
 
+    function getFilename(url) {
+      try {
+        const parsed =
+          new URL(url);
 
-    function createMessage({
-      text = "",
-      self = false
-    } = {}) {
+        const pathname =
+          decodeURIComponent(
+            parsed.pathname
+          );
+
+        return (
+          pathname
+            .split("/")
+            .filter(Boolean)
+            .pop() ||
+          parsed.hostname
+        );
+      } catch {
+        return url;
+      }
+    }
+
+    async function getMime(url) {
+      try {
+        const response =
+          await fetch(url, {
+            method: "GET",
+            headers: {
+              Range: "bytes=0-0"
+            }
+          });
+
+        return (
+          response.headers.get(
+            "content-type"
+          ) || ""
+        );
+      } catch {
+        return "";
+      }
+    }
+
+    async function getMeta(url) {
+      try {
+        const endpoint =
+          `${NOEMBED_API}?url=${encodeURIComponent(url)}`;
+
+        const response =
+          await fetch(endpoint);
+
+        if (!response.ok) {
+          return {};
+        }
+
+        const data =
+          await response.json();
+
+        if (
+          !data ||
+          typeof data !== "object"
+        ) {
+          return {};
+        }
+
+        return data;
+      } catch {
+        return {};
+      }
+    }
+
+    async function getEmbedData(url) {
+      if (embedCache.has(url)) {
+        return embedCache.get(url);
+      }
+
+      const request =
+        Promise.all([
+          getMeta(url),
+          getMime(url)
+        ]).then(
+          ([meta, mime]) => ({
+            meta,
+            mime
+          })
+        );
+
+      embedCache.set(
+        url,
+        request
+      );
+
+      return request;
+    }
+
+    function createEmbedMedia(
+      url,
+      mime,
+      meta
+    ) {
+      if (meta.thumbnail_url) {
+        const image =
+          document.createElement("img");
+
+        image.src =
+          meta.thumbnail_url;
+
+        image.alt =
+          meta.title ||
+          "Embedded media";
+
+        image.loading =
+          "lazy";
+
+        image.referrerPolicy =
+          "no-referrer";
+
+        return image;
+      }
+
+      if (mime.startsWith("image/")) {
+        const image =
+          document.createElement("img");
+
+        image.src = url;
+        image.alt =
+          getFilename(url);
+        image.loading =
+          "lazy";
+
+        return image;
+      }
+
+      if (mime.startsWith("video/")) {
+        const video =
+          document.createElement("video");
+
+        video.src = url;
+        video.controls = true;
+        video.preload = "metadata";
+
+        return video;
+      }
+
+      if (mime.startsWith("audio/")) {
+        const audio =
+          document.createElement("audio");
+
+        audio.src = url;
+        audio.controls = true;
+        audio.preload = "metadata";
+
+        return audio;
+      }
+
+      if (mime === "application/pdf") {
+        const frame =
+          document.createElement("iframe");
+
+        frame.src = url;
+        frame.loading = "lazy";
+        frame.title = "PDF document";
+
+        return frame;
+      }
+
+      return null;
+    }
+
+    async function buildEmbed(url) {
+      const {
+        meta,
+        mime
+      } = await getEmbedData(url);
+
+      const card =
+        document.createElement("div");
+
+      card.className =
+        "kr-embed";
+
+      const bar =
+        document.createElement("div");
+
+      bar.className =
+        "kr-embed-bar";
+
+      const body =
+        document.createElement("div");
+
+      body.className =
+        "kr-embed-body";
+
+      card.append(
+        bar,
+        body
+      );
+
+      const title =
+        document.createElement("a");
+
+      title.className =
+        "kr-embed-title";
+
+      title.href = url;
+      title.target = "_blank";
+      title.rel =
+        "noopener noreferrer";
+
+      title.textContent =
+        meta.title ||
+        getFilename(url);
+
+      body.appendChild(title);
+
+      if (meta.description) {
+        const description =
+          document.createElement("div");
+
+        description.className =
+          "kr-embed-description";
+
+        description.textContent =
+          meta.description;
+
+        body.appendChild(
+          description
+        );
+      }
+
+      const media =
+        createEmbedMedia(
+          url,
+          mime,
+          meta
+        );
+
+      if (media) {
+        body.appendChild(media);
+      }
+
+      if (meta.provider_name) {
+        const provider =
+          document.createElement("div");
+
+        provider.className =
+          "kr-embed-provider";
+
+        provider.textContent =
+          meta.provider_name;
+
+        body.appendChild(
+          provider
+        );
+      }
+
+      /*
+       * Use the existing Reactions class
+       * when reactions.js exposes it.
+       */
+
+      const reactions =
+        document.createElement("div");
+
+      reactions.className =
+        "kr-embed-reactions";
+
+      body.appendChild(
+        reactions
+      );
+
+      if (
+        typeof window.Reactions ===
+        "function"
+      ) {
+        try {
+          new window.Reactions(
+            reactions
+          );
+        } catch {
+          // Reactions is optional.
+        }
+      }
+
+      return card;
+    }
+
+    function extractURLs(text) {
+      const matches =
+        text.match(URL_REGEX);
+
+      if (!matches) {
+        return [];
+      }
+
+      const unique =
+        new Set();
+
+      for (const match of matches) {
+        const url =
+          normalizeURL(match);
+
+        if (url) {
+          unique.add(url);
+        }
+      }
+
+      return Array.from(unique);
+    }
+
+    async function addURLEmbeds(
+      message,
+      text
+    ) {
+      const urls =
+        extractURLs(text);
+
+      if (!urls.length) {
+        return;
+      }
+
+      for (const url of urls) {
+        try {
+          const embed =
+            await buildEmbed(url);
+
+          if (!message.isConnected) {
+            return;
+          }
+
+          message
+            .querySelector(
+              ".message-content-wrap"
+            )
+            ?.appendChild(embed);
+
+        } catch (error) {
+          console.warn(
+            "[Krynet] Embed failed:",
+            url,
+            error
+          );
+        }
+      }
+    }
+
+    /* =========================================================
+       SEND MESSAGE
+    ========================================================== */
+
+    function sendMessage() {
+      const text =
+        input.value.trim();
+
+      if (
+        !text &&
+        !selectedFiles.length
+      ) {
+        return;
+      }
 
       const container =
         document.createElement("div");
 
       container.className =
-        self
-          ? "message self"
-          : "message other";
-
-      container.dataset.message = "";
-
+        "message self";
 
       const avatar =
         document.createElement("img");
@@ -771,19 +1414,16 @@
         "avatar";
 
       avatar.src =
-        self
-          ? "https://cdn.krynet.com/avatars/default2.png"
-          : "https://cdn.krynet.com/avatars/default1.png";
+        "https://cdn.krynet.com/avatars/default2.png";
 
       avatar.alt =
-        self
-          ? "You"
-          : "User";
+        "You";
 
-
-      const info =
+      const wrap =
         document.createElement("div");
 
+      wrap.className =
+        "message-content-wrap";
 
       const meta =
         document.createElement("div");
@@ -791,643 +1431,183 @@
       meta.className =
         "message-meta";
 
-      const name =
+      const strong =
         document.createElement("strong");
 
-      name.textContent =
-        self
-          ? "You"
-          : "User";
+      strong.textContent =
+        "You";
 
+      meta.appendChild(strong);
 
       meta.append(
-        name,
         document.createTextNode(
-          ` • ${getTime()}`
+          " • " +
+          new Date().toLocaleTimeString(
+            [],
+            {
+              hour: "2-digit",
+              minute: "2-digit"
+            }
+          )
         )
       );
 
+      wrap.appendChild(meta);
 
-      const content =
-        document.createElement("div");
-
-      content.className =
-        "message-content";
-
+      /*
+       * Text message
+       */
 
       if (text) {
-
-        const textElement =
+        const bubble =
           document.createElement("div");
 
-        textElement.className =
-          "message-text";
+        bubble.className =
+          "message-content";
 
-        textElement.textContent =
+        bubble.textContent =
           text;
 
-        content.appendChild(
-          textElement
+        wrap.appendChild(
+          bubble
         );
-
       }
 
+      /*
+       * File attachments
+       */
 
-      info.append(
-        meta,
-        content
-      );
+      const filesToSend =
+        [...selectedFiles];
+
+      for (const file of filesToSend) {
+        const attachment =
+          createFileAttachment(file);
+
+        wrap.appendChild(
+          attachment
+        );
+      }
 
       container.append(
         avatar,
-        info
+        wrap
       );
-
-
-      return {
-        container,
-        content
-      };
-    }
-
-
-    /* ---------------------------------------------------------
-       NORMAL MESSAGE
-    --------------------------------------------------------- */
-
-    function sendMessage() {
-
-      const text =
-        input.value.trim();
-
-      if (!text) {
-        return;
-      }
-
-
-      const {
-        container
-      } = createMessage({
-        text,
-        self: true
-      });
-
 
       chat.appendChild(
         container
       );
 
-
       /*
-       * This is the important part.
-       *
-       * embed.js scans the message text for URLs and
-       * inserts the embed directly into this message.
+       * Build URL embeds directly
+       * underneath the message.
        */
 
-      Embed.scanMessages(
-        "[data-message]"
-      );
+      if (text) {
+        void addURLEmbeds(
+          container,
+          text
+        );
+      }
 
-
-      msgCount++;
-
+      messageCount++;
 
       /*
        * Ad every 5 messages.
        */
 
-      if (
-        msgCount % 5 === 0
-      ) {
+      if (messageCount % 5 === 0) {
+        const adContainer =
+          document.createElement("div");
 
-        addMessageAd();
+        adContainer.className =
+          "message";
 
+        const ad =
+          document.createElement("ins");
+
+        ad.className =
+          "adsbygoogle";
+
+        ad.style.display =
+          "block";
+
+        ad.style.width =
+          "100%";
+
+        ad.dataset.adClient =
+          "ca-pub-3940256099942544";
+
+        ad.dataset.adSlot =
+          "6300978111";
+
+        ad.dataset.adFormat =
+          "auto";
+
+        ad.dataset.fullWidthResponsive =
+          "true";
+
+        adContainer.appendChild(ad);
+
+        chat.appendChild(
+          adContainer
+        );
+
+        try {
+          (
+            window.adsbygoogle =
+            window.adsbygoogle || []
+          ).push({});
+        } catch {
+          // Ad blocker / unavailable.
+        }
       }
-
 
       input.value = "";
 
-      scrollChat();
+      clearFiles();
+
+      chat.scrollTop =
+        chat.scrollHeight;
     }
 
-
-    /* ---------------------------------------------------------
-       MESSAGE AD
-    --------------------------------------------------------- */
-
-    function addMessageAd() {
-
-      const container =
-        document.createElement("div");
-
-      container.className =
-        "message";
-
-      container.innerHTML = `
-        <div style="width:100%;">
-          <ins
-            class="adsbygoogle"
-            style="display:block;width:100%;"
-            data-ad-client="ca-pub-3940256099942544"
-            data-ad-slot="6300978111"
-            data-ad-format="auto"
-            data-full-width-responsive="true"
-          ></ins>
-        </div>
-      `;
-
-
-      chat.appendChild(
-        container
-      );
-
-
-      try {
-
-        window.adsbygoogle =
-          window.adsbygoogle || [];
-
-        window.adsbygoogle.push({});
-
-      } catch {
-        /* AdSense unavailable. */
-      }
-    }
-
-
-    /* ---------------------------------------------------------
-       FILE MESSAGE
-    --------------------------------------------------------- */
-
-    function addFileMessage(file) {
-
-      if (!file) {
-        return;
-      }
-
-
-      const {
-        container,
-        content
-      } = createMessage({
-        self: true
-      });
-
-
-      const fileEmbed =
-        document.createElement("div");
-
-      fileEmbed.className =
-        "file-embed";
-
-
-      const filename =
-        document.createElement("div");
-
-      filename.className =
-        "file-embed-name";
-
-      filename.textContent =
-        file.name;
-
-
-      fileEmbed.appendChild(
-        filename
-      );
-
-
-      const objectURL =
-        URL.createObjectURL(file);
-
-
-      const type =
-        file.type.toLowerCase();
-
-
-      /*
-       * IMAGE
-       */
-
-      if (
-        type.startsWith("image/")
-      ) {
-
-        const image =
-          document.createElement("img");
-
-        image.src =
-          objectURL;
-
-        image.alt =
-          file.name;
-
-        image.loading =
-          "lazy";
-
-
-        image.addEventListener(
-          "load",
-          () => {
-            URL.revokeObjectURL(
-              objectURL
-            );
-          },
-          {
-            once: true
-          }
-        );
-
-
-        image.addEventListener(
-          "error",
-          () => {
-            URL.revokeObjectURL(
-              objectURL
-            );
-          },
-          {
-            once: true
-          }
-        );
-
-
-        fileEmbed.appendChild(
-          image
-        );
-
-      }
-
-
-      /*
-       * VIDEO
-       */
-
-      else if (
-        type.startsWith("video/")
-      ) {
-
-        const video =
-          document.createElement("video");
-
-        video.src =
-          objectURL;
-
-        video.controls =
-          true;
-
-        video.preload =
-          "metadata";
-
-
-        fileEmbed.appendChild(
-          video
-        );
-
-      }
-
-
-      /*
-       * AUDIO
-       */
-
-      else if (
-        type.startsWith("audio/")
-      ) {
-
-        const audio =
-          document.createElement("audio");
-
-        audio.src =
-          objectURL;
-
-        audio.controls =
-          true;
-
-        audio.preload =
-          "metadata";
-
-
-        fileEmbed.appendChild(
-          audio
-        );
-
-      }
-
-
-      /*
-       * GENERIC FILE
-       */
-
-      else {
-
-        const download =
-          document.createElement("a");
-
-        download.className =
-          "file-download";
-
-        download.href =
-          objectURL;
-
-        download.download =
-          file.name;
-
-        download.target =
-          "_blank";
-
-        download.rel =
-          "noopener noreferrer";
-
-        download.textContent =
-          "Open / download file";
-
-
-        fileEmbed.appendChild(
-          download
-        );
-
-      }
-
-
-      content.appendChild(
-        fileEmbed
-      );
-
-
-      chat.appendChild(
-        container
-      );
-
-
-      /*
-       * Scan this message too.
-       *
-       * This means if the message also contains
-       * a URL in the filename/text later, embed.js
-       * can process it.
-       */
-
-      Embed.scanMessages(
-        "[data-message]"
-      );
-
-
-      scrollChat();
-    }
-
-
-    /* ---------------------------------------------------------
-       MULTIPLE FILES
-    --------------------------------------------------------- */
-
-    function handleFiles(files) {
-
-      for (
-        const file of files
-      ) {
-
-        addFileMessage(file);
-
-      }
-
-    }
-
-
-    /* ---------------------------------------------------------
-       UPLOAD BUTTON
-    --------------------------------------------------------- */
-
-    uploadButton.addEventListener(
-      "click",
-      () => {
-
-        fileInput.click();
-
-      }
-    );
-
-
-    fileInput.addEventListener(
-      "change",
-      () => {
-
-        handleFiles(
-          Array.from(
-            fileInput.files || []
-          )
-        );
-
-
-        fileInput.value =
-          "";
-
-      }
-    );
-
-
-    /* ---------------------------------------------------------
-       SEND
-    --------------------------------------------------------- */
+    /* =========================================================
+       EVENTS
+    ========================================================== */
 
     button.addEventListener(
       "click",
       sendMessage
     );
 
-
     input.addEventListener(
       "keydown",
       event => {
-
         if (
-          event.key !== "Enter"
-        ) {
-          return;
-        }
-
-        if (
-          event.shiftKey
-        ) {
-          return;
-        }
-
-        event.preventDefault();
-
-        sendMessage();
-
-      }
-    );
-
-
-    /* ---------------------------------------------------------
-       PASTE IMAGE
-    --------------------------------------------------------- */
-
-    input.addEventListener(
-      "paste",
-      event => {
-
-        const items =
-          event.clipboardData?.items;
-
-        if (!items) {
-          return;
-        }
-
-
-        const files = [];
-
-
-        for (
-          const item of items
-        ) {
-
-          if (
-            !item.type.startsWith(
-              "image/"
-            )
-          ) {
-            continue;
-          }
-
-
-          const file =
-            item.getAsFile();
-
-          if (file) {
-            files.push(file);
-          }
-
-        }
-
-
-        if (files.length) {
-
-          event.preventDefault();
-
-          handleFiles(files);
-
-        }
-
-      }
-    );
-
-
-    /* ---------------------------------------------------------
-       DRAG + DROP
-    --------------------------------------------------------- */
-
-    let dragCounter = 0;
-
-
-    document.addEventListener(
-      "dragenter",
-      event => {
-
-        if (
-          !event.dataTransfer?.types.includes(
-            "Files"
-          )
-        ) {
-          return;
-        }
-
-        event.preventDefault();
-
-        dragCounter++;
-
-        document.body.classList.add(
-          "dragging-files"
-        );
-
-      }
-    );
-
-
-    document.addEventListener(
-      "dragover",
-      event => {
-
-        if (
-          event.dataTransfer?.types.includes(
-            "Files"
-          )
+          event.key === "Enter" &&
+          !event.shiftKey
         ) {
           event.preventDefault();
+          sendMessage();
         }
-
       }
     );
 
-
-    document.addEventListener(
-      "dragleave",
-      event => {
-
-        event.preventDefault();
-
-        dragCounter--;
-
-        if (
-          dragCounter <= 0
-        ) {
-
-          dragCounter = 0;
-
-          document.body.classList.remove(
-            "dragging-files"
-          );
-
-        }
-
-      }
-    );
-
-
-    document.addEventListener(
-      "drop",
-      event => {
-
-        event.preventDefault();
-
-        dragCounter = 0;
-
-        document.body.classList.remove(
-          "dragging-files"
-        );
-
-
-        const files =
-          Array.from(
-            event.dataTransfer?.files || []
-          );
-
-
-        if (!files.length) {
-          return;
-        }
-
-
-        handleFiles(files);
-
-      }
-    );
-
-
-    /* ---------------------------------------------------------
-       INITIAL EMBEDS
-    --------------------------------------------------------- */
-
-    Embed.scanMessages(
-      "[data-message]"
-    );
-
+    /* =========================================================
+       STARTUP
+    ========================================================== */
 
     console.log(
       "[Krynet] Chat initialized"
     );
 
+    console.log(
+      "[Krynet] File attachments enabled"
+    );
+
+    console.log(
+      "[Krynet] Discord-style embeds enabled"
+    );
   </script>
 
 </body>
