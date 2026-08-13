@@ -2,31 +2,74 @@
 <html lang="en">
 <head>
   <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
   <title>KrynetAI.free – Chat UI</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3940256099942544" crossorigin="anonymous"></script>
+
+  <!-- Font -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Google AdSense -->
+  <script
+    async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3940256099942544"
+    crossorigin="anonymous"
+  ></script>
+
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
     body {
       margin: 0;
-      font-family: 'Inter', sans-serif;
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      font-family: "Inter", sans-serif;
       background-color: #0a0a0a;
       color: #fff;
       display: flex;
-      height: 100vh;
       flex-direction: column;
+      overflow: hidden;
     }
-    .main-content { display: flex; flex-grow: 1; }
+
+    .main-content {
+      display: flex;
+      flex-grow: 1;
+      min-height: 0;
+    }
+
+    /* -----------------------------
+       Sidebar
+    ----------------------------- */
+
     .sidebar {
       width: 240px;
+      flex-shrink: 0;
       background-color: #1a0000;
       border-right: 1px solid #400000;
       display: flex;
       flex-direction: column;
       padding: 1rem 0;
     }
-    .channel-list { flex-grow: 1; overflow-y: auto; }
+
+    .channel-list {
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
     .channel {
       padding: 0.5rem 1.25rem;
       border-radius: 5px;
@@ -34,55 +77,97 @@
       color: #fff;
       font-size: 0.95rem;
     }
-    .channel:hover { background-color: #330000; }
-    .chat-container { flex-grow: 1; display: flex; flex-direction: column; }
+
+    .channel:hover {
+      background-color: #330000;
+    }
+
+    /* -----------------------------
+       Chat
+    ----------------------------- */
+
+    .chat-container {
+      flex-grow: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
     .chat-header {
       padding: 1rem;
       background-color: #1a0000;
       border-bottom: 1px solid #400000;
       font-size: 1rem;
       font-weight: 600;
+      flex-shrink: 0;
     }
-    .chat-main { display: flex; flex-grow: 1; }
+
+    .chat-main {
+      display: flex;
+      flex-grow: 1;
+      min-height: 0;
+    }
+
     .chat-messages {
       flex-grow: 1;
+      min-width: 0;
       padding: 1rem;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
     }
+
     .message {
       display: flex;
       gap: 0.6rem;
       max-width: 70%;
       align-items: flex-start;
     }
-    .message.self { align-self: flex-end; flex-direction: row-reverse; }
+
+    .message.self {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
     .message-content {
       background-color: #1a1a1a;
       padding: 0.6rem 0.9rem;
       border-radius: 0.6rem;
+      word-break: break-word;
     }
-    .message.self .message-content { background-color: #330000; }
+
+    .message.self .message-content {
+      background-color: #330000;
+    }
+
     .message-meta {
       font-size: 0.75rem;
       color: #888;
       margin-bottom: 0.25rem;
     }
+
     .avatar {
       width: 36px;
       height: 36px;
+      flex-shrink: 0;
       border-radius: 50%;
       object-fit: cover;
     }
+
+    /* -----------------------------
+       User list
+    ----------------------------- */
+
     .user-list {
       width: 200px;
+      flex-shrink: 0;
       background-color: #1a0000;
       border-left: 1px solid #400000;
       padding: 1rem 0.75rem;
       overflow-y: auto;
     }
+
     .user {
       display: flex;
       align-items: center;
@@ -90,27 +175,43 @@
       margin-bottom: 0.75rem;
       font-size: 0.9rem;
     }
+
     .status-dot {
       width: 10px;
       height: 10px;
+      flex-shrink: 0;
       border-radius: 50%;
       background-color: #43b581;
     }
+
+    /* -----------------------------
+       Input
+    ----------------------------- */
+
     .chat-input {
       display: flex;
       padding: 1rem;
       border-top: 1px solid #400000;
       background-color: #1a0000;
+      flex-shrink: 0;
     }
+
     .chat-input input {
       flex-grow: 1;
+      min-width: 0;
       padding: 0.6rem;
       border: none;
+      outline: none;
       border-radius: 0.5rem;
       background-color: #333;
       color: #fff;
       font-size: 1rem;
     }
+
+    .chat-input input::placeholder {
+      color: #999;
+    }
+
     .chat-input button {
       margin-left: 1rem;
       background-color: #ff4d4d;
@@ -119,115 +220,395 @@
       border-radius: 0.5rem;
       color: white;
       cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
     }
-    .chat-input button:hover { background-color: #cc0000; }
+
+    .chat-input button:hover {
+      background-color: #cc0000;
+    }
+
+    /* -----------------------------
+       Ad banner
+    ----------------------------- */
+
     .ad-banner {
       background-color: #111;
       text-align: center;
       padding: 0.5rem;
       font-size: 0.9rem;
       border-bottom: 1px solid #400000;
+      flex-shrink: 0;
+    }
+
+    /* -----------------------------
+       Mobile
+    ----------------------------- */
+
+    @media (max-width: 800px) {
+      .sidebar {
+        width: 180px;
+      }
+
+      .user-list {
+        display: none;
+      }
+
+      .message {
+        max-width: 85%;
+      }
+    }
+
+    @media (max-width: 550px) {
+      .sidebar {
+        display: none;
+      }
+
+      .chat-input {
+        padding: 0.75rem;
+      }
+
+      .chat-input button {
+        margin-left: 0.5rem;
+      }
     }
   </style>
 </head>
+
 <body>
+
+  <!-- =========================================
+       AD BANNER
+  ========================================== -->
+
   <div class="ad-banner">
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3940256099942544" data-ad-slot="6300978111" data-ad-format="auto" data-full-width-responsive="true"></ins>
-    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    <ins
+      class="adsbygoogle"
+      style="display:block"
+      data-ad-client="ca-pub-3940256099942544"
+      data-ad-slot="6300978111"
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+    ></ins>
   </div>
+
+  <!-- =========================================
+       MAIN
+  ========================================== -->
+
   <div class="main-content">
+
+    <!-- =======================================
+         CHANNEL SIDEBAR
+    ======================================== -->
+
     <div class="sidebar">
       <div class="channel-list">
-        <div class="channel"># general</div>
-        <div class="channel"># support</div>
-        <div class="channel"># random</div>
+
+        <div class="channel">
+          # general
+        </div>
+
+        <div class="channel">
+          # support
+        </div>
+
+        <div class="channel">
+          # random
+        </div>
+
       </div>
     </div>
+
+    <!-- =======================================
+         CHAT
+    ======================================== -->
+
     <div class="chat-container">
-      <div class="chat-header"># general</div>
+
+      <div class="chat-header">
+        # general
+      </div>
+
       <div class="chat-main">
-        <div class="chat-messages" id="chatMessages">
+
+        <!-- =====================================
+             MESSAGES
+        ====================================== -->
+
+        <div
+          class="chat-messages"
+          id="chatMessages"
+        >
+
           <div class="message other">
-            <img class="avatar" src="https://cdn.krynet.com/avatars/default1.png" alt="User">
+
+            <img
+              class="avatar"
+              src="https://cdn.krynet.com/avatars/default1.png"
+              alt="User"
+            />
+
             <div>
-              <div class="message-meta"><strong>UserA</strong> • 12:34 PM</div>
-              <div class="message-content">Welcome to KrynetAI.free</div>
+
+              <div class="message-meta">
+                <strong>UserA</strong>
+                • 12:34 PM
+              </div>
+
+              <div class="message-content">
+                Welcome to KrynetAI.free
+              </div>
+
             </div>
+
           </div>
+
         </div>
+
+        <!-- =====================================
+             USERS
+        ====================================== -->
+
         <div class="user-list">
+
           <div class="user">
+
             <div class="status-dot"></div>
-            <img class="avatar" src="https://cdn.krynet.com/avatars/default1.png" alt="UserA">
-            <span>UserA</span>
+
+            <img
+              class="avatar"
+              src="https://cdn.krynet.com/avatars/default1.png"
+              alt="UserA"
+            />
+
+            <span>
+              UserA
+            </span>
+
           </div>
+
           <div class="user">
-            <div class="status-dot" style="background-color:#faa61a;"></div>
-            <img class="avatar" src="https://cdn.krynet.com/avatars/default2.png" alt="UserB">
-            <span>UserB</span>
+
+            <div
+              class="status-dot"
+              style="background-color:#faa61a;"
+            ></div>
+
+            <img
+              class="avatar"
+              src="https://cdn.krynet.com/avatars/default2.png"
+              alt="UserB"
+            />
+
+            <span>
+              UserB
+            </span>
+
           </div>
+
         </div>
+
       </div>
+
+      <!-- =====================================
+           INPUT
+      ====================================== -->
+
       <div class="chat-input">
-        <input type="text" id="chatInput" placeholder="Type your message...">
-        <button id="sendBtn">Send</button>
+
+        <input
+          type="text"
+          id="chatInput"
+          placeholder="Type your message..."
+          autocomplete="off"
+        />
+
+        <button
+          id="sendBtn"
+          type="button"
+        >
+          Send
+        </button>
+
       </div>
+
     </div>
+
   </div>
+
+  <!-- =========================================
+       KRYNET JS MODULES
+  ========================================== -->
+
+  <script src="js/Cloudflare.js"></script>
+  <script src="js/anonymous-upload.js"></script>
+  <script src="js/blurNSFW.js"></script>
+  <script src="js/clearURLS.js"></script>
+  <script src="js/copyFileContents.js"></script>
+  <script src="js/country-blocker.js"></script>
+  <script src="js/dearrow.js"></script>
+  <script src="js/embed.js"></script>
+  <script src="js/krysearch.js"></script>
+  <script src="js/markdownRenderer.js"></script>
+  <script src="js/openInApp.js"></script>
+  <script src="js/reactions.js"></script>
+  <script src="js/screenshare.js"></script>
+  <script src="js/sponsorblock.js"></script>
+  <script src="js/tpm.js"></script>
+  <script src="js/voicechat.js"></script>
+  <script src="js/webcam.js"></script>
+  <script src="js/youtubeAdblock.js"></script>
+
+  <!-- =========================================
+       CHAT LOGIC
+  ========================================== -->
+
   <script>
-    const input = document.getElementById('chatInput');
-    const button = document.getElementById('sendBtn');
-    const chat = document.getElementById('chatMessages');
+    window.adsbygoogle =
+      window.adsbygoogle || [];
+
+    window.adsbygoogle.push({});
+
+    const input =
+      document.getElementById("chatInput");
+
+    const button =
+      document.getElementById("sendBtn");
+
+    const chat =
+      document.getElementById("chatMessages");
+
     let msgCount = 0;
 
     function sendMessage() {
-      const msg = input.value.trim();
-      if (!msg) return;
+      const msg =
+        input.value.trim();
 
-      const container = document.createElement('div');
-      container.classList.add('message', 'self');
+      if (!msg) {
+        return;
+      }
 
-      const avatar = document.createElement('img');
-      avatar.className = 'avatar';
-      avatar.src = 'https://cdn.krynet.com/avatars/default2.png';
-      avatar.alt = 'You';
+      const container =
+        document.createElement("div");
 
-      const infoWrap = document.createElement('div');
+      container.classList.add(
+        "message",
+        "self"
+      );
 
-      const meta = document.createElement('div');
-      meta.className = 'message-meta';
-      meta.innerHTML = '<strong>You</strong> • ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const avatar =
+        document.createElement("img");
 
-      const bubble = document.createElement('div');
-      bubble.className = 'message-content';
+      avatar.className = "avatar";
+      avatar.src =
+        "https://cdn.krynet.com/avatars/default2.png";
+      avatar.alt = "You";
+
+      const infoWrap =
+        document.createElement("div");
+
+      const meta =
+        document.createElement("div");
+
+      meta.className =
+        "message-meta";
+
+      const name =
+        document.createElement("strong");
+
+      name.textContent = "You";
+
+      meta.appendChild(name);
+
+      meta.appendChild(
+        document.createTextNode(
+          " • " +
+          new Date().toLocaleTimeString(
+            [],
+            {
+              hour: "2-digit",
+              minute: "2-digit"
+            }
+          )
+        )
+      );
+
+      const bubble =
+        document.createElement("div");
+
+      bubble.className =
+        "message-content";
+
       bubble.textContent = msg;
 
       infoWrap.appendChild(meta);
       infoWrap.appendChild(bubble);
+
       container.appendChild(avatar);
       container.appendChild(infoWrap);
+
       chat.appendChild(container);
 
       msgCount++;
 
+      /*
+       * Ad every five messages.
+       */
+
       if (msgCount % 5 === 0) {
-        const adContainer = document.createElement('div');
-        adContainer.classList.add('message');
-        adContainer.innerHTML = '<ins class="adsbygoogle" style="display:block; width:100%;" data-ad-client="ca-pub-3940256099942544" data-ad-slot="6300978111" data-ad-format="auto" data-full-width-responsive="true"></ins>';
-        chat.appendChild(adContainer);
-        (adsbygoogle = window.adsbygoogle || []).push({});
+        const adContainer =
+          document.createElement("div");
+
+        adContainer.classList.add(
+          "message"
+        );
+
+        adContainer.innerHTML = `
+          <ins
+            class="adsbygoogle"
+            style="display:block;width:100%;"
+            data-ad-client="ca-pub-3940256099942544"
+            data-ad-slot="6300978111"
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          ></ins>
+        `;
+
+        chat.appendChild(
+          adContainer
+        );
+
+        window.adsbygoogle =
+          window.adsbygoogle || [];
+
+        window.adsbygoogle.push({});
       }
 
-      input.value = '';
-      chat.scrollTop = chat.scrollHeight;
+      input.value = "";
+
+      chat.scrollTop =
+        chat.scrollHeight;
     }
 
-    button.addEventListener('click', sendMessage);
-    input.addEventListener('keypress', function (e) {
-      if (e.key === 'Enter') {
+    button.addEventListener(
+      "click",
+      sendMessage
+    );
+
+    input.addEventListener(
+      "keydown",
+      event => {
+        if (event.key !== "Enter") {
+          return;
+        }
+
+        event.preventDefault();
+
         sendMessage();
       }
-    });
+    );
   </script>
+
 </body>
 </html>
