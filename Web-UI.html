@@ -1,24 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
 
-  <title>KrynetAI.free – Chat UI</title>
+  <title>KrynetAI.free – Chat</title>
+
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
 
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
     rel="stylesheet"
   >
 
+  <!-- Google AdSense -->
   <script
     async
     src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3940256099942544"
-    crossorigin="anonymous"
-  ></script>
+    crossorigin="anonymous">
+  </script>
 
   <style>
     * {
@@ -27,95 +28,137 @@
 
     body {
       margin: 0;
-      font-family: "Inter", sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      font-family: Inter, system-ui, sans-serif;
       background: #0a0a0a;
       color: #fff;
-      display: flex;
-      height: 100vh;
-      flex-direction: column;
     }
 
     button,
     input {
-      font-family: inherit;
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    /* =========================
+       Layout
+       ========================= */
+
+    .app {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ad-banner {
+      min-height: 52px;
+      padding: 6px 12px;
+      background: #111;
+      border-bottom: 1px solid #292929;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     .main-content {
-      display: flex;
-      flex-grow: 1;
+      flex: 1;
       min-height: 0;
+      display: flex;
     }
 
-    /* ================================
-       SIDEBAR
-       ================================ */
+    /* =========================
+       Sidebar
+       ========================= */
 
     .sidebar {
       width: 240px;
-      background: #1a0000;
-      border-right: 1px solid #400000;
+      flex-shrink: 0;
+      background: #151515;
+      border-right: 1px solid #292929;
       display: flex;
       flex-direction: column;
-      padding: 1rem 0;
-      flex-shrink: 0;
+      padding: 14px 10px;
+    }
+
+    .brand {
+      padding: 10px 12px 18px;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .brand span {
+      color: #ff4d4d;
     }
 
     .channel-list {
-      flex-grow: 1;
+      flex: 1;
       overflow-y: auto;
     }
 
     .channel {
-      padding: 0.5rem 1.25rem;
-      border-radius: 5px;
+      padding: 9px 12px;
+      margin-bottom: 3px;
+      border-radius: 7px;
+      color: #bbb;
       cursor: pointer;
+    }
+
+    .channel:hover,
+    .channel.active {
+      background: #262626;
       color: #fff;
-      font-size: 0.95rem;
     }
 
-    .channel:hover {
-      background: #330000;
-    }
-
-    /* ================================
-       CHAT
-       ================================ */
+    /* =========================
+       Chat
+       ========================= */
 
     .chat-container {
-      flex-grow: 1;
+      min-width: 0;
+      flex: 1;
       display: flex;
       flex-direction: column;
-      min-width: 0;
     }
 
     .chat-header {
-      padding: 1rem;
-      background: #1a0000;
-      border-bottom: 1px solid #400000;
-      font-size: 1rem;
+      height: 58px;
+      flex-shrink: 0;
+      padding: 0 18px;
+      display: flex;
+      align-items: center;
+      background: #151515;
+      border-bottom: 1px solid #292929;
       font-weight: 600;
     }
 
     .chat-main {
-      display: flex;
-      flex-grow: 1;
       min-height: 0;
+      flex: 1;
+      display: flex;
     }
 
     .chat-messages {
-      flex-grow: 1;
-      padding: 1rem;
+      min-width: 0;
+      flex: 1;
+      padding: 18px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
-      min-width: 0;
+      gap: 14px;
     }
 
+    /* =========================
+       Messages
+       ========================= */
+
     .message {
+      max-width: min(760px, 80%);
       display: flex;
-      gap: 0.6rem;
-      max-width: 70%;
+      gap: 10px;
       align-items: flex-start;
     }
 
@@ -124,223 +167,343 @@
       flex-direction: row-reverse;
     }
 
+    .avatar {
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #222;
+    }
+
+    .message-body {
+      min-width: 0;
+    }
+
+    .message-meta {
+      margin-bottom: 5px;
+      color: #888;
+      font-size: .75rem;
+    }
+
     .message-content {
-      background: #1a1a1a;
-      padding: 0.6rem 0.9rem;
-      border-radius: 0.6rem;
+      padding: 9px 12px;
+      border-radius: 9px;
+      background: #191919;
       word-break: break-word;
     }
 
     .message.self .message-content {
-      background: #330000;
+      background: #3b0909;
     }
 
-    .message-meta {
-      font-size: 0.75rem;
-      color: #888;
-      margin-bottom: 0.25rem;
+    /* =========================
+       Media
+       ========================= */
+
+    .message-media {
+      display: block;
+      max-width: min(600px, 100%);
+      max-height: 500px;
+      margin-top: 7px;
+      border-radius: 10px;
+      object-fit: contain;
+      background: #080808;
     }
 
-    .avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      object-fit: cover;
-      flex-shrink: 0;
+    .message-media.audio {
+      width: min(500px, 100%);
     }
 
-    /* ================================
-       USER LIST
-       ================================ */
+    .message-file {
+      margin-top: 7px;
+      padding: 12px;
+      min-width: 220px;
+      max-width: 420px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid #333;
+      border-radius: 9px;
+      background: #111;
+    }
+
+    .file-icon {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: #252525;
+      font-size: 18px;
+    }
+
+    .file-info {
+      min-width: 0;
+    }
+
+    .file-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-size {
+      margin-top: 3px;
+      color: #777;
+      font-size: .75rem;
+    }
+
+    /* =========================
+       Users
+       ========================= */
 
     .user-list {
-      width: 200px;
-      background: #1a0000;
-      border-left: 1px solid #400000;
-      padding: 1rem 0.75rem;
-      overflow-y: auto;
+      width: 210px;
       flex-shrink: 0;
+      padding: 15px 12px;
+      overflow-y: auto;
+      background: #151515;
+      border-left: 1px solid #292929;
     }
 
     .user {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
-      font-size: 0.9rem;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: .9rem;
     }
 
     .status-dot {
-      width: 10px;
-      height: 10px;
+      width: 9px;
+      height: 9px;
+      flex-shrink: 0;
       border-radius: 50%;
       background: #43b581;
-      flex-shrink: 0;
     }
 
-    /* ================================
-       INPUT
-       ================================ */
+    /* =========================
+       Upload preview
+       ========================= */
 
-    .chat-input {
-      display: flex;
-      padding: 1rem;
-      border-top: 1px solid #400000;
-      background: #1a0000;
-    }
-
-    .chat-input input {
-      flex-grow: 1;
-      padding: 0.6rem;
-      border: none;
-      border-radius: 0.5rem;
-      background: #333;
-      color: #fff;
-      font-size: 1rem;
-      outline: none;
-    }
-
-    .chat-input input:focus {
-      box-shadow: 0 0 0 2px #660000;
-    }
-
-    .chat-input button,
-    .embed-button {
-      margin-left: 1rem;
-      background: #ff4d4d;
-      border: none;
-      padding: 0.6rem 1rem;
-      border-radius: 0.5rem;
-      color: white;
-      cursor: pointer;
-    }
-
-    .chat-input button:hover,
-    .embed-button:hover {
-      background: #cc0000;
-    }
-
-    /* ================================
-       ADS
-       ================================ */
-
-    .ad-banner {
-      background: #111;
-      text-align: center;
-      padding: 0.5rem;
-      font-size: 0.9rem;
-      border-bottom: 1px solid #400000;
-    }
-
-    /* ================================
-       FILE EMBEDDER
-       ================================ */
-
-    .file-embed-panel {
+    .upload-preview {
       display: none;
-      padding: 1rem;
-      background: #120000;
-      border-top: 1px solid #400000;
-      border-bottom: 1px solid #400000;
+      padding: 10px 14px;
+      background: #111;
+      border-top: 1px solid #292929;
     }
 
-    .file-embed-panel.open {
+    .upload-preview.visible {
       display: block;
     }
 
-    .file-embed-header {
+    .preview-inner {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-bottom: 0.75rem;
+      gap: 10px;
+      max-width: 800px;
     }
 
-    .file-embed-title {
-      font-weight: 600;
-      font-size: 0.95rem;
+    .preview-thumb {
+      width: 58px;
+      height: 58px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: #222;
     }
 
-    .file-close {
-      background: transparent;
+    .preview-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .preview-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .preview-type {
+      color: #777;
+      font-size: .75rem;
+      margin-top: 3px;
+    }
+
+    .remove-upload {
       border: 0;
+      background: transparent;
       color: #aaa;
-      cursor: pointer;
-      font-size: 1.2rem;
+      font-size: 20px;
     }
 
-    .file-close:hover {
+    .remove-upload:hover {
       color: #fff;
     }
 
-    .file-embed-controls {
+    /* =========================
+       Input
+       ========================= */
+
+    .chat-input {
+      position: relative;
       display: flex;
+      gap: 8px;
+      padding: 12px;
+      background: #151515;
+      border-top: 1px solid #292929;
+    }
+
+    .chat-input input[type="text"] {
+      min-width: 0;
+      flex: 1;
+      padding: 11px 13px;
+      border: 1px solid #333;
+      outline: none;
+      border-radius: 9px;
+      background: #252525;
+      color: #fff;
+    }
+
+    .chat-input input[type="text"]:focus {
+      border-color: #555;
+    }
+
+    .input-button {
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 9px;
+      background: #252525;
+      color: #fff;
+    }
+
+    .input-button:hover {
+      background: #333;
+    }
+
+    .send-button {
+      padding: 0 18px;
+      border: 0;
+      border-radius: 9px;
+      background: #ff4d4d;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .send-button:hover {
+      background: #d93636;
+    }
+
+    .drop-zone {
+      position: absolute;
+      inset: 5px;
+      z-index: 20;
+      display: none;
       align-items: center;
-      gap: 0.75rem;
-      flex-wrap: wrap;
+      justify-content: center;
+      border: 2px dashed #ff4d4d;
+      border-radius: 10px;
+      background: rgba(30, 0, 0, .94);
+      font-weight: 600;
     }
 
-    .file-input {
-      max-width: 100%;
-      color: #ddd;
+    .chat-input.dragging .drop-zone {
+      display: flex;
     }
 
-    .file-status {
-      margin-top: 0.75rem;
-      min-height: 1.4em;
-      font-size: 0.85rem;
+    /* =========================
+       File embedder
+       ========================= */
+
+    .embed-panel {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0, 0, 0, .75);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .embed-panel.open {
+      display: flex;
+    }
+
+    .embed-card {
+      width: min(700px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      border: 1px solid #333;
+      border-radius: 14px;
+      background: #111;
+    }
+
+    .embed-card h2 {
+      margin-top: 0;
+    }
+
+    .embed-file-input {
+      width: 100%;
+      margin: 15px 0;
+    }
+
+    .embed-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .embed-actions button {
+      padding: 9px 16px;
+      border: 0;
+      border-radius: 8px;
+      background: #292929;
+      color: #fff;
+    }
+
+    .embed-actions .primary {
+      background: #ff4d4d;
+    }
+
+    .embed-status {
+      margin-top: 12px;
+      min-height: 20px;
       color: #aaa;
     }
 
-    .file-status.error {
+    .embed-status.error {
       color: #ff6b6b;
     }
 
-    .file-preview {
-      margin-top: 1rem;
-      text-align: center;
+    .embed-preview {
+      margin-top: 20px;
     }
 
-    .file-preview img,
-    .file-preview audio,
-    .file-preview video {
+    .embed-preview img,
+    .embed-preview video,
+    .embed-preview audio {
       display: block;
       max-width: 100%;
-      margin: 15px auto;
+      max-height: 500px;
+      margin: 12px auto;
       border-radius: 10px;
     }
 
-    .file-preview video {
-      max-height: 500px;
-      background: #000;
-    }
-
-    .file-preview audio {
-      width: min(100%, 600px);
-    }
-
-    .file-filename {
-      opacity: 0.7;
+    .embed-filename {
+      color: #aaa;
       word-break: break-word;
-      font-size: 0.85rem;
+      text-align: center;
     }
 
-    .attach-button {
-      background: #333 !important;
-      margin-left: 0 !important;
-    }
-
-    .attach-button:hover {
-      background: #444 !important;
-    }
-
-    /* ================================
-       MOBILE
-       ================================ */
+    /* =========================
+       Mobile
+       ========================= */
 
     @media (max-width: 800px) {
       .sidebar {
-        width: 180px;
+        display: none;
       }
 
       .user-list {
@@ -348,22 +511,7 @@
       }
 
       .message {
-        max-width: 90%;
-      }
-    }
-
-    @media (max-width: 600px) {
-      .sidebar {
-        display: none;
-      }
-
-      .file-embed-controls {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .embed-button {
-        margin-left: 0;
+        max-width: 92%;
       }
     }
   </style>
@@ -371,9 +519,11 @@
 
 <body>
 
-  <!-- ================================
-       AD BANNER
-       ================================ -->
+<div class="app">
+
+  <!-- =========================
+       Advertisement
+       ========================= -->
 
   <div class="ad-banner">
     <ins
@@ -382,58 +532,48 @@
       data-ad-client="ca-pub-3940256099942544"
       data-ad-slot="6300978111"
       data-ad-format="auto"
-      data-full-width-responsive="true"
-    ></ins>
+      data-full-width-responsive="true">
+    </ins>
 
     <script>
       (adsbygoogle = window.adsbygoogle || []).push({});
     </script>
   </div>
 
-
-  <!-- ================================
-       MAIN APP
-       ================================ -->
-
   <div class="main-content">
 
-    <!-- ================================
-         SIDEBAR
-         ================================ -->
+    <!-- =========================
+         Sidebar
+         ========================= -->
 
-    <div class="sidebar">
+    <aside class="sidebar">
+
+      <div class="brand">
+        Krynet<span>AI</span>.free
+      </div>
+
       <div class="channel-list">
-
-        <div class="channel">
-          # general
-        </div>
-
-        <div class="channel">
-          # support
-        </div>
-
-        <div class="channel">
-          # random
-        </div>
-
+        <div class="channel active"># general</div>
+        <div class="channel"># support</div>
+        <div class="channel"># random</div>
+        <div class="channel"># media</div>
       </div>
-    </div>
 
+    </aside>
 
-    <!-- ================================
-         CHAT
-         ================================ -->
+    <!-- =========================
+         Chat
+         ========================= -->
 
-    <div class="chat-container">
+    <section class="chat-container">
 
-      <div class="chat-header">
+      <header class="chat-header">
         # general
-      </div>
-
+      </header>
 
       <div class="chat-main">
 
-        <div
+        <main
           class="chat-messages"
           id="chatMessages"
         >
@@ -446,7 +586,7 @@
               alt="User"
             >
 
-            <div>
+            <div class="message-body">
 
               <div class="message-meta">
                 <strong>UserA</strong>
@@ -461,17 +601,15 @@
 
           </div>
 
-        </div>
+        </main>
 
+        <!-- =========================
+             Users
+             ========================= -->
 
-        <!-- ================================
-             USERS
-             ================================ -->
-
-        <div class="user-list">
+        <aside class="user-list">
 
           <div class="user">
-
             <div class="status-dot"></div>
 
             <img
@@ -481,16 +619,13 @@
             >
 
             <span>UserA</span>
-
           </div>
 
-
           <div class="user">
-
             <div
               class="status-dot"
-              style="background-color:#faa61a;"
-            ></div>
+              style="background:#faa61a">
+            </div>
 
             <img
               class="avatar"
@@ -499,698 +634,1114 @@
             >
 
             <span>UserB</span>
-
           </div>
 
-        </div>
+        </aside>
 
       </div>
 
+      <!-- =========================
+           Upload preview
+           ========================= -->
 
-      <!-- ================================
-           FILE EMBEDDER
-           ================================ -->
-
-      <section
-        id="fileEmbedPanel"
-        class="file-embed-panel"
+      <div
+        id="uploadPreview"
+        class="upload-preview"
       >
+        <div class="preview-inner">
 
-        <div class="file-embed-header">
+          <img
+            id="previewThumb"
+            class="preview-thumb"
+            alt=""
+          >
 
-          <div class="file-embed-title">
-            Krynet File Embed
+          <div class="preview-info">
+
+            <div
+              id="previewName"
+              class="preview-name">
+            </div>
+
+            <div
+              id="previewType"
+              class="preview-type">
+            </div>
+
           </div>
 
           <button
-            type="button"
-            id="fileCloseButton"
-            class="file-close"
-            aria-label="Close file embedder"
-          >
+            id="removeUpload"
+            class="remove-upload"
+            title="Remove file"
+            type="button">
             ×
           </button>
 
         </div>
+      </div>
 
+      <!-- =========================
+           Input
+           ========================= -->
 
-        <div class="file-embed-controls">
+      <div
+        id="chatInputArea"
+        class="chat-input"
+      >
 
-          <input
-            id="fileInput"
-            class="file-input"
-            type="file"
-            accept=".avif,.heif,.heic,.aac,.m4a,.mp4"
-          >
-
-          <button
-            type="button"
-            id="embedButton"
-            class="embed-button"
-          >
-            Embed File
-          </button>
-
+        <div class="drop-zone">
+          Drop a file or image here
         </div>
 
-
-        <div
-          id="fileStatus"
-          class="file-status"
-          role="status"
-          aria-live="polite"
-        ></div>
-
-
-        <div
-          id="filePreview"
-          class="file-preview"
-        ></div>
-
-      </section>
-
-
-      <!-- ================================
-           CHAT INPUT
-           ================================ -->
-
-      <div class="chat-input">
+        <input
+          id="fileInput"
+          type="file"
+          hidden
+          accept="
+            image/*,
+            video/*,
+            audio/*,
+            .avif,
+            .heif,
+            .heic,
+            .aac,
+            .m4a,
+            .mp4,
+            .webm,
+            .ogg
+          "
+        >
 
         <button
+          id="attachButton"
+          class="input-button"
           type="button"
-          id="attachBtn"
-          class="attach-button"
-          title="Embed a file"
-          aria-label="Embed a file"
+          title="Attach file"
         >
           📎
         </button>
 
+        <button
+          id="embedButton"
+          class="input-button"
+          type="button"
+          title="Embed file"
+        >
+          🗂️
+        </button>
+
         <input
-          type="text"
           id="chatInput"
+          type="text"
           placeholder="Type your message..."
           autocomplete="off"
         >
 
         <button
-          type="button"
           id="sendBtn"
+          class="send-button"
+          type="button"
         >
           Send
         </button>
 
       </div>
 
+    </section>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     FILE EMBED MODAL
+     ========================================================= -->
+
+<div
+  id="embedPanel"
+  class="embed-panel"
+>
+
+  <div class="embed-card">
+
+    <h2>Krynet File Embed</h2>
+
+    <input
+      id="embedFileInput"
+      class="embed-file-input"
+      type="file"
+      accept="
+        image/*,
+        video/*,
+        audio/*,
+        .avif,
+        .heif,
+        .heic,
+        .aac,
+        .m4a,
+        .mp4,
+        .webm,
+        .ogg
+      "
+    >
+
+    <div class="embed-actions">
+
+      <button
+        id="embedFileButton"
+        class="primary"
+        type="button"
+      >
+        Embed File
+      </button>
+
+      <button
+        id="closeEmbedButton"
+        type="button"
+      >
+        Close
+      </button>
+
+    </div>
+
+    <div
+      id="embedStatus"
+      class="embed-status"
+      role="status"
+      aria-live="polite">
+    </div>
+
+    <div
+      id="embedPreview"
+      class="embed-preview">
     </div>
 
   </div>
 
-
-  <!-- =========================================================
-       KRYNET JAVASCRIPT
-       ========================================================= -->
-
-  <script src="./js/Cloudflare.js"></script>
-  <script src="./js/anonymous-upload.js"></script>
-  <script src="./js/blurNSFW.js"></script>
-  <script src="./js/clearURLS.js"></script>
-  <script src="./js/copyFileContents.js"></script>
-  <script src="./js/country-blocker.js"></script>
-  <script src="./js/dearrow.js"></script>
-  <script src="./js/embed.js"></script>
-  <script src="./js/krysearch.js"></script>
-  <script src="./js/markdownRenderer.js"></script>
-  <script src="./js/openInApp.js"></script>
-  <script src="./js/reactions.js"></script>
-  <script src="./js/screenshare.js"></script>
-  <script src="./js/sponsorblock.js"></script>
-  <script src="./js/tpm.js"></script>
-  <script src="./js/voicechat.js"></script>
-  <script src="./js/webcam.js"></script>
-  <script src="./js/youtubeAdblock.js"></script>
+</div>
 
 
-  <!-- =========================================================
-       CHAT + FILE EMBED LOGIC
-       ========================================================= -->
+<!-- =========================================================
+     KRYNET JS
+     ========================================================= -->
 
-  <script>
-    "use strict";
-
-    /* ================================
-       CHAT
-       ================================ */
-
-    const input =
-      document.getElementById("chatInput");
-
-    const button =
-      document.getElementById("sendBtn");
-
-    const chat =
-      document.getElementById("chatMessages");
-
-    let msgCount = 0;
-
-
-    function sendMessage() {
-      const msg =
-        input.value.trim();
-
-      if (!msg) {
-        return;
-      }
+<script src="/js/Cloudflare.js"></script>
+<script src="/js/anonymous-upload.js"></script>
+<script src="/js/blurNSFW.js"></script>
+<script src="/js/clearURLS.js"></script>
+<script src="/js/copyFileContents.js"></script>
+<script src="/js/country-blocker.js"></script>
+<script src="/js/dearrow.js"></script>
+<script src="/js/embed.js"></script>
+<script src="/js/krysearch.js"></script>
+<script src="/js/markdownRenderer.js"></script>
+<script src="/js/openInApp.js"></script>
+<script src="/js/reactions.js"></script>
+<script src="/js/screenshare.js"></script>
+<script src="/js/sponsorblock.js"></script>
+<script src="/js/tpm.js"></script>
+<script src="/js/voicechat.js"></script>
+<script src="/js/webcam.js"></script>
+<script src="/js/youtubeAdblock.js"></script>
 
 
-      const container =
-        document.createElement("div");
+<!-- =========================================================
+     CHAT / UPLOAD LOGIC
+     ========================================================= -->
 
-      container.classList.add(
-        "message",
-        "self"
-      );
+<script>
+'use strict';
 
+/* =========================================================
+   Elements
+   ========================================================= */
 
-      const avatar =
-        document.createElement("img");
+const input =
+  document.getElementById('chatInput');
 
-      avatar.className =
-        "avatar";
+const sendButton =
+  document.getElementById('sendBtn');
 
-      avatar.src =
-        "https://cdn.krynet.com/avatars/default2.png";
+const chat =
+  document.getElementById('chatMessages');
 
-      avatar.alt =
-        "You";
+const fileInput =
+  document.getElementById('fileInput');
 
+const attachButton =
+  document.getElementById('attachButton');
 
-      const infoWrap =
-        document.createElement("div");
+const chatInputArea =
+  document.getElementById('chatInputArea');
 
+const uploadPreview =
+  document.getElementById('uploadPreview');
 
-      const meta =
-        document.createElement("div");
+const previewThumb =
+  document.getElementById('previewThumb');
 
-      meta.className =
-        "message-meta";
+const previewName =
+  document.getElementById('previewName');
 
-      const strong =
-        document.createElement("strong");
+const previewType =
+  document.getElementById('previewType');
 
-      strong.textContent =
-        "You";
+const removeUpload =
+  document.getElementById('removeUpload');
 
-      meta.appendChild(strong);
+const embedButton =
+  document.getElementById('embedButton');
 
-      meta.appendChild(
-        document.createTextNode(
-          " • " +
-          new Date().toLocaleTimeString(
-            [],
-            {
-              hour: "2-digit",
-              minute: "2-digit"
-            }
-          )
-        )
-      );
+const embedPanel =
+  document.getElementById('embedPanel');
 
+const embedFileInput =
+  document.getElementById('embedFileInput');
 
-      const bubble =
-        document.createElement("div");
+const embedFileButton =
+  document.getElementById('embedFileButton');
 
-      bubble.className =
-        "message-content";
+const closeEmbedButton =
+  document.getElementById('closeEmbedButton');
 
-      bubble.textContent =
-        msg;
+const embedStatus =
+  document.getElementById('embedStatus');
 
-
-      infoWrap.appendChild(meta);
-      infoWrap.appendChild(bubble);
-
-      container.appendChild(avatar);
-      container.appendChild(infoWrap);
-
-      chat.appendChild(container);
+const embedPreview =
+  document.getElementById('embedPreview');
 
 
-      msgCount++;
+/* =========================================================
+   State
+   ========================================================= */
+
+let selectedFile = null;
+let selectedFileURL = null;
+let embedObjectURL = null;
+let messageCount = 0;
 
 
-      if (msgCount % 5 === 0) {
+/* =========================================================
+   Helpers
+   ========================================================= */
 
-        const adContainer =
-          document.createElement("div");
+function formatFileSize(bytes) {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
 
-        adContainer.classList.add(
-          "message"
-        );
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
 
-        adContainer.innerHTML = `
-          <ins
-            class="adsbygoogle"
-            style="display:block;width:100%;"
-            data-ad-client="ca-pub-3940256099942544"
-            data-ad-slot="6300978111"
-            data-ad-format="auto"
-            data-full-width-responsive="true"
-          ></ins>
-        `;
+  if (bytes < 1024 * 1024 * 1024) {
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  }
 
-        chat.appendChild(
-          adContainer
-        );
-
-        (
-          window.adsbygoogle =
-            window.adsbygoogle || []
-        ).push({});
-      }
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
+}
 
 
-      input.value = "";
+function getExtension(filename) {
+  const parts =
+    filename.toLowerCase().split('.');
 
-      chat.scrollTop =
-        chat.scrollHeight;
+  return parts.length > 1
+    ? parts.pop()
+    : '';
+}
+
+
+function getFileIcon(file) {
+  if (file.type.startsWith('image/')) {
+    return '🖼️';
+  }
+
+  if (file.type.startsWith('video/')) {
+    return '🎥';
+  }
+
+  if (file.type.startsWith('audio/')) {
+    return '🎵';
+  }
+
+  return '📄';
+}
+
+
+/* =========================================================
+   Upload selection
+   ========================================================= */
+
+function selectFile(file) {
+  if (!file) {
+    return;
+  }
+
+  clearSelectedFile();
+
+  selectedFile = file;
+  selectedFileURL =
+    URL.createObjectURL(file);
+
+  uploadPreview.classList.add('visible');
+
+  previewName.textContent =
+    file.name;
+
+  previewType.textContent =
+    `${file.type || 'Unknown file'} • ${formatFileSize(file.size)}`;
+
+  if (
+    file.type.startsWith('image/')
+  ) {
+    previewThumb.src =
+      selectedFileURL;
+
+    previewThumb.style.display =
+      'block';
+
+    return;
+  }
+
+  previewThumb.removeAttribute('src');
+
+  previewThumb.style.display =
+    'none';
+}
+
+
+function clearSelectedFile() {
+  selectedFile = null;
+
+  if (selectedFileURL) {
+    URL.revokeObjectURL(selectedFileURL);
+    selectedFileURL = null;
+  }
+
+  uploadPreview.classList.remove(
+    'visible'
+  );
+
+  previewThumb.removeAttribute('src');
+}
+
+
+attachButton.addEventListener(
+  'click',
+  () => fileInput.click()
+);
+
+
+fileInput.addEventListener(
+  'change',
+  () => {
+    const file =
+      fileInput.files?.[0];
+
+    if (file) {
+      selectFile(file);
     }
+  }
+);
 
 
-    button.addEventListener(
-      "click",
-      sendMessage
+removeUpload.addEventListener(
+  'click',
+  () => {
+    clearSelectedFile();
+    fileInput.value = '';
+  }
+);
+
+
+/* =========================================================
+   Drag & drop
+   ========================================================= */
+
+chatInputArea.addEventListener(
+  'dragover',
+  event => {
+    event.preventDefault();
+
+    chatInputArea.classList.add(
+      'dragging'
+    );
+  }
+);
+
+
+chatInputArea.addEventListener(
+  'dragleave',
+  event => {
+    if (
+      event.target === chatInputArea
+    ) {
+      chatInputArea.classList.remove(
+        'dragging'
+      );
+    }
+  }
+);
+
+
+chatInputArea.addEventListener(
+  'drop',
+  event => {
+    event.preventDefault();
+
+    chatInputArea.classList.remove(
+      'dragging'
     );
 
+    const file =
+      event.dataTransfer?.files?.[0];
 
-    input.addEventListener(
-      "keypress",
-      event => {
-        if (event.key === "Enter") {
-          sendMessage();
-        }
-      }
-    );
-
-
-    /* ================================
-       FILE EMBEDDER
-       ================================ */
-
-    const fileInput =
-      document.getElementById(
-        "fileInput"
-      );
-
-    const embedButton =
-      document.getElementById(
-        "embedButton"
-      );
-
-    const filePreview =
-      document.getElementById(
-        "filePreview"
-      );
-
-    const fileStatus =
-      document.getElementById(
-        "fileStatus"
-      );
-
-    const filePanel =
-      document.getElementById(
-        "fileEmbedPanel"
-      );
-
-    const attachButton =
-      document.getElementById(
-        "attachBtn"
-      );
-
-    const closeFileButton =
-      document.getElementById(
-        "fileCloseButton"
-      );
-
-    let objectURL = null;
+    if (file) {
+      selectFile(file);
+    }
+  }
+);
 
 
-    function setFileStatus(
-      text,
-      error = false
-    ) {
-      fileStatus.textContent =
-        text;
+/* =========================================================
+   Paste images
+   ========================================================= */
 
-      fileStatus.classList.toggle(
-        "error",
-        error
-      );
+document.addEventListener(
+  'paste',
+  event => {
+    const items =
+      event.clipboardData?.items;
+
+    if (!items) {
+      return;
     }
 
-
-    function cleanupFilePreview() {
-      filePreview.replaceChildren();
-
-      if (objectURL) {
-        URL.revokeObjectURL(
-          objectURL
-        );
-
-        objectURL = null;
+    for (const item of items) {
+      if (!item.type.startsWith('image/')) {
+        continue;
       }
-
-      setFileStatus("");
-    }
-
-
-    function getExtension(
-      filename
-    ) {
-      const parts =
-        filename
-          .toLowerCase()
-          .split(".");
-
-      return parts.length > 1
-        ? parts.pop()
-        : "";
-    }
-
-
-    function createMediaElement(
-      file
-    ) {
-      const extension =
-        getExtension(file.name);
-
-
-      objectURL =
-        URL.createObjectURL(file);
-
-
-      /* AVIF */
-
-      if (extension === "avif") {
-
-        const image =
-          document.createElement("img");
-
-        image.alt =
-          file.name;
-
-        image.src =
-          objectURL;
-
-
-        image.onload = () => {
-          setFileStatus(
-            "AVIF loaded successfully."
-          );
-        };
-
-
-        image.onerror = () => {
-          setFileStatus(
-            "This browser cannot decode this AVIF file.",
-            true
-          );
-        };
-
-
-        filePreview.appendChild(
-          image
-        );
-
-        return;
-      }
-
-
-      /* HEIF / HEIC */
-
-      if (
-        extension === "heif" ||
-        extension === "heic"
-      ) {
-
-        const image =
-          document.createElement("img");
-
-        image.alt =
-          file.name;
-
-        image.src =
-          objectURL;
-
-
-        image.onload = () => {
-          setFileStatus(
-            "HEIF/HEIC loaded successfully."
-          );
-        };
-
-
-        image.onerror = () => {
-          setFileStatus(
-            "This browser does not support HEIF/HEIC decoding.",
-            true
-          );
-        };
-
-
-        filePreview.appendChild(
-          image
-        );
-
-        return;
-      }
-
-
-      /* AAC */
-
-      if (extension === "aac") {
-
-        const audio =
-          document.createElement("audio");
-
-        audio.controls = true;
-        audio.preload = "metadata";
-        audio.src = objectURL;
-
-
-        audio.onloadedmetadata =
-          () => {
-            setFileStatus(
-              "AAC loaded successfully."
-            );
-          };
-
-
-        audio.onerror =
-          () => {
-            setFileStatus(
-              "This browser cannot decode this AAC file.",
-              true
-            );
-          };
-
-
-        filePreview.appendChild(
-          audio
-        );
-
-        return;
-      }
-
-
-      /* M4A */
-
-      if (extension === "m4a") {
-
-        const audio =
-          document.createElement("audio");
-
-        audio.controls = true;
-        audio.preload = "metadata";
-        audio.src = objectURL;
-
-
-        audio.onloadedmetadata =
-          () => {
-            setFileStatus(
-              "M4A loaded successfully."
-            );
-          };
-
-
-        audio.onerror =
-          () => {
-            setFileStatus(
-              "This browser cannot decode this audio file.",
-              true
-            );
-          };
-
-
-        filePreview.appendChild(
-          audio
-        );
-
-        return;
-      }
-
-
-      /* MP4 */
-
-      if (extension === "mp4") {
-
-        const video =
-          document.createElement("video");
-
-        video.controls = true;
-        video.preload = "metadata";
-        video.src = objectURL;
-
-
-        video.onloadedmetadata =
-          () => {
-            setFileStatus(
-              "Video loaded successfully."
-            );
-          };
-
-
-        video.onerror =
-          () => {
-            setFileStatus(
-              "This browser cannot decode this video.",
-              true
-            );
-          };
-
-
-        filePreview.appendChild(
-          video
-        );
-
-        return;
-      }
-
-
-      setFileStatus(
-        "Unsupported file format.",
-        true
-      );
-    }
-
-
-    function embedFile() {
-      cleanupFilePreview();
-
 
       const file =
-        fileInput.files?.[0];
-
+        item.getAsFile();
 
       if (!file) {
-        setFileStatus(
-          "Select a file first.",
-          true
-        );
-
-        return;
+        continue;
       }
 
-
-      const filename =
-        document.createElement(
-          "div"
-        );
-
-      filename.className =
-        "file-filename";
-
-      filename.textContent =
-        file.name;
+      selectFile(file);
+      break;
+    }
+  }
+);
 
 
-      filePreview.appendChild(
-        filename
+/* =========================================================
+   Create media content
+   ========================================================= */
+
+function appendFileContent(
+  parent,
+  file
+) {
+  const url =
+    URL.createObjectURL(file);
+
+  if (file.type.startsWith('image/')) {
+
+    const image =
+      document.createElement('img');
+
+    image.className =
+      'message-media';
+
+    image.src = url;
+    image.alt = file.name;
+
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      image.remove();
+    };
+
+    parent.appendChild(image);
+
+    return;
+  }
+
+
+  if (file.type.startsWith('video/')) {
+
+    const video =
+      document.createElement('video');
+
+    video.className =
+      'message-media';
+
+    video.controls = true;
+    video.preload = 'metadata';
+    video.src = url;
+
+    video.onloadeddata = () => {
+      /*
+       * Keep the object URL alive while
+       * the video exists.
+       */
+    };
+
+    parent.appendChild(video);
+
+    return;
+  }
+
+
+  if (file.type.startsWith('audio/')) {
+
+    const audio =
+      document.createElement('audio');
+
+    audio.className =
+      'message-media audio';
+
+    audio.controls = true;
+    audio.preload = 'metadata';
+    audio.src = url;
+
+    parent.appendChild(audio);
+
+    return;
+  }
+
+
+  const fileCard =
+    document.createElement('div');
+
+  fileCard.className =
+    'message-file';
+
+  const icon =
+    document.createElement('div');
+
+  icon.className =
+    'file-icon';
+
+  icon.textContent =
+    getFileIcon(file);
+
+  const info =
+    document.createElement('div');
+
+  info.className =
+    'file-info';
+
+  const name =
+    document.createElement('div');
+
+  name.className =
+    'file-name';
+
+  name.textContent =
+    file.name;
+
+  const size =
+    document.createElement('div');
+
+  size.className =
+    'file-size';
+
+  size.textContent =
+    formatFileSize(file.size);
+
+  info.appendChild(name);
+  info.appendChild(size);
+
+  fileCard.appendChild(icon);
+  fileCard.appendChild(info);
+
+  parent.appendChild(fileCard);
+}
+
+
+/* =========================================================
+   Send message
+   ========================================================= */
+
+function sendMessage() {
+
+  const text =
+    input.value.trim();
+
+  if (!text && !selectedFile) {
+    return;
+  }
+
+  const message =
+    document.createElement('div');
+
+  message.className =
+    'message self';
+
+
+  const avatar =
+    document.createElement('img');
+
+  avatar.className =
+    'avatar';
+
+  avatar.src =
+    'https://cdn.krynet.com/avatars/default2.png';
+
+  avatar.alt =
+    'You';
+
+
+  const body =
+    document.createElement('div');
+
+  body.className =
+    'message-body';
+
+
+  const meta =
+    document.createElement('div');
+
+  meta.className =
+    'message-meta';
+
+  const name =
+    document.createElement('strong');
+
+  name.textContent =
+    'You';
+
+  meta.appendChild(name);
+
+  meta.appendChild(
+    document.createTextNode(
+      ' • ' +
+      new Date().toLocaleTimeString(
+        [],
+        {
+          hour: '2-digit',
+          minute: '2-digit'
+        }
+      )
+    )
+  );
+
+
+  body.appendChild(meta);
+
+
+  if (text) {
+
+    const bubble =
+      document.createElement('div');
+
+    bubble.className =
+      'message-content';
+
+    bubble.textContent =
+      text;
+
+    body.appendChild(bubble);
+  }
+
+
+  if (selectedFile) {
+
+    appendFileContent(
+      body,
+      selectedFile
+    );
+  }
+
+
+  message.appendChild(avatar);
+  message.appendChild(body);
+
+  chat.appendChild(message);
+
+  messageCount++;
+
+
+  /* Ad every 5 messages */
+
+  if (messageCount % 5 === 0) {
+
+    const adContainer =
+      document.createElement('div');
+
+    adContainer.className =
+      'message';
+
+    adContainer.innerHTML = `
+      <div class="message-content">
+        <ins
+          class="adsbygoogle"
+          style="display:block;width:100%"
+          data-ad-client="ca-pub-3940256099942544"
+          data-ad-slot="6300978111"
+          data-ad-format="auto"
+          data-full-width-responsive="true">
+        </ins>
+      </div>
+    `;
+
+    chat.appendChild(adContainer);
+
+    try {
+      (adsbygoogle =
+        window.adsbygoogle || []).push({});
+    } catch {
+      // AdSense may not be available.
+    }
+  }
+
+
+  input.value = '';
+
+  clearSelectedFile();
+
+  fileInput.value = '';
+
+  chat.scrollTop =
+    chat.scrollHeight;
+}
+
+
+sendButton.addEventListener(
+  'click',
+  sendMessage
+);
+
+
+input.addEventListener(
+  'keydown',
+  event => {
+    if (
+      event.key === 'Enter' &&
+      !event.shiftKey
+    ) {
+      event.preventDefault();
+      sendMessage();
+    }
+  }
+);
+
+
+/* =========================================================
+   File embedder
+   ========================================================= */
+
+function setEmbedStatus(
+  text,
+  error = false
+) {
+  embedStatus.textContent =
+    text;
+
+  embedStatus.classList.toggle(
+    'error',
+    error
+  );
+}
+
+
+function cleanupEmbed() {
+
+  embedPreview.replaceChildren();
+
+  if (embedObjectURL) {
+    URL.revokeObjectURL(
+      embedObjectURL
+    );
+
+    embedObjectURL = null;
+  }
+}
+
+
+function createEmbedMedia(file) {
+
+  cleanupEmbed();
+
+  const extension =
+    getExtension(file.name);
+
+  embedObjectURL =
+    URL.createObjectURL(file);
+
+
+  /*
+   * Images
+   */
+
+  if (
+    file.type.startsWith('image/') ||
+    [
+      'avif',
+      'heif',
+      'heic'
+    ].includes(extension)
+  ) {
+
+    const image =
+      document.createElement('img');
+
+    image.alt =
+      file.name;
+
+    image.src =
+      embedObjectURL;
+
+    image.onload = () => {
+      setEmbedStatus(
+        'Image loaded successfully.'
+      );
+    };
+
+    image.onerror = () => {
+      setEmbedStatus(
+        'This browser cannot decode this image format.',
+        true
+      );
+    };
+
+    embedPreview.appendChild(image);
+
+    return;
+  }
+
+
+  /*
+   * Audio
+   */
+
+  if (
+    file.type.startsWith('audio/') ||
+    [
+      'aac',
+      'm4a'
+    ].includes(extension)
+  ) {
+
+    const audio =
+      document.createElement('audio');
+
+    audio.controls = true;
+    audio.preload = 'metadata';
+    audio.src =
+      embedObjectURL;
+
+    audio.onloadedmetadata = () => {
+      setEmbedStatus(
+        'Audio loaded successfully.'
+      );
+    };
+
+    audio.onerror = () => {
+      setEmbedStatus(
+        'This browser cannot decode this audio file.',
+        true
+      );
+    };
+
+    embedPreview.appendChild(audio);
+
+    return;
+  }
+
+
+  /*
+   * Video
+   */
+
+  if (
+    file.type.startsWith('video/') ||
+    [
+      'mp4',
+      'webm'
+    ].includes(extension)
+  ) {
+
+    const video =
+      document.createElement('video');
+
+    video.controls = true;
+    video.preload = 'metadata';
+    video.src =
+      embedObjectURL;
+
+    video.onloadedmetadata = () => {
+      setEmbedStatus(
+        'Video loaded successfully.'
+      );
+    };
+
+    video.onerror = () => {
+      setEmbedStatus(
+        'This browser cannot decode this video.',
+        true
+      );
+    };
+
+    embedPreview.appendChild(video);
+
+    return;
+  }
+
+
+  setEmbedStatus(
+    'Unsupported file format.',
+    true
+  );
+}
+
+
+embedButton.addEventListener(
+  'click',
+  () => {
+    embedPanel.classList.add(
+      'open'
+    );
+  }
+);
+
+
+closeEmbedButton.addEventListener(
+  'click',
+  () => {
+    embedPanel.classList.remove(
+      'open'
+    );
+
+    cleanupEmbed();
+  }
+);
+
+
+embedPanel.addEventListener(
+  'click',
+  event => {
+    if (
+      event.target === embedPanel
+    ) {
+      embedPanel.classList.remove(
+        'open'
       );
 
+      cleanupEmbed();
+    }
+  }
+);
 
-      setFileStatus(
-        "Loading..."
-      );
 
+embedFileInput.addEventListener(
+  'change',
+  () => {
 
-      createMediaElement(
-        file
-      );
+    const file =
+      embedFileInput.files?.[0];
+
+    if (!file) {
+      return;
     }
 
+    const filename =
+      document.createElement('div');
 
-    embedButton.addEventListener(
-      "click",
-      embedFile
+    filename.className =
+      'embed-filename';
+
+    filename.textContent =
+      file.name;
+
+    embedPreview.replaceChildren(
+      filename
     );
 
-
-    fileInput.addEventListener(
-      "change",
-      cleanupFilePreview
+    setEmbedStatus(
+      'Loading...'
     );
 
+    createEmbedMedia(file);
+  }
+);
 
-    /* ================================
-       OPEN / CLOSE FILE PANEL
-       ================================ */
 
-    attachButton.addEventListener(
-      "click",
+embedFileButton.addEventListener(
+  'click',
+  () => {
+
+    const file =
+      embedFileInput.files?.[0];
+
+    if (!file) {
+      setEmbedStatus(
+        'Select a file first.',
+        true
+      );
+
+      return;
+    }
+
+    createEmbedMedia(file);
+  }
+);
+
+
+/* =========================================================
+   Channel switching
+   ========================================================= */
+
+document
+  .querySelectorAll('.channel')
+  .forEach(channel => {
+
+    channel.addEventListener(
+      'click',
       () => {
-        filePanel.classList.toggle(
-          "open"
+
+        document
+          .querySelectorAll('.channel')
+          .forEach(item => {
+            item.classList.remove(
+              'active'
+            );
+          });
+
+        channel.classList.add(
+          'active'
         );
 
-        if (
-          filePanel.classList.contains(
-            "open"
-          )
-        ) {
-          fileInput.focus();
-        }
-      }
-    );
-
-
-    closeFileButton.addEventListener(
-      "click",
-      () => {
-        filePanel.classList.remove(
-          "open"
-        );
-
-        cleanupFilePreview();
-      }
-    );
-
-
-    /* ================================
-       INITIAL STATE
-       ================================ */
-
-    window.addEventListener(
-      "beforeunload",
-      () => {
-        if (objectURL) {
-          URL.revokeObjectURL(
-            objectURL
+        const header =
+          document.querySelector(
+            '.chat-header'
           );
-        }
+
+        header.textContent =
+          channel.textContent.trim();
       }
     );
-  </script>
+  });
+
+
+/* =========================================================
+   Initial state
+   ========================================================= */
+
+console.log(
+  '[Krynet] Chat UI initialized'
+);
+
+</script>
 
 </body>
 </html>
