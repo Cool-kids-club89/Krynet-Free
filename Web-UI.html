@@ -185,6 +185,24 @@
             color: #fff;
         }
 
+        .voice-channel.connected {
+            background: #263d32;
+            color: #57f287;
+        }
+
+        .voice-channel.connected .channel-icon {
+            color: #57f287;
+        }
+
+        .voice-channel.connecting {
+            background: #3d3926;
+            color: #faa61a;
+        }
+
+        .voice-channel.connecting .channel-icon {
+            color: #faa61a;
+        }
+
         /* =====================================================
            USER PANEL
         ===================================================== */
@@ -228,6 +246,20 @@
             font-size: 11px;
         }
 
+        .voice-status {
+            color: #57f287;
+            font-size: 10px;
+            white-space: nowrap;
+        }
+
+        .voice-status.error {
+            color: #ed4245;
+        }
+
+        .voice-status.connecting {
+            color: #faa61a;
+        }
+
         /* =====================================================
            CHAT
         ===================================================== */
@@ -265,6 +297,53 @@
             font-size: 13px;
             border-left: 1px solid #4b4d53;
             padding-left: 10px;
+        }
+
+        .voice-header-status {
+            display: none;
+            align-items: center;
+            gap: 7px;
+            margin-left: 4px;
+            padding-left: 10px;
+            border-left: 1px solid #4b4d53;
+            color: #57f287;
+            font-size: 12px;
+        }
+
+        .voice-header-status.visible {
+            display: flex;
+        }
+
+        .voice-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .call-controls {
+            display: flex;
+            gap: 5px;
+            margin-left: auto;
+        }
+
+        .call-button {
+            width: 34px;
+            height: 34px;
+            border-radius: 7px;
+            background: transparent;
+            color: #b5bac1;
+            cursor: pointer;
+        }
+
+        .call-button:hover {
+            background: #404249;
+            color: #fff;
+        }
+
+        .call-button.active {
+            background: #5865f2;
+            color: #fff;
         }
 
         /* =====================================================
@@ -607,35 +686,6 @@
         }
 
         /* =====================================================
-           CALL CONTROLS
-        ===================================================== */
-
-        .call-controls {
-            display: flex;
-            gap: 5px;
-            margin-left: auto;
-        }
-
-        .call-button {
-            width: 34px;
-            height: 34px;
-            border-radius: 7px;
-            background: transparent;
-            color: #b5bac1;
-            cursor: pointer;
-        }
-
-        .call-button:hover {
-            background: #404249;
-            color: #fff;
-        }
-
-        .call-button.active {
-            background: #5865f2;
-            color: #fff;
-        }
-
-        /* =====================================================
            CALL PANEL
         ===================================================== */
 
@@ -768,6 +818,11 @@
                 display: none;
             }
 
+            .voice-header-status {
+                border-left: 0;
+                padding-left: 0;
+            }
+
             .call-panel {
                 left: 8px;
                 right: 8px;
@@ -791,6 +846,7 @@
         <button
             class="server-button active"
             title="Krynet"
+            type="button"
         >
             K
         </button>
@@ -800,6 +856,7 @@
         <button
             class="server-button"
             title="Community"
+            type="button"
         >
             C
         </button>
@@ -807,6 +864,7 @@
         <button
             class="server-button"
             title="Add server"
+            type="button"
         >
             +
         </button>
@@ -834,6 +892,7 @@
             <button
                 class="channel active"
                 data-channel="general"
+                data-type="text"
                 type="button"
             >
                 <span class="channel-icon">#</span>
@@ -843,6 +902,7 @@
             <button
                 class="channel"
                 data-channel="community"
+                data-type="text"
                 type="button"
             >
                 <span class="channel-icon">#</span>
@@ -852,6 +912,7 @@
             <button
                 class="channel"
                 data-channel="development"
+                data-type="text"
                 type="button"
             >
                 <span class="channel-icon">#</span>
@@ -863,8 +924,9 @@
             </div>
 
             <button
-                class="channel"
+                class="channel voice-channel"
                 data-channel="Lounge"
+                data-type="voice"
                 type="button"
             >
                 <span class="channel-icon">🔊</span>
@@ -872,8 +934,9 @@
             </button>
 
             <button
-                class="channel"
+                class="channel voice-channel"
                 data-channel="Gaming"
+                data-type="voice"
                 type="button"
             >
                 <span class="channel-icon">🔊</span>
@@ -888,7 +951,18 @@
 
             <div class="user-info">
                 <div class="username">Barney</div>
-                <div class="status-text">Online</div>
+
+                <div
+                    class="status-text"
+                    id="userStatus"
+                >
+                    Online
+                </div>
+
+                <div
+                    class="voice-status"
+                    id="voiceStatus"
+                ></div>
             </div>
 
             <button
@@ -912,7 +986,12 @@
 
         <header class="chat-header">
 
-            <span class="chat-header-icon">#</span>
+            <span
+                class="chat-header-icon"
+                id="headerChannelIcon"
+            >
+                #
+            </span>
 
             <span
                 class="chat-header-name"
@@ -924,6 +1003,16 @@
             <span class="chat-header-topic">
                 Krynet Community
             </span>
+
+            <div
+                class="voice-header-status"
+                id="voiceHeaderStatus"
+            >
+                <span class="voice-dot"></span>
+                <span id="voiceHeaderText">
+                    Voice connected
+                </span>
+            </div>
 
             <div class="call-controls">
 
@@ -943,6 +1032,16 @@
                     title="Share screen"
                 >
                     🖥
+                </button>
+
+                <button
+                    class="call-button"
+                    id="leaveVoiceButton"
+                    type="button"
+                    title="Leave voice"
+                    style="display:none"
+                >
+                    📞
                 </button>
 
             </div>
@@ -1165,6 +1264,33 @@
 
 
 <!-- =========================================================
+     VOICE CHAT CONFIG
+========================================================= -->
+
+<script>
+    /*
+     * These can also be populated by your server before
+     * this HTML is served.
+     *
+     * Example:
+     *
+     * window.KRYNET_VOICE_CONFIG = {
+     *     serverUrl: "https://voice.example.com",
+     *     serverPublicKey: "BASE64_P256_PUBLIC_KEY"
+     * };
+     *
+     * Do NOT put a server private key here.
+     */
+
+    window.KRYNET_VOICE_CONFIG =
+        window.KRYNET_VOICE_CONFIG || {
+            serverUrl: "",
+            serverPublicKey: ""
+        };
+</script>
+
+
+<!-- =========================================================
      CHAT APPLICATION
 ========================================================= -->
 
@@ -1172,6 +1298,7 @@
 
     import { Embed } from "./js/embed.js";
     import { Reactions } from "./js/reactions.js";
+    import { VoiceChatApex } from "./js/voicechat.js";
 
     "use strict";
 
@@ -1210,11 +1337,17 @@
     const channelName =
         document.getElementById("channelName");
 
+    const headerChannelIcon =
+        document.getElementById("headerChannelIcon");
+
     const cameraButton =
         document.getElementById("cameraButton");
 
     const screenButton =
         document.getElementById("screenButton");
+
+    const leaveVoiceButton =
+        document.getElementById("leaveVoiceButton");
 
     const callPanel =
         document.getElementById("callPanel");
@@ -1231,21 +1364,397 @@
     const callClose =
         document.getElementById("callClose");
 
+    const voiceStatus =
+        document.getElementById("voiceStatus");
+
+    const userStatus =
+        document.getElementById("userStatus");
+
+    const voiceHeaderStatus =
+        document.getElementById("voiceHeaderStatus");
+
+    const voiceHeaderText =
+        document.getElementById("voiceHeaderText");
+
 
     /* ========================================================
        STATE
     ======================================================== */
 
     let selectedFile = null;
+
     let webcamSession = null;
     let screenSession = null;
 
+    let voiceClient = null;
+    let activeVoiceChannel = null;
+
+    let voiceConnectionId = null;
+
+
+    /*
+     * Use your real authenticated session/user values here.
+     *
+     * If your application already exposes these globally,
+     * those values are preferred.
+     */
+
+    const userId =
+        window.KRYNET_USER_ID ||
+        "barney";
+
+    const sessionId =
+        window.KRYNET_SESSION_ID ||
+        crypto.randomUUID();
+
+
+    const voiceConfig =
+        window.KRYNET_VOICE_CONFIG || {};
+
 
     /* ========================================================
-       HELPERS
+       VOICE HELPERS
+    ======================================================== */
+
+    function setVoiceStatus(
+        text,
+        state = ""
+    ) {
+
+        voiceStatus.textContent =
+            text;
+
+        voiceStatus.className =
+            "voice-status";
+
+        if (state) {
+            voiceStatus.classList.add(state);
+        }
+    }
+
+
+    function setVoiceHeader(
+        visible,
+        text = "Voice connected"
+    ) {
+
+        voiceHeaderStatus.classList.toggle(
+            "visible",
+            visible
+        );
+
+        voiceHeaderText.textContent =
+            text;
+    }
+
+
+    function setVoiceChannelState(
+        channel,
+        state
+    ) {
+
+        document
+            .querySelectorAll(".voice-channel")
+            .forEach(item => {
+
+                item.classList.remove(
+                    "connected",
+                    "connecting"
+                );
+            });
+
+        if (!channel) {
+            return;
+        }
+
+        const element =
+            document.querySelector(
+                `.voice-channel[data-channel="${CSS.escape(channel)}"]`
+            );
+
+        element?.classList.add(state);
+    }
+
+
+    function getVoiceServerUrl() {
+
+        return (
+            voiceConfig.serverUrl ||
+            window.KRYNET_VOICE_SERVER_URL ||
+            ""
+        ).replace(/\/+$/, "");
+    }
+
+
+    function getVoiceServerPublicKey() {
+
+        return (
+            voiceConfig.serverPublicKey ||
+            window.KRYNET_VOICE_SERVER_PUBLIC_KEY ||
+            ""
+        );
+    }
+
+
+    function ensureVoiceConfiguration() {
+
+        const serverUrl =
+            getVoiceServerUrl();
+
+        const serverPublicKey =
+            getVoiceServerPublicKey();
+
+
+        if (!serverUrl) {
+
+            throw new Error(
+                "Voice server URL is not configured"
+            );
+        }
+
+
+        if (!serverPublicKey) {
+
+            throw new Error(
+                "Voice server public key is not configured"
+            );
+        }
+
+
+        return {
+            serverUrl,
+            serverPublicKey
+        };
+    }
+
+
+    async function connectVoice(channel) {
+
+        if (
+            activeVoiceChannel === channel &&
+            voiceClient
+        ) {
+            return;
+        }
+
+
+        if (voiceClient) {
+            await disconnectVoice();
+        }
+
+
+        const config =
+            ensureVoiceConfiguration();
+
+
+        activeVoiceChannel =
+            channel;
+
+        voiceConnectionId =
+            crypto.randomUUID();
+
+
+        setVoiceChannelState(
+            channel,
+            "connecting"
+        );
+
+        setVoiceStatus(
+            `Connecting to ${channel}...`,
+            "connecting"
+        );
+
+        setVoiceHeader(
+            true,
+            `Connecting • ${channel}`
+        );
+
+
+        try {
+
+            voiceClient =
+                new VoiceChatApex(
+                    config.serverUrl,
+                    sessionId,
+                    userId,
+                    {
+                        serverPublicKey:
+                            config.serverPublicKey,
+
+                        frameSize:
+                            960,
+
+                        bitrate:
+                            128000,
+
+                        sampleRate:
+                            48000
+                    }
+                );
+
+
+            await voiceClient.init();
+
+
+            /*
+             * init() starts:
+             *
+             * - microphone capture
+             * - Opus encoder
+             * - Opus decoder
+             * - RNNoise
+             * - ECDH/AES-GCM session key
+             * - encrypted upload
+             * - encrypted receive stream
+             * - heartbeat
+             *
+             * The VoiceChatApex instance owns the complete
+             * voice lifecycle from this point onward.
+             */
+
+
+            if (
+                activeVoiceChannel !== channel ||
+                voiceConnectionId === null
+            ) {
+                await voiceClient.stop();
+                return;
+            }
+
+
+            setVoiceChannelState(
+                channel,
+                "connected"
+            );
+
+            setVoiceStatus(
+                `Connected to ${channel}`,
+                ""
+            );
+
+            setVoiceHeader(
+                true,
+                `Voice connected • ${channel}`
+            );
+
+            leaveVoiceButton.style.display =
+                "block";
+
+
+            userStatus.textContent =
+                "In voice";
+
+
+        } catch (error) {
+
+            console.error(
+                "[Krynet] Voice connection failed:",
+                error
+            );
+
+
+            try {
+                await voiceClient?.stop();
+            } catch {
+                // Already failed.
+            }
+
+
+            voiceClient =
+                null;
+
+            activeVoiceChannel =
+                null;
+
+            voiceConnectionId =
+                null;
+
+
+            setVoiceChannelState(
+                channel,
+                ""
+            );
+
+            setVoiceStatus(
+                error?.message ||
+                "Voice connection failed",
+                "error"
+            );
+
+            setVoiceHeader(
+                false
+            );
+
+            leaveVoiceButton.style.display =
+                "none";
+
+            userStatus.textContent =
+                "Online";
+        }
+    }
+
+
+    async function disconnectVoice() {
+
+        const oldChannel =
+            activeVoiceChannel;
+
+
+        const oldClient =
+            voiceClient;
+
+
+        activeVoiceChannel =
+            null;
+
+        voiceClient =
+            null;
+
+        voiceConnectionId =
+            null;
+
+
+        if (oldClient) {
+
+            try {
+                await oldClient.stop();
+            } catch (error) {
+
+                console.warn(
+                    "[Krynet] Voice shutdown:",
+                    error
+                );
+            }
+        }
+
+
+        setVoiceChannelState(
+            oldChannel,
+            ""
+        );
+
+        setVoiceStatus(
+            ""
+        );
+
+        setVoiceHeader(
+            false
+        );
+
+        leaveVoiceButton.style.display =
+            "none";
+
+        userStatus.textContent =
+            "Online";
+    }
+
+
+    /* ========================================================
+       ELEMENT HELPERS
     ======================================================== */
 
     function getTime() {
+
         return new Date().toLocaleTimeString(
             [],
             {
@@ -1257,6 +1766,7 @@
 
 
     function getInitial(name) {
+
         return (
             name.trim().charAt(0).toUpperCase() ||
             "?"
@@ -1347,12 +1857,15 @@
                 if (
                     url.pathname === "/watch"
                 ) {
+
                     return url.searchParams.get("v");
                 }
+
 
                 if (
                     url.pathname.startsWith("/shorts/")
                 ) {
+
                     return (
                         url.pathname
                             .split("/")
@@ -1361,9 +1874,11 @@
                     );
                 }
 
+
                 if (
                     url.pathname.startsWith("/embed/")
                 ) {
+
                     return (
                         url.pathname
                             .split("/")
@@ -1372,6 +1887,7 @@
                     );
                 }
             }
+
 
             return null;
 
@@ -1391,7 +1907,7 @@
 
 
     /* ========================================================
-       YOUTUBE EMBED
+       YOUTUBE
     ======================================================== */
 
     function createYouTubeEmbed(url) {
@@ -1447,7 +1963,9 @@
             true;
 
 
-        body.appendChild(iframe);
+        body.appendChild(
+            iframe
+        );
 
         wrapper.append(
             bar,
@@ -1481,11 +1999,18 @@
             const image =
                 document.createElement("img");
 
-            image.src = url;
-            image.alt = file.name;
-            image.loading = "lazy";
+            image.src =
+                url;
 
-            wrapper.appendChild(image);
+            image.alt =
+                file.name;
+
+            image.loading =
+                "lazy";
+
+            wrapper.appendChild(
+                image
+            );
 
             return wrapper;
         }
@@ -1498,11 +2023,18 @@
             const video =
                 document.createElement("video");
 
-            video.src = url;
-            video.controls = true;
-            video.preload = "metadata";
+            video.src =
+                url;
 
-            wrapper.appendChild(video);
+            video.controls =
+                true;
+
+            video.preload =
+                "metadata";
+
+            wrapper.appendChild(
+                video
+            );
 
             return wrapper;
         }
@@ -1515,13 +2047,18 @@
             const audio =
                 document.createElement("audio");
 
-            audio.src = url;
-            audio.controls = true;
+            audio.src =
+                url;
+
+            audio.controls =
+                true;
 
             audio.style.width =
                 "100%";
 
-            wrapper.appendChild(audio);
+            wrapper.appendChild(
+                audio
+            );
 
             return wrapper;
         }
@@ -1532,6 +2069,7 @@
 
         card.textContent =
             "📎 " + file.name;
+
 
         Object.assign(
             card.style,
@@ -1544,7 +2082,10 @@
             }
         );
 
-        wrapper.appendChild(card);
+
+        wrapper.appendChild(
+            card
+        );
 
         return wrapper;
     }
@@ -1667,7 +2208,9 @@
                     );
 
                 if (youtube) {
-                    content.appendChild(youtube);
+                    content.appendChild(
+                        youtube
+                    );
                 }
 
             } else {
@@ -1691,8 +2234,13 @@
 
 
         try {
-            new Reactions(reactions);
+
+            new Reactions(
+                reactions
+            );
+
         } catch (error) {
+
             console.warn(
                 "[Krynet] Reactions failed:",
                 error
@@ -1763,7 +2311,9 @@
         );
 
 
-        messages.appendChild(article);
+        messages.appendChild(
+            article
+        );
 
 
         try {
@@ -1772,11 +2322,14 @@
                 typeof Reactions.attach ===
                 "function"
             ) {
-                Reactions.attach(reactions);
+
+                Reactions.attach(
+                    reactions
+                );
             }
 
         } catch {
-            // Constructor-based implementations
+            // Constructor implementations
             // initialize themselves.
         }
 
@@ -1793,13 +2346,13 @@
                         }
                     )
                 );
-
             }
         );
 
 
         messages.scrollTop =
             messages.scrollHeight;
+
 
         return article;
     }
@@ -1813,6 +2366,7 @@
 
         const text =
             messageInput.value.trim();
+
 
         if (
             !text &&
@@ -1848,12 +2402,15 @@
         selectedFile =
             file;
 
+
         attachmentPreview.classList.add(
             "visible"
         );
 
+
         attachmentName.textContent =
             file.name;
+
 
         attachmentContent.replaceChildren();
 
@@ -1922,7 +2479,10 @@
        CALL PANEL
     ======================================================== */
 
-    function showCallPanel(title, status) {
+    function showCallPanel(
+        title,
+        status
+    ) {
 
         callTitle.textContent =
             title;
@@ -1949,11 +2509,16 @@
     }
 
 
+    /* ========================================================
+       WEBCAM
+    ======================================================== */
+
     async function stopWebcam() {
 
         if (!webcamSession) {
             return;
         }
+
 
         try {
             webcamSession.stop();
@@ -1961,50 +2526,28 @@
             // Ignore shutdown errors.
         }
 
+
         webcamSession =
             null;
+
 
         cameraButton.classList.remove(
             "active"
         );
 
-        hideCallPanel();
-    }
-
-
-    async function stopScreenshare() {
-
-        if (!screenSession) {
-            return;
-        }
-
-        try {
-            screenSession.stop();
-        } catch {
-            // Ignore shutdown errors.
-        }
-
-        screenSession =
-            null;
-
-        screenButton.classList.remove(
-            "active"
-        );
 
         hideCallPanel();
     }
 
-
-    /* ========================================================
-       CAMERA
-    ======================================================== */
 
     cameraButton.addEventListener(
         "click",
         async () => {
 
             if (webcamSession) {
+
                 await stopWebcam();
+
                 return;
             }
 
@@ -2014,12 +2557,9 @@
                 "function"
             ) {
 
-                callStatus.textContent =
-                    "webcam.js is not loaded";
-
                 showCallPanel(
                     "Camera",
-                    "Unavailable"
+                    "webcam.js is not loaded"
                 );
 
                 return;
@@ -2045,7 +2585,8 @@
                     callVideo.srcObject =
                         webcamSession.stream;
 
-                    await callVideo.play()
+                    await callVideo
+                        .play()
                         .catch(() => {});
                 }
 
@@ -2053,6 +2594,7 @@
                 cameraButton.classList.add(
                     "active"
                 );
+
 
                 callStatus.textContent =
                     "Camera active";
@@ -2063,9 +2605,11 @@
                 webcamSession =
                     null;
 
+
                 callStatus.textContent =
                     error?.message ||
                     "Could not start camera";
+
 
                 console.error(
                     "[Krynet] Camera failed:",
@@ -2080,12 +2624,41 @@
        SCREEN SHARE
     ======================================================== */
 
+    async function stopScreenshare() {
+
+        if (!screenSession) {
+            return;
+        }
+
+
+        try {
+            screenSession.stop();
+        } catch {
+            // Ignore shutdown errors.
+        }
+
+
+        screenSession =
+            null;
+
+
+        screenButton.classList.remove(
+            "active"
+        );
+
+
+        hideCallPanel();
+    }
+
+
     screenButton.addEventListener(
         "click",
         async () => {
 
             if (screenSession) {
+
                 await stopScreenshare();
+
                 return;
             }
 
@@ -2095,25 +2668,19 @@
                 "function"
             ) {
 
-                callStatus.textContent =
-                    "screenshare.js is not loaded";
-
                 showCallPanel(
                     "Screen Share",
-                    "Unavailable"
+                    "screenshare.js is not loaded"
                 );
 
                 return;
             }
 
 
-            /*
-             * Replace these with your actual
-             * signaling endpoints.
-             */
             const wsUrl =
                 window.KRYNET_SCREEN_WS_URL ||
                 "wss://localhost:8443/screenshare";
+
 
             const wtUrl =
                 window.KRYNET_SCREEN_WT_URL ||
@@ -2148,7 +2715,8 @@
                     callVideo.srcObject =
                         screenSession.stream;
 
-                    await callVideo.play()
+                    await callVideo
+                        .play()
                         .catch(() => {});
                 }
 
@@ -2156,6 +2724,7 @@
                 screenButton.classList.add(
                     "active"
                 );
+
 
                 callStatus.textContent =
                     "Screen sharing active";
@@ -2166,15 +2735,30 @@
                 screenSession =
                     null;
 
+
                 callStatus.textContent =
                     error?.message ||
                     "Could not start screen share";
+
 
                 console.error(
                     "[Krynet] Screen share failed:",
                     error
                 );
             }
+        }
+    );
+
+
+    /* ========================================================
+       LEAVE VOICE
+    ======================================================== */
+
+    leaveVoiceButton.addEventListener(
+        "click",
+        async () => {
+
+            await disconnectVoice();
         }
     );
 
@@ -2188,14 +2772,14 @@
         async () => {
 
             await stopWebcam();
-            await stopScreenshare();
 
+            await stopScreenshare();
         }
     );
 
 
     /* ========================================================
-       COMPOSER EVENTS
+       COMPOSER
     ======================================================== */
 
     sendButton.addEventListener(
@@ -2275,11 +2859,60 @@
 
             channel.addEventListener(
                 "click",
-                () => {
+                async () => {
+
+                    const name =
+                        channel.dataset.channel ||
+                        "general";
+
+                    const type =
+                        channel.dataset.type ||
+                        "text";
+
+
+                    /*
+                     * Voice channels are real voice actions.
+                     * Clicking the currently connected channel
+                     * leaves it.
+                     */
+
+                    if (type === "voice") {
+
+                        if (
+                            activeVoiceChannel === name &&
+                            voiceClient
+                        ) {
+
+                            await disconnectVoice();
+
+                            return;
+                        }
+
+
+                        await connectVoice(name);
+
+                        return;
+                    }
+
+
+                    /*
+                     * Text channel selection.
+                     */
+
+                    if (voiceClient) {
+                        /*
+                         * Deliberately keep voice connected while
+                         * moving through text channels.
+                         */
+                    }
+
 
                     document
-                        .querySelectorAll(".channel")
+                        .querySelectorAll(
+                            ".channel"
+                        )
                         .forEach(item => {
+
                             item.classList.remove(
                                 "active"
                             );
@@ -2291,13 +2924,11 @@
                     );
 
 
-                    const name =
-                        channel.dataset.channel ||
-                        "general";
-
-
                     channelName.textContent =
                         name;
+
+                    headerChannelIcon.textContent =
+                        "#";
 
 
                     messageInput.placeholder =
@@ -2309,6 +2940,29 @@
 
 
     /* ========================================================
+       VOICE CLEANUP
+    ======================================================== */
+
+    window.addEventListener(
+        "beforeunload",
+        () => {
+
+            /*
+             * stop() is intentionally fired without awaiting.
+             * The VoiceChatApex implementation handles its own
+             * stream shutdown.
+             */
+
+            try {
+                voiceClient?.stop();
+            } catch {
+                // Ignore page shutdown errors.
+            }
+        }
+    );
+
+
+    /* ========================================================
        INITIAL EMBEDS
     ======================================================== */
 
@@ -2317,7 +2971,6 @@
         Embed.scanMessages(
             ".message"
         );
-
     });
 
 
@@ -2329,7 +2982,8 @@
         new MutationObserver(
             mutations => {
 
-                let shouldScan = false;
+                let shouldScan =
+                    false;
 
 
                 for (
@@ -2343,11 +2997,17 @@
                         if (
                             node instanceof Element &&
                             (
-                                node.matches(".message") ||
-                                node.querySelector?.(".message")
+                                node.matches(
+                                    ".message"
+                                ) ||
+                                node.querySelector?.(
+                                    ".message"
+                                )
                             )
                         ) {
-                            shouldScan = true;
+
+                            shouldScan =
+                                true;
                         }
                     }
                 }
@@ -2373,19 +3033,12 @@
 
 
     /* ========================================================
-       TEST YOUTUBE MESSAGE
+       STARTUP
     ======================================================== */
 
-    /*
-     * Uncomment to test the exact structure:
-     *
-     * addMessage({
-     *     author: "Barney",
-     *     text:
-     *         "https://www.youtube.com/watch?v=K6y-5INWnQo"
-     * });
-     */
+    setVoiceStatus("");
 
+    setVoiceHeader(false);
 
 </script>
 
