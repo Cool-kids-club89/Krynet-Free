@@ -1,4 +1,6 @@
 (() => {
+    "use strict";
+
     ///////////////////////////////
     // Frontend detection
     ///////////////////////////////
@@ -11,19 +13,15 @@
         /piped/i.test(host) ||
         location.pathname.startsWith("/embed/");
 
-    if (!isSupportedFrontend) return;
-
-    ///////////////////////////////
-    // Types
-    ///////////////////////////////
-
-    type UnknownObject = Record<string, unknown>;
+    if (!isSupportedFrontend) {
+        return;
+    }
 
     ///////////////////////////////
     // Ad response fields
     ///////////////////////////////
 
-    const AD_FIELDS: Readonly<Record<string, unknown>> = {
+    const AD_FIELDS = {
         adPlacements: [],
         playerAds: [],
         adBreakHeartbeatParams: null,
@@ -34,7 +32,7 @@
     // Helpers
     ///////////////////////////////
 
-    function isObject(value: unknown): value is UnknownObject {
+    function isObject(value) {
         return (
             typeof value === "object" &&
             value !== null
@@ -42,12 +40,17 @@
     }
 
     function rewriteAds(
-        value: unknown,
-        seen = new WeakSet<object>()
-    ): void {
-        if (!isObject(value)) return;
+        value,
+        seen = new WeakSet()
+    ) {
+        if (!isObject(value)) {
+            return;
+        }
 
-        if (seen.has(value)) return;
+        if (seen.has(value)) {
+            return;
+        }
+
         seen.add(value);
 
         for (const key of Object.keys(value)) {
@@ -64,9 +67,9 @@
         }
     }
 
-    function isJsonResponse(response: Response): boolean {
+    function isJsonResponse(response) {
         const contentType =
-            response.headers.get("content-type") ?? "";
+            response.headers.get("content-type") || "";
 
         return contentType
             .toLowerCase()
@@ -77,35 +80,48 @@
     // Fetch interception
     ///////////////////////////////
 
-    const nativeFetch = window.fetch.bind(window);
+    const nativeFetch =
+        window.fetch.bind(window);
 
     window.fetch = async (
-        input: RequestInfo | URL,
-        init?: RequestInit
-    ): Promise<Response> => {
-        const response = await nativeFetch(input, init);
+        input,
+        init
+    ) => {
+        const response =
+            await nativeFetch(
+                input,
+                init
+            );
 
         if (!isJsonResponse(response)) {
             return response;
         }
 
         try {
-            const data: unknown = await response.clone().json();
+            const data =
+                await response
+                    .clone()
+                    .json();
 
             rewriteAds(data);
 
-            const headers = new Headers(response.headers);
+            const headers =
+                new Headers(
+                    response.headers
+                );
 
-            /*
-             * The original response body has already been consumed
-             * by the clone. Return a replacement response containing
-             * the rewritten JSON while preserving normal metadata.
-             */
-            return new Response(JSON.stringify(data), {
-                status: response.status,
-                statusText: response.statusText,
-                headers
-            });
+            return new Response(
+                JSON.stringify(data),
+                {
+                    status:
+                        response.status,
+
+                    statusText:
+                        response.statusText,
+
+                    headers
+                }
+            );
         } catch {
             return response;
         }
@@ -115,17 +131,18 @@
     // JSON.parse interception
     ///////////////////////////////
 
-    const nativeJSONParse = JSON.parse.bind(JSON);
+    const nativeJSONParse =
+        JSON.parse.bind(JSON);
 
     JSON.parse = (
-        text: string,
-        reviver?: (
-            this: unknown,
-            key: string,
-            value: unknown
-        ) => unknown
-    ): unknown => {
-        const parsed = nativeJSONParse(text, reviver);
+        text,
+        reviver
+    ) => {
+        const parsed =
+            nativeJSONParse(
+                text,
+                reviver
+            );
 
         rewriteAds(parsed);
 
@@ -136,19 +153,28 @@
     // Tracking parameter cleanup
     ///////////////////////////////
 
-    const TRACKING_PARAMS = new Set([
-        "si",
-        "feature",
-        "pp"
-    ]);
+    const TRACKING_PARAMS =
+        new Set([
+            "si",
+            "feature",
+            "pp"
+        ]);
 
-    function cleanCurrentURL(): void {
-        const url = new URL(location.href);
+    function cleanCurrentURL() {
+        const url =
+            new URL(location.href);
+
         let changed = false;
 
-        for (const key of [...url.searchParams.keys()]) {
+        for (
+            const key of [
+                ...url.searchParams.keys()
+            ]
+        ) {
             if (
-                key.toLowerCase().startsWith("utm_") ||
+                key
+                    .toLowerCase()
+                    .startsWith("utm_") ||
                 TRACKING_PARAMS.has(key)
             ) {
                 url.searchParams.delete(key);
@@ -156,7 +182,9 @@
             }
         }
 
-        if (!changed) return;
+        if (!changed) {
+            return;
+        }
 
         history.replaceState(
             history.state,
@@ -187,19 +215,26 @@
     ];
 
     function installStyle(
-        id: string,
-        selectors: readonly string[]
-    ): void {
-        if (document.getElementById(id)) return;
+        id,
+        selectors
+    ) {
+        if (
+            document.getElementById(id)
+        ) {
+            return;
+        }
 
-        const style = document.createElement("style");
+        const style =
+            document.createElement("style");
 
         style.id = id;
-        style.textContent = selectors
-            .map((selector) => {
-                return `${selector}{display:none!important}`;
-            })
-            .join("\n");
+
+        style.textContent =
+            selectors
+                .map(selector => {
+                    return `${selector}{display:none!important}`;
+                })
+                .join("\n");
 
         document.head.appendChild(style);
     }
@@ -213,34 +248,47 @@
     // Ad state detection
     ///////////////////////////////
 
-    function isVideoShowingAd(): boolean {
+    function isVideoShowingAd() {
         return Boolean(
-            document.querySelector(".ad-showing") ||
-            document.querySelector(".ytp-ad-player-overlay") ||
-            document.querySelector(".video-ads")
+            document.querySelector(
+                ".ad-showing"
+            ) ||
+            document.querySelector(
+                ".ytp-ad-player-overlay"
+            ) ||
+            document.querySelector(
+                ".video-ads"
+            )
         );
     }
 
-    function findVideo(): HTMLVideoElement | null {
-        return document.querySelector("video");
+    function findVideo() {
+        return document.querySelector(
+            "video"
+        );
     }
 
     ///////////////////////////////
     // Skip button
     ///////////////////////////////
 
-    function clickSkipButton(): boolean {
-        const button = document.querySelector<HTMLButtonElement>(
-            [
-                ".ytp-ad-skip-button",
-                ".ytp-skip-ad-button",
-                ".ytp-ad-skip-button-modern"
-            ].join(",")
-        );
+    function clickSkipButton() {
+        const button =
+            document.querySelector(
+                [
+                    ".ytp-ad-skip-button",
+                    ".ytp-skip-ad-button",
+                    ".ytp-ad-skip-button-modern"
+                ].join(",")
+            );
 
-        if (!button) return false;
+        if (!button) {
+            return false;
+        }
 
-        if (button.disabled) return false;
+        if (button.disabled) {
+            return false;
+        }
 
         button.click();
 
@@ -251,21 +299,31 @@
     // Auto skip
     ///////////////////////////////
 
-    function skipCurrentAd(): void {
-        const video = findVideo();
+    function skipCurrentAd() {
+        const video =
+            findVideo();
 
-        if (!video) return;
+        if (!video) {
+            return;
+        }
 
-        if (clickSkipButton()) return;
+        if (clickSkipButton()) {
+            return;
+        }
 
-        if (!isVideoShowingAd()) return;
+        if (!isVideoShowingAd()) {
+            return;
+        }
 
         if (
-            Number.isFinite(video.duration) &&
+            Number.isFinite(
+                video.duration
+            ) &&
             video.duration > 0
         ) {
             try {
-                video.currentTime = video.duration;
+                video.currentTime =
+                    video.duration;
             } catch {
                 // Video may have changed underneath us.
             }
@@ -278,8 +336,10 @@
 
     let skipScheduled = false;
 
-    function scheduleSkip(): void {
-        if (skipScheduled) return;
+    function scheduleSkip() {
+        if (skipScheduled) {
+            return;
+        }
 
         skipScheduled = true;
 
@@ -289,17 +349,23 @@
         });
     }
 
-    const observer = new MutationObserver(scheduleSkip);
+    const observer =
+        new MutationObserver(
+            scheduleSkip
+        );
 
-    observer.observe(document.documentElement, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: [
-            "class",
-            "style"
-        ]
-    });
+    observer.observe(
+        document.documentElement,
+        {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: [
+                "class",
+                "style"
+            ]
+        }
+    );
 
     ///////////////////////////////
     // Video events
@@ -321,64 +387,96 @@
     // Embedded players
     ///////////////////////////////
 
-    function patchEmbed(iframe: HTMLIFrameElement): void {
-        const src = iframe.src;
+    function patchEmbed(iframe) {
+        const src =
+            iframe.src;
 
-        if (!src) return;
+        if (!src) {
+            return;
+        }
 
         try {
-            const url = new URL(src);
+            const url =
+                new URL(src);
 
-            const host = url.hostname.toLowerCase();
+            const iframeHost =
+                url.hostname.toLowerCase();
 
             const supported =
-                host.includes("youtube") ||
-                host.includes("piped") ||
-                host.includes("invidious");
+                iframeHost.includes(
+                    "youtube"
+                ) ||
+                iframeHost.includes(
+                    "piped"
+                ) ||
+                iframeHost.includes(
+                    "invidious"
+                );
 
-            if (!supported) return;
+            if (!supported) {
+                return;
+            }
 
             let changed = false;
 
-            const params: Record<string, string> = {
+            const params = {
                 autoplay: "1",
                 modestbranding: "1",
                 rel: "0"
             };
 
-            for (const [key, value] of Object.entries(params)) {
-                if (url.searchParams.get(key) !== value) {
-                    url.searchParams.set(key, value);
+            for (
+                const [key, value]
+                of Object.entries(params)
+            ) {
+                if (
+                    url.searchParams.get(
+                        key
+                    ) !== value
+                ) {
+                    url.searchParams.set(
+                        key,
+                        value
+                    );
+
                     changed = true;
                 }
             }
 
             if (changed) {
-                iframe.src = url.toString();
+                iframe.src =
+                    url.toString();
             }
         } catch {
             // Invalid iframe URL.
         }
     }
 
-    function scanEmbeds(root: ParentNode = document): void {
-        for (const iframe of root.querySelectorAll<HTMLIFrameElement>(
-            "iframe"
-        )) {
+    function scanEmbeds(
+        root = document
+    ) {
+        for (
+            const iframe of
+            root.querySelectorAll("iframe")
+        ) {
             patchEmbed(iframe);
         }
     }
 
     scanEmbeds();
 
-    const embedObserver = new MutationObserver(() => {
-        scanEmbeds();
-    });
+    const embedObserver =
+        new MutationObserver(() => {
+            scanEmbeds();
+        });
 
-    embedObserver.observe(document.documentElement, {
-        childList: true,
-        subtree: true
-    });
+    embedObserver.observe(
+        document.documentElement,
+        {
+            childList: true,
+            subtree: true
+        }
+    );
 
     ///////////////////////////////
     // Initial skip
@@ -390,16 +488,17 @@
     // Periodic fallback
     ///////////////////////////////
 
-    const skipTimer = window.setInterval(
-        skipCurrentAd,
-        500
-    );
+    const skipTimer =
+        window.setInterval(
+            skipCurrentAd,
+            500
+        );
 
     ///////////////////////////////
     // Public cleanup
     ///////////////////////////////
 
-    function destroy(): void {
+    function destroy() {
         observer.disconnect();
         embedObserver.disconnect();
 
@@ -415,29 +514,36 @@
             true
         );
 
-        window.clearInterval(skipTimer);
+        window.clearInterval(
+            skipTimer
+        );
 
-        window.fetch = nativeFetch;
-        JSON.parse = nativeJSONParse;
+        window.fetch =
+            nativeFetch;
+
+        JSON.parse =
+            nativeJSONParse;
+
+        const style =
+            document.getElementById(
+                "krynet-ad-filters"
+            );
+
+        style?.remove();
+
+        delete window.KrynetAdBlock;
     }
 
     ///////////////////////////////
     // Global API
     ///////////////////////////////
 
-    declare global {
-        interface Window {
-            KrynetAdBlock?: {
-                destroy: () => void;
-                skip: () => void;
-            };
-        }
-    }
-
     window.KrynetAdBlock = {
         destroy,
         skip: skipCurrentAd
     };
 
-    console.log("[Krynet] Ad handling initialized");
+    console.log(
+        "[Krynet] Ad handling initialized"
+    );
 })();
