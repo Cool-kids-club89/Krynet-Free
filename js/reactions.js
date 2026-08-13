@@ -1,9 +1,5 @@
 "use strict";
 
-/* ---------------------------------------------------------
-   SETTINGS
---------------------------------------------------------- */
-
 const EMOJIS = [
     "👍",
     "❤️",
@@ -19,9 +15,9 @@ const EMOJIS = [
 
 const MESSAGE_SELECTOR = ".message";
 
-/* ---------------------------------------------------------
-   STYLES
---------------------------------------------------------- */
+const messageStates = new WeakMap();
+
+let activePicker = null;
 
 function installStyles() {
     if (document.getElementById("krynet-reactions-style")) {
@@ -33,73 +29,52 @@ function installStyles() {
     style.id = "krynet-reactions-style";
 
     style.textContent = `
-        .kr-message-actions {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            margin-top: 6px;
-            min-height: 28px;
-        }
-
-        .kr-reaction-add {
-            width: 28px;
-            height: 28px;
-            padding: 0;
-            border: 1px solid #40444b;
-            border-radius: 6px;
-            background: #2f3136;
-            color: #b9bbbe;
-            cursor: pointer;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .kr-reaction-add:hover {
-            background: #40444b;
-            color: #fff;
-        }
-
-        .kr-reactions {
+        .kr-message-reactions {
             display: flex;
             flex-wrap: wrap;
             gap: 4px;
             margin-top: 5px;
         }
 
+        .kr-reactions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
         .kr-reaction {
+            min-height: 25px;
+            padding: 2px 7px;
+            border: 1px solid #4f5158;
+            border-radius: 7px;
+            background: #2b2d31;
+            color: #dbdee1;
+            cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            min-height: 26px;
-            padding: 2px 7px;
-            border: 1px solid #40444b;
-            border-radius: 7px;
-            background: #2f3136;
-            color: #dcddde;
-            cursor: pointer;
-            font-size: 14px;
-            line-height: 20px;
+            font-size: 13px;
+            line-height: 18px;
         }
 
         .kr-reaction:hover {
-            background: #40444b;
+            border-color: #5865f2;
+            background: #35384a;
         }
 
         .kr-reaction.active {
             border-color: #5865f2;
-            background: #353b70;
+            background: #3c4270;
         }
 
         .kr-reaction-count {
+            color: #b5bac1;
             font-size: 12px;
-            color: #b9bbbe;
             font-weight: 600;
         }
 
         .kr-emoji-picker {
-            position: absolute;
+            position: fixed;
             z-index: 10000;
             width: 230px;
             padding: 8px;
@@ -115,10 +90,11 @@ function installStyles() {
         .kr-emoji-button {
             width: 40px;
             height: 36px;
+            padding: 0;
             border: 0;
             border-radius: 5px;
             background: transparent;
-            color: white;
+            color: #fff;
             cursor: pointer;
             font-size: 20px;
         }
@@ -130,16 +106,6 @@ function installStyles() {
 
     document.head.appendChild(style);
 }
-
-/* ---------------------------------------------------------
-   STATE
---------------------------------------------------------- */
-
-const messageStates = new WeakMap();
-
-/* ---------------------------------------------------------
-   HELPERS
---------------------------------------------------------- */
 
 function getState(message) {
     let state = messageStates.get(message);
@@ -156,12 +122,15 @@ function getState(message) {
     return state;
 }
 
+function getMessageFromContainer(container) {
+    return container.closest(MESSAGE_SELECTOR);
+}
+
 function closePicker() {
-    document
-        .querySelectorAll(".kr-emoji-picker")
-        .forEach(picker => {
-            picker.remove();
-        });
+    if (activePicker) {
+        activePicker.remove();
+        activePicker = null;
+    }
 
     for (const message of document.querySelectorAll(
         MESSAGE_SELECTOR
@@ -174,25 +143,12 @@ function closePicker() {
     }
 }
 
-/* ---------------------------------------------------------
-   REACTION RENDERING
---------------------------------------------------------- */
-
-function renderReactions(message) {
-    const state = getState(message);
-
-    let container = message.querySelector(
-        ":scope > .kr-message-reactions"
-    );
-
+function renderReactions(message, container) {
     if (!container) {
-        container = document.createElement("div");
-
-        container.className =
-            "kr-message-reactions";
-
-        message.appendChild(container);
+        return;
     }
+
+    const state = getState(message);
 
     container.replaceChildren();
 
@@ -200,16 +156,19 @@ function renderReactions(message) {
         return;
     }
 
-    const reactions = document.createElement("div");
+    const reactions =
+        document.createElement("div");
 
-    reactions.className = "kr-reactions";
+    reactions.className =
+        "kr-reactions";
 
     for (const [
         emoji,
         reaction
     ] of state.reactions) {
 
-        const button = document.createElement("button");
+        const button =
+            document.createElement("button");
 
         button.type = "button";
         button.className = "kr-reaction";
@@ -218,10 +177,14 @@ function renderReactions(message) {
             button.classList.add("active");
         }
 
-        const emojiSpan =
+        button.title =
+            `${emoji} ${reaction.count}`;
+
+        const emojiElement =
             document.createElement("span");
 
-        emojiSpan.textContent = emoji;
+        emojiElement.textContent =
+            emoji;
 
         const count =
             document.createElement("span");
@@ -233,17 +196,19 @@ function renderReactions(message) {
             String(reaction.count);
 
         button.append(
-            emojiSpan,
+            emojiElement,
             count
         );
 
         button.addEventListener(
             "click",
             event => {
+                event.preventDefault();
                 event.stopPropagation();
 
                 toggleReaction(
                     message,
+                    container,
                     emoji
                 );
             }
@@ -255,11 +220,11 @@ function renderReactions(message) {
     container.appendChild(reactions);
 }
 
-/* ---------------------------------------------------------
-   TOGGLE REACTION
---------------------------------------------------------- */
-
-function toggleReaction(message, emoji) {
+function toggleReaction(
+    message,
+    container,
+    emoji
+) {
     const state = getState(message);
 
     let reaction =
@@ -279,7 +244,6 @@ function toggleReaction(message, emoji) {
 
     if (reaction.active) {
         reaction.count--;
-
         reaction.active = false;
 
         if (reaction.count <= 0) {
@@ -290,14 +254,17 @@ function toggleReaction(message, emoji) {
         reaction.active = true;
     }
 
-    renderReactions(message);
+    renderReactions(
+        message,
+        container
+    );
 }
 
-/* ---------------------------------------------------------
-   EMOJI PICKER
---------------------------------------------------------- */
-
-function openPicker(message, button) {
+function openPicker(
+    message,
+    container,
+    anchor
+) {
     closePicker();
 
     const picker =
@@ -307,23 +274,25 @@ function openPicker(message, button) {
         "kr-emoji-picker";
 
     for (const emoji of EMOJIS) {
-        const emojiButton =
+        const button =
             document.createElement("button");
 
-        emojiButton.type = "button";
-        emojiButton.className =
+        button.type = "button";
+        button.className =
             "kr-emoji-button";
 
-        emojiButton.textContent =
+        button.textContent =
             emoji;
 
-        emojiButton.addEventListener(
+        button.addEventListener(
             "click",
             event => {
+                event.preventDefault();
                 event.stopPropagation();
 
                 toggleReaction(
                     message,
+                    container,
                     emoji
                 );
 
@@ -331,35 +300,37 @@ function openPicker(message, button) {
             }
         );
 
-        picker.appendChild(
-            emojiButton
-        );
+        picker.appendChild(button);
     }
 
     document.body.appendChild(picker);
 
     const rect =
-        button.getBoundingClientRect();
+        anchor.getBoundingClientRect();
 
     const pickerWidth = 230;
     const pickerHeight = 130;
+    const margin = 10;
 
-    let left = rect.left;
-    let top = rect.bottom + 6;
+    let left =
+        rect.left;
+
+    let top =
+        rect.bottom + 6;
 
     if (
         left + pickerWidth >
-        window.innerWidth - 10
+        window.innerWidth - margin
     ) {
         left =
             window.innerWidth -
             pickerWidth -
-            10;
+            margin;
     }
 
     if (
         top + pickerHeight >
-        window.innerHeight - 10
+        window.innerHeight - margin
     ) {
         top =
             rect.top -
@@ -368,78 +339,48 @@ function openPicker(message, button) {
     }
 
     picker.style.left =
-        `${Math.max(10, left)}px`;
+        `${Math.max(margin, left)}px`;
 
     picker.style.top =
-        `${Math.max(10, top)}px`;
+        `${Math.max(margin, top)}px`;
 
-    const state = getState(message);
+    activePicker =
+        picker;
 
-    state.picker = picker;
+    getState(message).picker =
+        picker;
 }
 
-/* ---------------------------------------------------------
-   MESSAGE SETUP
---------------------------------------------------------- */
-
-function setupMessage(message) {
-    if (!(message instanceof Element)) {
-        return;
-    }
-
-    if (
-        message.dataset.reactionsInitialized ===
-        "true"
-    ) {
-        return;
-    }
-
-    message.dataset.reactionsInitialized =
-        "true";
-
-    const state = getState(message);
-
-    /* ---------------------------------------------
-       Actions row
-    --------------------------------------------- */
-
-    let actions =
-        message.querySelector(
-            ":scope > .kr-message-actions"
-        );
-
-    if (!actions) {
-        actions =
-            document.createElement("div");
-
-        actions.className =
-            "kr-message-actions";
-
-        /*
-         * Put the reaction control at the very
-         * bottom of the message.
-         */
-        message.appendChild(actions);
-    }
-
-    const addButton =
+function createAddButton(
+    message,
+    container
+) {
+    const button =
         document.createElement("button");
 
-    addButton.type = "button";
-    addButton.className =
+    button.type = "button";
+    button.className =
         "kr-reaction-add";
 
-    addButton.textContent = "🙂";
-    addButton.title = "Add reaction";
-    addButton.setAttribute(
+    button.textContent =
+        "🙂";
+
+    button.title =
+        "Add reaction";
+
+    button.setAttribute(
         "aria-label",
         "Add reaction"
     );
 
-    addButton.addEventListener(
+    button.addEventListener(
         "click",
         event => {
+            event.preventDefault();
             event.stopPropagation();
+
+            const state =
+                getState(message);
 
             if (state.picker) {
                 closePicker();
@@ -448,23 +389,121 @@ function setupMessage(message) {
 
             openPicker(
                 message,
-                addButton
+                container,
+                button
             );
         }
     );
 
-    actions.appendChild(
-        addButton
-    );
-
-    renderReactions(message);
+    return button;
 }
 
-/* ---------------------------------------------------------
-   SCAN
---------------------------------------------------------- */
+function attach(container) {
+    if (!(container instanceof Element)) {
+        return null;
+    }
+
+    const message =
+        getMessageFromContainer(container);
+
+    if (!message) {
+        console.warn(
+            "[Krynet] Reaction container is not inside a message."
+        );
+
+        return null;
+    }
+
+    installStyles();
+
+    const state =
+        getState(message);
+
+    if (
+        container.dataset.reactionsInitialized ===
+        "true"
+    ) {
+        renderReactions(
+            message,
+            container
+        );
+
+        return state;
+    }
+
+    container.dataset.reactionsInitialized =
+        "true";
+
+    const addButton =
+        createAddButton(
+            message,
+            container
+        );
+
+    /*
+     * The HTML already has .message-actions
+     * containing the reaction button.
+     *
+     * If one exists, hook it instead of creating
+     * another button.
+     */
+
+    const existingButton =
+        message.querySelector(
+            ':scope > .message-actions [data-action="react"]'
+        );
+
+    if (existingButton) {
+        existingButton.addEventListener(
+            "click",
+            event => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (state.picker) {
+                    closePicker();
+                    return;
+                }
+
+                openPicker(
+                    message,
+                    container,
+                    existingButton
+                );
+            }
+        );
+    } else {
+        container.before(addButton);
+    }
+
+    renderReactions(
+        message,
+        container
+    );
+
+    return state;
+}
+
+function setupMessage(message) {
+    if (!(message instanceof Element)) {
+        return;
+    }
+
+    const container =
+        message.querySelector(
+            ":scope > .message-content > .kr-message-reactions"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    attach(container);
+}
 
 function scanMessages(root = document) {
+    installStyles();
+
     if (
         root instanceof Element &&
         root.matches(MESSAGE_SELECTOR)
@@ -484,14 +523,11 @@ function scanMessages(root = document) {
         .forEach(setupMessage);
 }
 
-/* ---------------------------------------------------------
-   OUTSIDE CLICK
---------------------------------------------------------- */
-
 document.addEventListener(
     "click",
     event => {
-        const target = event.target;
+        const target =
+            event.target;
 
         if (!(target instanceof Element)) {
             return;
@@ -500,6 +536,9 @@ document.addEventListener(
         if (
             target.closest(
                 ".kr-emoji-picker"
+            ) ||
+            target.closest(
+                '[data-action="react"]'
             ) ||
             target.closest(
                 ".kr-reaction-add"
@@ -512,79 +551,86 @@ document.addEventListener(
     }
 );
 
-/* ---------------------------------------------------------
-   OBSERVER
---------------------------------------------------------- */
+window.addEventListener(
+    "resize",
+    closePicker
+);
 
-const observer =
-    new MutationObserver(
-        mutations => {
-            for (const mutation of mutations) {
-                for (const node of mutation.addedNodes) {
-                    if (
-                        !(node instanceof Element)
-                    ) {
-                        continue;
-                    }
+window.addEventListener(
+    "scroll",
+    closePicker,
+    true
+);
 
-                    scanMessages(node);
-                }
-            }
-        }
-    );
+export class Reactions {
+    constructor(container) {
+        this.container =
+            container;
 
-/* ---------------------------------------------------------
-   INIT
---------------------------------------------------------- */
+        this.message =
+            getMessageFromContainer(
+                container
+            );
 
-function initialize() {
-    installStyles();
-
-    scanMessages();
-
-    if (!document.body) {
-        return;
+        attach(container);
     }
 
-    observer.observe(
-        document.body,
-        {
-            childList: true,
-            subtree: true
+    static attach(container) {
+        return attach(container);
+    }
+
+    static scan(root = document) {
+        scanMessages(root);
+    }
+
+    add(emoji) {
+        if (
+            !this.message ||
+            !this.container
+        ) {
+            return;
         }
-    );
 
-    console.log(
-        "[Krynet] Reactions initialized."
-    );
-}
+        toggleReaction(
+            this.message,
+            this.container,
+            emoji
+        );
+    }
 
-if (
-    document.readyState ===
-    "loading"
-) {
-    document.addEventListener(
-        "DOMContentLoaded",
-        initialize,
-        { once: true }
-    );
-} else {
-    initialize();
-}
-
-/* ---------------------------------------------------------
-   PUBLIC API
---------------------------------------------------------- */
-
-export const Reactions = {
-    scan: scanMessages,
-
-    add(message, emoji) {
+    static add(message, emoji) {
         if (!(message instanceof Element)) {
             return;
         }
 
-        setupMessage(message);
-        toggleReaction(message, emoji);
+        const container =
+            message.querySelector(
+                ":scope > .message-content > .kr-message-reactions"
+            );
+
+        if (!container) {
+            return;
+        }
+
+        attach(container);
+
+        toggleReaction(
+            message,
+            container,
+            emoji
+        );
+    }
+}
+
+export default Reactions;
+
+window.KrynetReactions = {
+    scan: scanMessages,
+    attach,
+    add(message, emoji) {
+        Reactions.add(
+            message,
+            emoji
+        );
     }
 };
