@@ -119,59 +119,69 @@ class KrynetBlurNSFW {
        MODEL
     ========================================================= */
 
-    async loadModel() {
-        if (this.model) {
-            return this.model;
-        }
+   async loadModel() {
+    if (this.model) {
+        return this.model;
+    }
 
-        if (this.modelLoading) {
-            return this.modelLoading;
-        }
-
-        this.modelLoading = (async () => {
-            try {
-                if (
-                    typeof window.nsfwjs ===
-                    "undefined"
-                ) {
-                    await this.loadScript(
-                        KrynetBlurNSFW.MODEL_URL
-                    );
-                }
-
-                if (
-                    typeof window.nsfwjs ===
-                    "undefined"
-                ) {
-                    throw new Error(
-                        "NSFW.js failed to load."
-                    );
-                }
-
-                this.model =
-                    await window.nsfwjs.load(
-                        KrynetBlurNSFW.MODEL_PATH
-                    );
-
-                console.log(
-                    "[KrynetNSFW] Model loaded."
-                );
-
-                return this.model;
-            } catch (error) {
-                console.error(
-                    "[KrynetNSFW] Model loading failed:",
-                    error
-                );
-
-                throw error;
-            } finally {
-                this.modelLoading = null;
-            }
-        })();
-
+    if (this.modelLoading) {
         return this.modelLoading;
     }
+
+    this.modelLoading = (async () => {
+        try {
+            if (!window.tf) {
+                await this.loadScript(
+                    KrynetBlurNSFW.TF_URL
+                );
+            }
+
+            if (!window.tf) {
+                throw new Error(
+                    "TensorFlow.js failed to load."
+                );
+            }
+
+            if (!window.nsfwjs) {
+                await this.loadScript(
+                    KrynetBlurNSFW.MODEL_URL
+                );
+            }
+
+            if (!window.nsfwjs) {
+                throw new Error(
+                    "NSFWJS failed to load."
+                );
+            }
+
+            await window.tf.ready();
+
+            this.model =
+                await window.nsfwjs.load(
+                    KrynetBlurNSFW.MODEL_PATH
+                );
+
+            console.log(
+                "[KrynetNSFW] Model loaded."
+            );
+
+            return this.model;
+
+        } catch (error) {
+            console.error(
+                "[KrynetNSFW] Model loading failed:",
+                error
+            );
+
+            throw error;
+
+        } finally {
+            this.modelLoading = null;
+        }
+    })();
+
+    return this.modelLoading;
+}
 
     /* =========================================================
        SCRIPT LOADER
