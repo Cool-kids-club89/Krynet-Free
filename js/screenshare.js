@@ -1,39 +1,18 @@
 ///////////////////////////////
-// Platform Types
-///////////////////////////////
-
-type SciterView = {
-    open(url: string): void;
-};
-
-declare const view: SciterView | undefined;
-declare const Sciter: SciterView | undefined;
-
-///////////////////////////////
-// Service Types
-///////////////////////////////
-
-type Service = {
-    id: string;
-    matches(url: URL): boolean;
-    transform(url: URL): string;
-};
-
-///////////////////////////////
 // Helpers
 ///////////////////////////////
 
-function isHost(url: URL, hostname: string): boolean {
+function isHost(url, hostname) {
     return url.hostname.toLowerCase() === hostname;
 }
 
-function getPathParts(url: URL): string[] {
+function getPathParts(url) {
     return url.pathname
         .split("/")
         .filter(Boolean);
 }
 
-function parseUrl(value: string): URL | null {
+function parseUrl(value) {
     try {
         const url = new URL(value);
 
@@ -54,7 +33,7 @@ function parseUrl(value: string): URL | null {
 // Services
 ///////////////////////////////
 
-const SERVICES: Service[] = [
+const SERVICES = [
     {
         id: "spotify",
 
@@ -244,7 +223,7 @@ const SERVICES: Service[] = [
 // Transform URL
 ///////////////////////////////
 
-export function transformUrl(value: string): string {
+export function transformUrl(value) {
     const url = parseUrl(value);
 
     if (!url) {
@@ -266,10 +245,7 @@ export function transformUrl(value: string): string {
 // Open External App
 ///////////////////////////////
 
-function openExternal(
-    appUrl: string,
-    fallbackUrl: string
-): void {
+function openExternal(appUrl, fallbackUrl) {
     try {
         if (
             typeof view !== "undefined" &&
@@ -309,7 +285,7 @@ function openExternal(
 // Click Handling
 ///////////////////////////////
 
-function handleClick(event: MouseEvent): void {
+function handleClick(event) {
     // Only handle normal left clicks.
     if (
         event.button !== 0 ||
@@ -358,7 +334,7 @@ function handleClick(event: MouseEvent): void {
 
 let initialized = false;
 
-export function initOpenInApp(): void {
+export function initOpenInApp() {
     if (initialized) {
         return;
     }
