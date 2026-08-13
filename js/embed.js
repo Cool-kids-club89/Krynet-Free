@@ -4,24 +4,14 @@ import { Reactions } from "./reactions.js";
    HELPERS
 --------------------------------------------------------- */
 
-type CSSProperties =
-    Partial<CSSStyleDeclaration>;
-
-function style(
-    element: HTMLElement,
-    styles: CSSProperties
-): void {
+function style(element, styles) {
     Object.assign(
         element.style,
         styles
     );
 }
 
-function createElement<
-    K extends keyof HTMLElementTagNameMap
->(
-    tag: K
-): HTMLElementTagNameMap[K] {
+function createElement(tag) {
     return document.createElement(tag);
 }
 
@@ -31,30 +21,6 @@ function createElement<
  */
 const URL_REGEX =
     /https?:\/\/[^\s<>"']+?(?=[\s<>"']|$)/gi;
-
-/* ---------------------------------------------------------
-   TYPES
---------------------------------------------------------- */
-
-type NoEmbedResponse = {
-    title?: string;
-    description?: string;
-    provider_name?: string;
-    thumbnail_url?: string;
-    url?: string;
-};
-
-type EmbedCache = {
-    meta: NoEmbedResponse;
-    mime: string;
-};
-
-type MediaElement =
-    | HTMLImageElement
-    | HTMLVideoElement
-    | HTMLAudioElement
-    | HTMLIFrameElement
-    | HTMLDivElement;
 
 /* ---------------------------------------------------------
    CONSTANTS
@@ -67,15 +33,13 @@ const MAX_MEDIA_WIDTH =
     "400px";
 
 const META_CACHE =
-    new Map<string, Promise<EmbedCache>>();
+    new Map();
 
 /* ---------------------------------------------------------
    URL HELPERS
 --------------------------------------------------------- */
 
-function normalizeURL(
-    value: string
-): string | null {
+function normalizeURL(value) {
     try {
         const url =
             new URL(value);
@@ -93,9 +57,7 @@ function normalizeURL(
     }
 }
 
-function getFilename(
-    url: string
-): string {
+function getFilename(url) {
     try {
         const parsed =
             new URL(url);
@@ -106,11 +68,15 @@ function getFilename(
             );
 
         const name =
-            pathname.split(
-                "/"
-            ).filter(Boolean).pop();
+            pathname
+                .split("/")
+                .filter(Boolean)
+                .pop();
 
-        return name || parsed.hostname;
+        return (
+            name ||
+            parsed.hostname
+        );
     } catch {
         return url;
     }
@@ -120,12 +86,9 @@ function getFilename(
    NETWORK
 --------------------------------------------------------- */
 
-async function getMime(
-    url: string
-): Promise<string> {
+async function getMime(url) {
     /*
-     * HEAD is not universally supported.
-     * Use GET with a Range request first.
+     * GET with a Range request instead of HEAD.
      */
     try {
         const response =
@@ -139,16 +102,14 @@ async function getMime(
         return (
             response.headers.get(
                 "content-type"
-            ) ?? ""
+            ) || ""
         );
     } catch {
         return "";
     }
 }
 
-async function getMeta(
-    url: string
-): Promise<NoEmbedResponse> {
+async function getMeta(url) {
     try {
         const endpoint =
             `${NOEMBED_API}?url=${encodeURIComponent(
@@ -172,15 +133,13 @@ async function getMeta(
             return {};
         }
 
-        return data as NoEmbedResponse;
+        return data;
     } catch {
         return {};
     }
 }
 
-async function getEmbedData(
-    url: string
-): Promise<EmbedCache> {
+async function getEmbedData(url) {
     const cached =
         META_CACHE.get(url);
 
@@ -211,9 +170,7 @@ async function getEmbedData(
    MEDIA
 --------------------------------------------------------- */
 
-function applyMediaStyle(
-    element: HTMLElement
-): void {
+function applyMediaStyle(element) {
     style(element, {
         maxWidth:
             MAX_MEDIA_WIDTH,
@@ -225,20 +182,15 @@ function applyMediaStyle(
 }
 
 function createMedia(
-    url: string,
-    mime: string,
-    meta: NoEmbedResponse
-): MediaElement | null {
+    url,
+    mime,
+    meta
+) {
     /*
      * Never inject meta.html directly.
-     *
-     * noembed's HTML may contain arbitrary
-     * provider markup, scripts, embeds, etc.
      */
 
-    if (
-        meta.thumbnail_url
-    ) {
+    if (meta.thumbnail_url) {
         const image =
             createElement("img");
 
@@ -246,7 +198,7 @@ function createMedia(
             meta.thumbnail_url;
 
         image.alt =
-            meta.title ??
+            meta.title ||
             "Embedded media";
 
         image.loading =
@@ -263,14 +215,13 @@ function createMedia(
     }
 
     if (
-        mime.startsWith(
-            "image/"
-        )
+        mime.startsWith("image/")
     ) {
         const image =
             createElement("img");
 
         image.src = url;
+
         image.alt =
             getFilename(url);
 
@@ -285,9 +236,7 @@ function createMedia(
     }
 
     if (
-        mime.startsWith(
-            "video/"
-        )
+        mime.startsWith("video/")
     ) {
         const video =
             createElement("video");
@@ -305,9 +254,7 @@ function createMedia(
     }
 
     if (
-        mime.startsWith(
-            "audio/"
-        )
+        mime.startsWith("audio/")
     ) {
         const audio =
             createElement("audio");
@@ -326,8 +273,7 @@ function createMedia(
     }
 
     if (
-        mime ===
-        "application/pdf"
+        mime === "application/pdf"
     ) {
         const frame =
             createElement("iframe");
@@ -377,15 +323,11 @@ function createMedia(
    EMBED CARD
 --------------------------------------------------------- */
 
-async function buildEmbed(
-    url: string
-): Promise<HTMLElement> {
+async function buildEmbed(url) {
     const {
         meta,
         mime
-    } = await getEmbedData(
-        url
-    );
+    } = await getEmbedData(url);
 
     const card =
         createElement("div");
@@ -465,9 +407,7 @@ async function buildEmbed(
 
     /* Description */
 
-    if (
-        meta.description
-    ) {
+    if (meta.description) {
         const description =
             createElement("div");
 
@@ -503,9 +443,7 @@ async function buildEmbed(
 
     /* Provider */
 
-    if (
-        meta.provider_name
-    ) {
+    if (meta.provider_name) {
         const provider =
             createElement("div");
 
@@ -551,9 +489,9 @@ async function buildEmbed(
 --------------------------------------------------------- */
 
 function lazyEmbed(
-    container: HTMLElement,
-    url: string
-): void {
+    container,
+    url
+) {
     const placeholder =
         createElement("div");
 
@@ -612,14 +550,12 @@ function lazyEmbed(
 }
 
 async function loadEmbed(
-    placeholder: HTMLElement,
-    url: string
-): Promise<void> {
+    placeholder,
+    url
+) {
     try {
         const embed =
-            await buildEmbed(
-                url
-            );
+            await buildEmbed(url);
 
         if (
             !placeholder.isConnected
@@ -649,50 +585,37 @@ async function loadEmbed(
    MESSAGE SCANNING
 --------------------------------------------------------- */
 
-function extractURLs(
-    text: string
-): string[] {
+function extractURLs(text) {
     const matches =
-        text.match(
-            URL_REGEX
-        );
+        text.match(URL_REGEX);
 
     if (!matches) {
         return [];
     }
 
     const unique =
-        new Set<string>();
+        new Set();
 
     for (
-        const match
-        of matches
+        const match of matches
     ) {
         const url =
-            normalizeURL(
-                match
-            );
+            normalizeURL(match);
 
         if (url) {
             unique.add(url);
         }
     }
 
-    return Array.from(
-        unique
-    );
+    return Array.from(unique);
 }
 
 const processedMessages =
-    new WeakSet<HTMLElement>();
+    new WeakSet();
 
-function processMessage(
-    message: HTMLElement
-): void {
+function processMessage(message) {
     if (
-        processedMessages.has(
-            message
-        )
+        processedMessages.has(message)
     ) {
         return;
     }
@@ -705,17 +628,14 @@ function processMessage(
         message.innerText;
 
     const urls =
-        extractURLs(
-            text
-        );
+        extractURLs(text);
 
     if (!urls.length) {
         return;
     }
 
     for (
-        const url
-        of urls
+        const url of urls
     ) {
         lazyEmbed(
             message,
@@ -729,15 +649,9 @@ function processMessage(
 --------------------------------------------------------- */
 
 export const Embed = {
-    scanMessages(
-        selector: string
-    ): void {
+    scanMessages(selector) {
         document
-            .querySelectorAll<HTMLElement>(
-                selector
-            )
-            .forEach(
-                processMessage
-            );
+            .querySelectorAll(selector)
+            .forEach(processMessage);
     }
 };
