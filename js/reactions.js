@@ -286,7 +286,6 @@ function openExternal(appUrl, fallbackUrl) {
 ///////////////////////////////
 
 function handleClick(event) {
-    // Only handle normal left clicks.
     if (
         event.button !== 0 ||
         event.ctrlKey ||
