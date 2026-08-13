@@ -1,140 +1,104 @@
+"use strict";
+
 import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
 import { getHighlighter } from "https://cdn.jsdelivr.net/npm/shiki@0.12.0/dist/index.js";
 
-"use strict";
-
-
 /* =========================================================
-   HELPERS
+   KRYNET MARKDOWN
+   Works with:
+
+   #messages
+   .message
+   .message-content
+   .message-text
+
+   Designed to coexist with reactions.js and embeds.
 ========================================================= */
 
-function escapeHtml(value) {
-    return String(value).replace(
-        /[&<>"']/g,
-        character => {
-            switch (character) {
-                case "&":
-                    return "&amp;";
-                case "<":
-                    return "&lt;";
-                case ">":
-                    return "&gt;";
-                case '"':
-                    return "&quot;";
-                case "'":
-                    return "&#39;";
-                default:
-                    return character;
-            }
-        }
-    );
-}
-
-
-function escapeAttribute(value) {
-    return escapeHtml(value);
-}
-
-
-function createTimeElement(timestamp, format) {
-    const milliseconds =
-        Number(timestamp) * 1000;
-
-    const date =
-        new Date(milliseconds);
-
-    if (
-        !Number.isFinite(milliseconds) ||
-        Number.isNaN(date.getTime())
-    ) {
-        return escapeHtml(
-            `<t:${timestamp}${format ? `:${format}` : ""}>`
-        );
-    }
-
-    return (
-        `<time class="kr-time" ` +
-        `datetime="${escapeAttribute(
-            date.toISOString()
-        )}">` +
-        `${escapeHtml(
-            date.toLocaleString()
-        )}` +
-        `</time>`
-    );
-}
-
-
-function isSafeURL(value, allowMailto = false) {
-    try {
-        const url =
-            new URL(value);
-
-        if (
-            url.protocol === "http:" ||
-            url.protocol === "https:"
-        ) {
-            return true;
-        }
-
-        return (
-            allowMailto &&
-            url.protocol === "mailto:"
-        );
-
-    } catch {
-        return false;
-    }
-}
-
-
-/* =========================================================
-   CORE
-========================================================= */
-
-export const KrynetMarkdown = {
-
+const KrynetMarkdown = {
     highlighter: null,
-
     renderer: null,
-
-    cssInjected: false,
-
     initialized: false,
-
     initPromise: null,
 
     cacheTTL: 5000,
 
     caches: {
         mentions: new Map(),
-        roles: new Map(),
         channels: new Map(),
-        emojis: new Map(),
-        general: new Map()
+        roles: new Map(),
+        emojis: new Map()
     },
 
+    /* =====================================================
+       HELPERS
+    ===================================================== */
+
+    escapeHtml(value) {
+        return String(value).replace(
+            /[&<>"']/g,
+            character => {
+                const entities = {
+                    "&": "&amp;",
+                    "<": "&lt;",
+                    ">": "&gt;",
+                    '"': "&quot;",
+                    "'": "&#39;"
+                };
+
+                return entities[character];
+            }
+        );
+    },
+
+    escapeAttribute(value) {
+        return this.escapeHtml(value);
+    },
+
+    isSafeURL(value, allowMailto = false) {
+        try {
+            const url = new URL(value);
+
+            if (
+                url.protocol === "http:" ||
+                url.protocol === "https:"
+            ) {
+                return true;
+            }
+
+            return (
+                allowMailto &&
+                url.protocol === "mailto:"
+            );
+        } catch {
+            return false;
+        }
+    },
 
     /* =====================================================
        CSS
     ===================================================== */
 
     injectCSS() {
-        if (this.cssInjected) {
+        if (document.getElementById("krynet-markdown-style")) {
             return;
         }
 
-        const style =
-            document.createElement("style");
+        const style = document.createElement("style");
 
-        style.dataset.krynetMarkdown =
-            "true";
+        style.id = "krynet-markdown-style";
 
         style.textContent = `
+            .message-text {
+                min-width: 0;
+                overflow-wrap: anywhere;
+            }
+
             .kr-markdown {
                 min-width: 0;
                 overflow-wrap: anywhere;
-                color: #dbdee1;
+                color: inherit;
+                line-height: 1.45;
             }
 
             .kr-markdown > :first-child {
@@ -172,7 +136,7 @@ export const KrynetMarkdown = {
             .kr-markdown h5,
             .kr-markdown h6 {
                 margin: 10px 0 5px;
-                color: #fff;
+                color: inherit;
                 line-height: 1.25;
             }
 
@@ -203,25 +167,18 @@ export const KrynetMarkdown = {
             .kr-codeblock {
                 display: block;
                 padding: 10px 12px;
-                border-radius: 6px;
+                border-radius: 7px;
+                overflow-x: auto;
                 font-family:
                     "Fira Code",
                     "Cascadia Code",
                     monospace;
                 font-size: 13px;
                 line-height: 1.5;
-                overflow-x: auto;
-            }
-
-            .kr-markdown code:not(.kr-inline) {
-                font-family:
-                    "Fira Code",
-                    "Cascadia Code",
-                    monospace;
             }
 
             .kr-inline {
-                background: #2a2e3f;
+                background: rgba(0, 0, 0, .18);
                 padding: 2px 6px;
                 border-radius: 4px;
                 font-family:
@@ -234,7 +191,7 @@ export const KrynetMarkdown = {
             .kr-spoiler {
                 background: #222;
                 color: transparent;
-                border-radius: 3px;
+                border-radius: 4px;
                 padding: 0 4px;
                 cursor: pointer;
                 user-select: none;
@@ -245,9 +202,8 @@ export const KrynetMarkdown = {
             }
 
             .kr-mention {
-                color: #5b9dff;
-                background:
-                    rgba(88, 101, 242, 0.15);
+                color: #7aa2ff;
+                background: rgba(88, 101, 242, .15);
                 padding: 1px 4px;
                 border-radius: 3px;
                 cursor: pointer;
@@ -276,9 +232,8 @@ export const KrynetMarkdown = {
             }
 
             .kr-markdown blockquote {
-                margin: 5px 0;
-                border-left:
-                    3px solid #555;
+                margin: 6px 0;
+                border-left: 3px solid #555;
                 padding-left: 9px;
                 color: #ccc;
             }
@@ -307,36 +262,27 @@ export const KrynetMarkdown = {
                 max-width: 100%;
                 max-height: 420px;
                 margin: 6px 0;
-                border-radius: 6px;
+                border-radius: 7px;
                 object-fit: contain;
             }
 
             .kr-markdown hr {
                 margin: 8px 0;
                 border: 0;
-                border-top:
-                    1px solid #4b4d53;
+                border-top: 1px solid rgba(255,255,255,.12);
             }
 
             .kr-multiline-quote {
-                border-left:
-                    3px solid #555;
-                margin: 5px 0;
-                padding-left: 8px;
+                border-left: 3px solid #555;
+                margin: 6px 0;
+                padding-left: 9px;
                 color: #ccc;
                 white-space: pre-wrap;
-            }
-
-            .kr-markdown .kr-autolink {
-                overflow-wrap: anywhere;
             }
         `;
 
         document.head.appendChild(style);
-
-        this.cssInjected = true;
     },
-
 
     /* =====================================================
        INITIALIZATION
@@ -351,8 +297,7 @@ export const KrynetMarkdown = {
             return this.initPromise;
         }
 
-        this.initPromise =
-            this.initialize(theme);
+        this.initPromise = this.initialize(theme);
 
         try {
             await this.initPromise;
@@ -361,163 +306,107 @@ export const KrynetMarkdown = {
         }
     },
 
-
     async initialize(theme) {
         this.injectCSS();
 
         if (!this.highlighter) {
-            this.highlighter =
-                await getHighlighter({
-                    theme
-                });
+            this.highlighter = await getHighlighter({
+                theme
+            });
         }
 
-        const renderer =
-            new marked.Renderer();
+        const renderer = new marked.Renderer();
 
-
-        /* -----------------------------------------------------
-           CODE BLOCKS
-        ----------------------------------------------------- */
-
-        renderer.code = (
-            code,
-            language
-        ) => {
-
+        renderer.code = (code, language) => {
             try {
-
                 const lang =
-                    language?.trim() ||
-                    "text";
+                    language?.trim() || "text";
 
-                return (
-                    `<div class="kr-codeblock">` +
-                    this.highlighter.codeToHtml(
-                        code,
-                        {
+                return `
+                    <pre class="kr-codeblock">
+                        ${this.highlighter.codeToHtml(code, {
                             lang
-                        }
-                    ) +
-                    `</div>`
-                );
-
+                        })}
+                    </pre>
+                `;
             } catch {
-
-                return (
-                    `<pre class="kr-codeblock">` +
-                    `<code>` +
-                    `${escapeHtml(code)}` +
-                    `</code>` +
-                    `</pre>`
-                );
+                return `
+                    <pre class="kr-codeblock">
+                        <code>${this.escapeHtml(code)}</code>
+                    </pre>
+                `;
             }
         };
 
-
-        /* -----------------------------------------------------
-           INLINE CODE
-        ----------------------------------------------------- */
-
         renderer.codespan = code => {
-            return (
-                `<code class="kr-inline">` +
-                `${escapeHtml(code)}` +
-                `</code>`
-            );
+            return `
+                <code class="kr-inline">
+                    ${this.escapeHtml(code)}
+                </code>
+            `;
         };
-
-
-        /* -----------------------------------------------------
-           LINKS
-        ----------------------------------------------------- */
 
         renderer.link = (
             href,
             title,
             text
         ) => {
-
             if (
                 !href ||
-                !isSafeURL(href, true)
+                !this.isSafeURL(href, true)
             ) {
                 return text;
             }
 
-            const titleAttr =
-                title
-                    ? ` title="${escapeAttribute(
-                        title
-                    )}"`
-                    : "";
+            const titleAttr = title
+                ? ` title="${this.escapeAttribute(title)}"`
+                : "";
 
-            return (
-                `<a ` +
-                `class="kr-autolink" ` +
-                `href="${escapeAttribute(
-                    href
-                )}"` +
-                `${titleAttr} ` +
-                `target="_blank" ` +
-                `rel="noopener noreferrer">` +
-                `${text}` +
-                `</a>`
-            );
+            return `
+                <a
+                    class="kr-autolink"
+                    href="${this.escapeAttribute(href)}"
+                    ${titleAttr}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >${text}</a>
+            `;
         };
-
-
-        /* -----------------------------------------------------
-           IMAGES
-        ----------------------------------------------------- */
 
         renderer.image = (
             href,
             title,
             text
         ) => {
-
             if (
                 !href ||
-                !isSafeURL(href)
+                !this.isSafeURL(href)
             ) {
                 return "";
             }
 
-            const titleAttr =
-                title
-                    ? ` title="${escapeAttribute(
-                        title
-                    )}"`
-                    : "";
+            const titleAttr = title
+                ? ` title="${this.escapeAttribute(title)}"`
+                : "";
 
-            return (
-                `<img ` +
-                `src="${escapeAttribute(
-                    href
-                )}"` +
-                `alt="${escapeAttribute(
-                    text || ""
-                )}"` +
-                `${titleAttr}` +
-                ` loading="lazy"` +
-                ` referrerpolicy="no-referrer">`
-            );
+            return `
+                <img
+                    class="kr-markdown-image"
+                    src="${this.escapeAttribute(href)}"
+                    alt="${this.escapeAttribute(text || "")}"
+                    ${titleAttr}
+                    loading="lazy"
+                    referrerpolicy="no-referrer"
+                >
+            `;
         };
 
+        /*
+         * Never allow raw HTML from chat messages.
+         */
+        renderer.html = () => "";
 
-        /* -----------------------------------------------------
-           RAW HTML
-        ----------------------------------------------------- */
-
-        renderer.html = () => {
-            return "";
-        };
-
-
-        this.renderer =
-            renderer;
-
+        this.renderer = renderer;
 
         marked.setOptions({
             renderer,
@@ -527,276 +416,236 @@ export const KrynetMarkdown = {
             mangle: false
         });
 
-        this.initialized =
-            true;
+        this.initialized = true;
     },
-
 
     /* =====================================================
        CACHE
     ===================================================== */
 
-    ephemeralSet(
-        cache,
-        key,
-        value
-    ) {
-        cache.set(
-            key,
-            value
-        );
+    cache(cache, key, value) {
+        cache.set(key, value);
 
-        window.setTimeout(
-            () => {
-
-                if (
-                    cache.get(key) ===
-                    value
-                ) {
-                    cache.delete(key);
-                }
-
-            },
-            this.cacheTTL
-        );
+        setTimeout(() => {
+            if (cache.get(key) === value) {
+                cache.delete(key);
+            }
+        }, this.cacheTTL);
     },
 
-
     /* =====================================================
-       ENTITY TRANSFORMS
+       ENTITY PARSING
     ===================================================== */
 
     transformEntities(input) {
+        let output = this.escapeHtml(input);
 
         /*
-         * Escape first.
-         *
-         * This means user-supplied HTML cannot become
-         * executable HTML later.
+         * Spoilers
          */
+        output = output.replace(
+            /\|\|([\s\S]+?)\|\|/g,
+            (_, content) => `
+                <span
+                    class="kr-spoiler"
+                    tabindex="0"
+                    role="button"
+                    aria-label="Spoiler"
+                >${content}</span>
+            `
+        );
 
-        let output =
-            escapeHtml(input);
+        /*
+         * User mention
+         *
+         * <@123>
+         * <@!123>
+         */
+        output = output.replace(
+            /&lt;@!?(\d+)&gt;/g,
+            (_, id) => {
+                const cached =
+                    this.caches.mentions.get(id);
 
-
-        /* -------------------------------------------------
-           SPOILERS
-        ------------------------------------------------- */
-
-        output =
-            output.replace(
-                /\|\|([\s\S]+?)\|\|/g,
-                (_, content) => (
-                    `<span ` +
-                    `class="kr-spoiler" ` +
-                    `tabindex="0" ` +
-                    `role="button">` +
-                    `${content}` +
-                    `</span>`
-                )
-            );
-
-
-        /* -------------------------------------------------
-           USER MENTIONS
-        ------------------------------------------------- */
-
-        output =
-            output.replace(
-                /&lt;@!?(\d+)&gt;/g,
-                (_, id) => {
-
-                    const cached =
-                        this.caches
-                            .mentions
-                            .get(id);
-
-                    if (cached) {
-                        return cached;
-                    }
-
-                    const value =
-                        `<span ` +
-                        `class="kr-mention" ` +
-                        `data-user="${escapeAttribute(
-                            id
-                        )}">` +
-                        `@user` +
-                        `</span>`;
-
-                    this.ephemeralSet(
-                        this.caches.mentions,
-                        id,
-                        value
-                    );
-
-                    return value;
+                if (cached) {
+                    return cached;
                 }
-            );
 
+                const value = `
+                    <span
+                        class="kr-mention"
+                        data-user="${this.escapeAttribute(id)}"
+                    >@user</span>
+                `;
 
-        /* -------------------------------------------------
-           CHANNEL MENTIONS
-        ------------------------------------------------- */
+                this.cache(
+                    this.caches.mentions,
+                    id,
+                    value
+                );
 
-        output =
-            output.replace(
-                /&lt;#(\d+)&gt;/g,
-                (_, id) => {
+                return value;
+            }
+        );
 
-                    const cached =
-                        this.caches
-                            .channels
-                            .get(id);
+        /*
+         * Channel mention
+         *
+         * <#123>
+         */
+        output = output.replace(
+            /&lt;#(\d+)&gt;/g,
+            (_, id) => {
+                const cached =
+                    this.caches.channels.get(id);
 
-                    if (cached) {
-                        return cached;
-                    }
-
-                    const value =
-                        `<span ` +
-                        `class="kr-channel" ` +
-                        `data-channel="${escapeAttribute(
-                            id
-                        )}">` +
-                        `#channel` +
-                        `</span>`;
-
-                    this.ephemeralSet(
-                        this.caches.channels,
-                        id,
-                        value
-                    );
-
-                    return value;
+                if (cached) {
+                    return cached;
                 }
-            );
 
+                const value = `
+                    <span
+                        class="kr-channel"
+                        data-channel="${this.escapeAttribute(id)}"
+                    >#channel</span>
+                `;
 
-        /* -------------------------------------------------
-           ROLE MENTIONS
-        ------------------------------------------------- */
+                this.cache(
+                    this.caches.channels,
+                    id,
+                    value
+                );
 
-        output =
-            output.replace(
-                /&lt;@&amp;(\d+)&gt;/g,
-                (_, id) => {
+                return value;
+            }
+        );
 
-                    const cached =
-                        this.caches
-                            .roles
-                            .get(id);
+        /*
+         * Role mention
+         *
+         * <@&123>
+         */
+        output = output.replace(
+            /&lt;@&amp;(\d+)&gt;/g,
+            (_, id) => {
+                const cached =
+                    this.caches.roles.get(id);
 
-                    if (cached) {
-                        return cached;
-                    }
-
-                    const value =
-                        `<span ` +
-                        `class="kr-role" ` +
-                        `data-role="${escapeAttribute(
-                            id
-                        )}">` +
-                        `@role` +
-                        `</span>`;
-
-                    this.ephemeralSet(
-                        this.caches.roles,
-                        id,
-                        value
-                    );
-
-                    return value;
+                if (cached) {
+                    return cached;
                 }
-            );
 
+                const value = `
+                    <span
+                        class="kr-role"
+                        data-role="${this.escapeAttribute(id)}"
+                    >@role</span>
+                `;
 
-        /* -------------------------------------------------
-           CUSTOM EMOJI
-        ------------------------------------------------- */
+                this.cache(
+                    this.caches.roles,
+                    id,
+                    value
+                );
 
-        output =
-            output.replace(
-                /&lt;a?:([a-zA-Z0-9_]+):(\d+)&gt;/g,
-                (_, name, id) => {
+                return value;
+            }
+        );
 
-                    const cached =
-                        this.caches
-                            .emojis
-                            .get(id);
+        /*
+         * Custom emoji
+         *
+         * <:name:id>
+         * <a:name:id>
+         */
+        output = output.replace(
+            /&lt;a?:([a-zA-Z0-9_]+):(\d+)&gt;/g,
+            (_, name, id) => {
+                const cached =
+                    this.caches.emojis.get(id);
 
-                    if (cached) {
-                        return cached;
-                    }
-
-                    const src =
-                        `https://cdn.discordapp.com/emojis/` +
-                        `${encodeURIComponent(id)}.webp`;
-
-                    const value =
-                        `<img ` +
-                        `class="kr-emoji" ` +
-                        `src="${escapeAttribute(
-                            src
-                        )}" ` +
-                        `alt=":${escapeAttribute(
-                            name
-                        )}:" ` +
-                        `loading="lazy" ` +
-                        `referrerpolicy="no-referrer">`;
-
-                    this.ephemeralSet(
-                        this.caches.emojis,
-                        id,
-                        value
-                    );
-
-                    return value;
+                if (cached) {
+                    return cached;
                 }
-            );
 
+                const src =
+                    `https://cdn.discordapp.com/emojis/` +
+                    `${encodeURIComponent(id)}.webp`;
 
-        /* -------------------------------------------------
-           TIMESTAMPS
-        ------------------------------------------------- */
+                const value = `
+                    <img
+                        class="kr-emoji"
+                        src="${this.escapeAttribute(src)}"
+                        alt=":${this.escapeAttribute(name)}:"
+                        loading="lazy"
+                        referrerpolicy="no-referrer"
+                    >
+                `;
 
-        output =
-            output.replace(
-                /&lt;t:(\d+)(?::([a-zA-Z]))?&gt;/g,
-                (_, timestamp, format) =>
-                    createTimeElement(
-                        timestamp,
-                        format
-                    )
-            );
+                this.cache(
+                    this.caches.emojis,
+                    id,
+                    value
+                );
 
+                return value;
+            }
+        );
+
+        /*
+         * Timestamp
+         *
+         * <t:1234567890>
+         */
+        output = output.replace(
+            /&lt;t:(\d+)(?::([a-zA-Z]))?&gt;/g,
+            (_, timestamp) => {
+                const milliseconds =
+                    Number(timestamp) * 1000;
+
+                const date =
+                    new Date(milliseconds);
+
+                if (
+                    !Number.isFinite(milliseconds) ||
+                    Number.isNaN(date.getTime())
+                ) {
+                    return this.escapeHtml(
+                        `<t:${timestamp}>`
+                    );
+                }
+
+                return `
+                    <time
+                        class="kr-time"
+                        datetime="${this.escapeAttribute(
+                            date.toISOString()
+                        )}"
+                    >${this.escapeHtml(
+                        date.toLocaleString()
+                    )}</time>
+                `;
+            }
+        );
 
         return output;
     },
-
 
     /* =====================================================
        SPOILERS
     ===================================================== */
 
     bindSpoilers(root) {
-
         root
-            .querySelectorAll(
-                ".kr-spoiler"
-            )
+            .querySelectorAll(".kr-spoiler")
             .forEach(spoiler => {
-
                 if (
-                    spoiler.dataset.bound ===
-                    "true"
+                    spoiler.dataset.bound === "true"
                 ) {
                     return;
                 }
 
-                spoiler.dataset.bound =
-                    "true";
-
+                spoiler.dataset.bound = "true";
 
                 const reveal = () => {
                     spoiler.classList.toggle(
@@ -804,24 +653,19 @@ export const KrynetMarkdown = {
                     );
                 };
 
-
                 spoiler.addEventListener(
                     "click",
                     reveal
                 );
 
-
                 spoiler.addEventListener(
                     "keydown",
                     event => {
-
                         if (
                             event.key === "Enter" ||
                             event.key === " "
                         ) {
-
                             event.preventDefault();
-
                             reveal();
                         }
                     }
@@ -829,240 +673,280 @@ export const KrynetMarkdown = {
             });
     },
 
-
     /* =====================================================
-       MESSAGE URL DETECTION
+       MULTILINE QUOTES
     ===================================================== */
 
-    isStandaloneURL(markdown) {
-
-        const value =
-            String(markdown)
-                .trim();
-
-        if (!value) {
-            return false;
-        }
-
-        try {
-
-            const url =
-                new URL(value);
-
-            return (
-                url.protocol === "http:" ||
-                url.protocol === "https:"
-            );
-
-        } catch {
-            return false;
-        }
-    },
-
-
-    /* =====================================================
-       STREAM PARSER
-    ===================================================== */
-
-    async *streamParse(markdown) {
-
-        await this.init();
-
+    transformQuotes(markdown) {
         const lines =
-            String(markdown)
-                .split(/\r?\n/);
+            String(markdown).split(/\r?\n/);
 
-        let inQuote =
-            false;
+        const output = [];
 
-        const quoteBuffer =
-            [];
+        let quoteLines = [];
 
-
-        for (const line of lines) {
-
-            /* -------------------------------------------------
-               DISCORD MULTILINE QUOTE
-            ------------------------------------------------- */
-
-            if (
-                line.startsWith(">>>")
-            ) {
-
-                inQuote =
-                    true;
-
-                quoteBuffer.push(
-                    line
-                        .slice(3)
-                        .trimStart()
-                );
-
-                continue;
+        const flushQuote = () => {
+            if (!quoteLines.length) {
+                return;
             }
 
-
-            if (inQuote) {
-
-                if (
-                    line.trim() === ""
-                ) {
-
-                    yield (
-                        `<blockquote ` +
-                        `class="kr-multiline-quote">` +
-                        `${quoteBuffer
-                            .map(escapeHtml)
-                            .join("<br>")}` +
-                        `</blockquote>`
-                    );
-
-                    quoteBuffer.length =
-                        0;
-
-                    inQuote =
-                        false;
-
-                    continue;
-                }
-
-                quoteBuffer.push(
-                    line
-                );
-
-                continue;
-            }
-
-
-            if (line.length === 0) {
-                yield "";
-                continue;
-            }
-
-
-            yield this.transformEntities(
-                line
-            );
-        }
-
-
-        if (quoteBuffer.length) {
-
-            yield (
-                `<blockquote ` +
-                `class="kr-multiline-quote">` +
-                `${quoteBuffer
-                    .map(escapeHtml)
+            output.push(
+                `<blockquote class="kr-multiline-quote">` +
+                `${quoteLines
+                    .map(line => this.escapeHtml(line))
                     .join("<br>")}` +
                 `</blockquote>`
             );
+
+            quoteLines = [];
+        };
+
+        for (const line of lines) {
+            if (line.startsWith(">>>")) {
+                quoteLines.push(
+                    line.slice(3).trimStart()
+                );
+
+                continue;
+            }
+
+            if (quoteLines.length) {
+                if (!line.trim()) {
+                    flushQuote();
+                    output.push("");
+                    continue;
+                }
+
+                quoteLines.push(line);
+                continue;
+            }
+
+            output.push(
+                this.transformEntities(line)
+            );
         }
+
+        flushQuote();
+
+        return output.join("\n");
     },
 
-
     /* =====================================================
-       FINAL RENDER
+       RENDER
     ===================================================== */
 
     async render(markdown) {
-
         await this.init();
 
-        let transformed =
-            "";
+        const transformed =
+            this.transformQuotes(markdown);
 
-        for await (
-            const chunk
-            of this.streamParse(markdown)
-        ) {
-
-            transformed +=
-                chunk + "\n";
-        }
-
-
-        return (
-            `<div class="kr-markdown">` +
-            marked.parse(
-                transformed
-            ) +
-            `</div>`
-        );
+        return `
+            <div class="kr-markdown">
+                ${marked.parse(transformed)}
+            </div>
+        `;
     },
 
-
     /* =====================================================
-       RENDER INTO MESSAGE
+       RENDER INTO ELEMENT
     ===================================================== */
 
-    async renderInto(
-        element,
-        markdown
-    ) {
-
-        if (!element) {
+    async renderInto(element, markdown) {
+        if (!(element instanceof Element)) {
             return;
         }
 
         const html =
-            await this.render(
-                markdown
-            );
+            await this.render(markdown);
 
-        element.innerHTML =
-            html;
+        element.innerHTML = html;
 
-        this.bindSpoilers(
-            element
+        this.bindSpoilers(element);
+    },
+
+    /* =====================================================
+       RENDER ONE MESSAGE
+    ===================================================== */
+
+    async renderMessage(message) {
+        if (!(message instanceof Element)) {
+            return;
+        }
+
+        if (
+            !message.matches(".message")
+        ) {
+            return;
+        }
+
+        const text =
+            message.querySelector(".message-text");
+
+        if (!text) {
+            return;
+        }
+
+        if (
+            text.dataset.markdownRendered === "true"
+        ) {
+            return;
+        }
+
+        /*
+         * Prefer the original source stored by
+         * the chat UI.
+         */
+        const markdown =
+            text.dataset.markdownSource ??
+            text.textContent ??
+            "";
+
+        text.dataset.markdownSource =
+            markdown;
+
+        text.dataset.markdownRendered =
+            "true";
+
+        await this.renderInto(
+            text,
+            markdown
         );
     },
 
-
     /* =====================================================
-       RENDER ALL MESSAGE TEXT
+       RENDER ALL MESSAGES
     ===================================================== */
 
-    async renderMessages(
-        root = document
-    ) {
+    async renderMessages(root = document) {
+        if (
+            root instanceof Element &&
+            root.matches(".message")
+        ) {
+            await this.renderMessage(root);
+        }
 
-        const elements =
+        if (
+            !root.querySelectorAll
+        ) {
+            return;
+        }
+
+        const messages =
             root.querySelectorAll(
+                ".message"
+            );
+
+        for (const message of messages) {
+            await this.renderMessage(message);
+        }
+    },
+
+    /* =====================================================
+       RESET MESSAGE
+    ===================================================== */
+
+    resetMessage(message) {
+        if (!(message instanceof Element)) {
+            return;
+        }
+
+        const text =
+            message.querySelector(
                 ".message-text"
             );
 
-        await Promise.all(
-            [...elements].map(
-                async element => {
+        if (!text) {
+            return;
+        }
 
-                    if (
-                        element.dataset
-                            .markdownRendered ===
-                        "true"
-                    ) {
-                        return;
+        delete text.dataset.markdownRendered;
+    },
+
+    /* =====================================================
+       OBSERVER
+    ===================================================== */
+
+    observe() {
+        const container =
+            document.querySelector("#messages");
+
+        if (!container) {
+            return;
+        }
+
+        if (
+            container.dataset.markdownObserver ===
+            "true"
+        ) {
+            return;
+        }
+
+        container.dataset.markdownObserver =
+            "true";
+
+        const observer =
+            new MutationObserver(
+                mutations => {
+                    for (const mutation of mutations) {
+                        for (
+                            const node
+                            of mutation.addedNodes
+                        ) {
+                            if (
+                                !(node instanceof Element)
+                            ) {
+                                continue;
+                            }
+
+                            this.renderMessages(node);
+                        }
                     }
-
-                    const markdown =
-                        element.dataset
-                            .markdownSource ??
-                        element.textContent ??
-                        "";
-
-                    element.dataset
-                        .markdownRendered =
-                        "true";
-
-                    element.dataset
-                        .markdownSource =
-                        markdown;
-
-                    await this.renderInto(
-                        element,
-                        markdown
-                    );
                 }
-            )
+            );
+
+        observer.observe(
+            container,
+            {
+                childList: true,
+                subtree: true
+            }
+        );
+    },
+
+    /* =====================================================
+       INITIALIZE CHAT
+    ===================================================== */
+
+    async start() {
+        await this.init();
+
+        await this.renderMessages();
+
+        this.observe();
+
+        console.log(
+            "[Krynet] Markdown initialized."
         );
     }
 };
+
+/* =========================================================
+   START
+========================================================= */
+
+async function initializeMarkdown() {
+    await KrynetMarkdown.start();
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializeMarkdown,
+        { once: true }
+    );
+} else {
+    initializeMarkdown();
+}
+
+export { KrynetMarkdown };
