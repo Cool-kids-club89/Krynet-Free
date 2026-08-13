@@ -1,62 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
 
   <title>KrynetAI.free – Chat</title>
 
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
-
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
     rel="stylesheet"
   >
+
+  <script
+    async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3940256099942544"
+    crossorigin="anonymous"
+  ></script>
 
   <style>
     * {
       box-sizing: border-box;
     }
 
-    html,
     body {
       margin: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
-
-    body {
       font-family: Inter, system-ui, sans-serif;
       background: #0a0a0a;
       color: #fff;
-    }
-
-    button,
-    input {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     /* -------------------------------------------------------
-       APP
+       AD
     ------------------------------------------------------- */
 
-    .app {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
+    .ad-banner {
+      background: #111;
+      border-bottom: 1px solid #400000;
+      text-align: center;
+      padding: 8px;
+      min-height: 60px;
     }
 
+    /* -------------------------------------------------------
+       LAYOUT
+    ------------------------------------------------------- */
+
     .main-content {
+      display: flex;
       flex: 1;
       min-height: 0;
-      display: flex;
     }
 
     /* -------------------------------------------------------
@@ -66,41 +64,33 @@
     .sidebar {
       width: 240px;
       flex-shrink: 0;
-      background: #160000;
-      border-right: 1px solid #350000;
+      background: #1a0000;
+      border-right: 1px solid #400000;
       display: flex;
       flex-direction: column;
-      padding: 16px 10px;
-    }
-
-    .brand {
-      padding: 8px 14px 18px;
-      font-size: 18px;
-      font-weight: 700;
-    }
-
-    .brand span {
-      color: #ff4d4d;
+      padding: 16px 0;
     }
 
     .channel-list {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
+      flex: 1;
+      overflow-y: auto;
     }
 
     .channel {
-      padding: 9px 12px;
-      border-radius: 6px;
-      color: #aaa;
+      padding: 9px 20px;
+      border-radius: 5px;
       cursor: pointer;
-      font-size: 14px;
+      color: #fff;
+      font-size: 15px;
     }
 
-    .channel:hover,
+    .channel:hover {
+      background: #330000;
+    }
+
     .channel.active {
-      color: #fff;
-      background: #300000;
+      background: #400000;
+      font-weight: 600;
     }
 
     /* -------------------------------------------------------
@@ -112,47 +102,43 @@
       min-width: 0;
       display: flex;
       flex-direction: column;
-      background: #0d0d0d;
     }
 
     .chat-header {
-      height: 58px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      background: #151515;
-      border-bottom: 1px solid #292929;
-      font-size: 15px;
+      padding: 16px;
+      background: #1a0000;
+      border-bottom: 1px solid #400000;
       font-weight: 600;
-    }
-
-    .chat-header .hash {
-      color: #777;
-      margin-right: 6px;
+      flex-shrink: 0;
     }
 
     .chat-main {
+      display: flex;
       flex: 1;
       min-height: 0;
-      display: flex;
     }
 
     .chat-messages {
       flex: 1;
       min-width: 0;
+      padding: 18px;
       overflow-y: auto;
-      padding: 22px 24px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
     }
+
+    /* -------------------------------------------------------
+       MESSAGES
+    ------------------------------------------------------- */
 
     .message {
       display: flex;
       gap: 10px;
-      max-width: 760px;
+      max-width: min(760px, 80%);
       align-items: flex-start;
+      position: relative;
+      padding: 4px 0;
     }
 
     .message.self {
@@ -160,157 +146,46 @@
       flex-direction: row-reverse;
     }
 
-    .avatar {
-      width: 38px;
-      height: 38px;
-      flex-shrink: 0;
-      border-radius: 50%;
-      object-fit: cover;
-      background: #222;
-    }
-
-    .message-body {
+    .message-content-wrapper {
       min-width: 0;
     }
 
-    .message-meta {
-      margin-bottom: 5px;
-      color: #888;
-      font-size: 12px;
-    }
-
-    .message-meta strong {
-      color: #ddd;
-    }
-
     .message-content {
-      color: #eee;
-      background: #191919;
-      border: 1px solid #252525;
-      padding: 9px 12px;
+      background: #1a1a1a;
+      padding: 10px 13px;
       border-radius: 9px;
-      line-height: 1.45;
       overflow-wrap: anywhere;
     }
 
     .message.self .message-content {
       background: #330000;
-      border-color: #500000;
     }
 
-    /* -------------------------------------------------------
-       EMBEDS
-    ------------------------------------------------------- */
-
-    .kr-embed {
-      max-width: 480px !important;
-    }
-
-    .kr-embed img,
-    .kr-embed video {
-      max-width: 100%;
-    }
-
-    .kr-embed audio {
-      width: 100%;
-    }
-
-    .kr-embed-placeholder {
-      min-height: 20px;
-    }
-
-    /* -------------------------------------------------------
-       LOCAL FILE ATTACHMENT
-    ------------------------------------------------------- */
-
-    .file-attachment {
-      width: min(480px, 100%);
-      margin-top: 8px;
-      padding: 10px;
-      background: #191919;
-      border: 1px solid #303030;
-      border-radius: 9px;
-    }
-
-    .file-attachment-header {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      margin-bottom: 8px;
-    }
-
-    .file-icon {
-      width: 30px;
-      height: 30px;
-      border-radius: 6px;
-      display: grid;
-      place-items: center;
-      background: #300000;
-      color: #ff6666;
-      font-size: 14px;
-    }
-
-    .file-name {
-      min-width: 0;
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 13px;
-      color: #ddd;
-    }
-
-    .file-size {
-      color: #777;
-      font-size: 11px;
-    }
-
-    .file-attachment img,
-    .file-attachment video {
-      display: block;
-      width: 100%;
-      max-height: 420px;
-      object-fit: contain;
-      border-radius: 7px;
-      background: #090909;
-    }
-
-    .file-attachment audio {
-      display: block;
-      width: 100%;
-    }
-
-    .file-download {
-      display: inline-block;
-      margin-top: 8px;
-      color: #4db8ff;
+    .message-meta {
       font-size: 12px;
-      text-decoration: none;
+      color: #888;
+      margin-bottom: 4px;
     }
 
-    .file-download:hover {
-      text-decoration: underline;
+    .avatar {
+      width: 36px;
+      height: 36px;
+      flex: 0 0 36px;
+      border-radius: 50%;
+      object-fit: cover;
     }
 
     /* -------------------------------------------------------
-       USERS
+       USER LIST
     ------------------------------------------------------- */
 
     .user-list {
       width: 210px;
       flex-shrink: 0;
-      background: #121212;
-      border-left: 1px solid #292929;
-      padding: 18px 14px;
+      background: #1a0000;
+      border-left: 1px solid #400000;
+      padding: 16px 12px;
       overflow-y: auto;
-    }
-
-    .user-list-title {
-      color: #777;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      margin: 0 6px 14px;
     }
 
     .user {
@@ -318,7 +193,13 @@
       align-items: center;
       gap: 8px;
       margin-bottom: 12px;
-      font-size: 13px;
+      font-size: 14px;
+    }
+
+    .user .avatar {
+      width: 30px;
+      height: 30px;
+      flex-basis: 30px;
     }
 
     .status-dot {
@@ -329,83 +210,85 @@
       background: #43b581;
     }
 
-    .user .avatar {
-      width: 30px;
-      height: 30px;
-    }
-
     /* -------------------------------------------------------
        INPUT
     ------------------------------------------------------- */
 
-    .chat-input-wrap {
-      flex-shrink: 0;
-      padding: 12px 18px 18px;
-      background: #0d0d0d;
-    }
-
     .chat-input {
-      min-height: 48px;
       display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px;
-      background: #1b1b1b;
-      border: 1px solid #303030;
-      border-radius: 10px;
+      gap: 10px;
+      padding: 14px;
+      border-top: 1px solid #400000;
+      background: #1a0000;
+      flex-shrink: 0;
     }
 
-    .chat-input input[type="text"] {
+    .chat-input input {
       flex: 1;
       min-width: 0;
-      border: 0;
-      outline: 0;
-      background: transparent;
+      padding: 11px 13px;
+      border: 1px solid #444;
+      border-radius: 8px;
+      outline: none;
+      background: #222;
       color: #fff;
-      padding: 8px;
-      font-size: 14px;
+      font: inherit;
     }
 
-    .chat-input input::placeholder {
-      color: #666;
+    .chat-input input:focus {
+      border-color: #ff4d4d;
     }
 
-    .icon-button {
-      width: 36px;
-      height: 36px;
-      flex-shrink: 0;
+    .chat-input button {
+      background: #ff4d4d;
       border: 0;
-      border-radius: 7px;
-      background: transparent;
-      color: #999;
-      font-size: 18px;
-    }
-
-    .icon-button:hover {
-      background: #292929;
-      color: #fff;
-    }
-
-    #sendBtn {
-      height: 36px;
-      border: 0;
-      border-radius: 7px;
-      padding: 0 16px;
-      background: #e83d3d;
-      color: #fff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
       font-weight: 600;
     }
 
-    #sendBtn:hover {
-      background: #ff4d4d;
+    .chat-input button:hover {
+      background: #cc0000;
     }
 
     /* -------------------------------------------------------
-       FILE PICKER
+       EMBEDS
     ------------------------------------------------------- */
 
-    #fileInput {
-      display: none;
+    .kr-embed {
+      max-width: 480px;
+    }
+
+    /* -------------------------------------------------------
+       FILE EMBEDS
+    ------------------------------------------------------- */
+
+    .file-embed {
+      margin-top: 8px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #111;
+      border: 1px solid #333;
+    }
+
+    .file-embed img,
+    .file-embed video {
+      display: block;
+      max-width: 100%;
+      border-radius: 7px;
+    }
+
+    .file-embed audio {
+      width: 100%;
+    }
+
+    .file-name {
+      font-size: 12px;
+      color: #aaa;
+      margin-bottom: 8px;
+      overflow-wrap: anywhere;
     }
 
     /* -------------------------------------------------------
@@ -420,6 +303,10 @@
       .user-list {
         display: none;
       }
+
+      .message {
+        max-width: 90%;
+      }
     }
 
     @media (max-width: 600px) {
@@ -428,11 +315,7 @@
       }
 
       .chat-messages {
-        padding: 16px 12px;
-      }
-
-      .message {
-        max-width: 92%;
+        padding: 12px;
       }
     }
   </style>
@@ -440,51 +323,83 @@
 
 <body>
 
-<div class="app">
+  <!-- =======================================================
+       AD
+  ======================================================== -->
+
+  <div class="ad-banner">
+    <ins
+      class="adsbygoogle"
+      style="display:block"
+      data-ad-client="ca-pub-3940256099942544"
+      data-ad-slot="6300978111"
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+    ></ins>
+
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+
+  <!-- =======================================================
+       MAIN
+  ======================================================== -->
 
   <div class="main-content">
 
-    <!-- SIDEBAR -->
+    <!-- =====================================================
+         CHANNEL SIDEBAR
+    ====================================================== -->
 
     <aside class="sidebar">
-      <div class="brand">
-        Krynet<span>AI</span>
-      </div>
-
       <div class="channel-list">
-        <div class="channel active"># general</div>
-        <div class="channel"># support</div>
-        <div class="channel"># random</div>
+
+        <div class="channel active">
+          # general
+        </div>
+
+        <div class="channel">
+          # support
+        </div>
+
+        <div class="channel">
+          # random
+        </div>
+
       </div>
     </aside>
 
-    <!-- CHAT -->
+    <!-- =====================================================
+         CHAT
+    ====================================================== -->
 
-    <section class="chat-container">
+    <main class="chat-container">
 
       <header class="chat-header">
-        <span class="hash">#</span>
-        general
+        # general
       </header>
 
       <div class="chat-main">
 
-        <main
+        <!-- ===============================================
+             MESSAGES
+        ================================================ -->
+
+        <section
           class="chat-messages"
           id="chatMessages"
         >
 
-          <div
-            class="message"
-            data-message="true"
-          >
+          <div class="message other">
+
             <img
               class="avatar"
               src="https://cdn.krynet.com/avatars/default1.png"
               alt="UserA"
             >
 
-            <div class="message-body">
+            <div class="message-content-wrapper">
 
               <div class="message-meta">
                 <strong>UserA</strong>
@@ -496,17 +411,16 @@
               </div>
 
             </div>
+
           </div>
 
-        </main>
+        </section>
 
-        <!-- USERS -->
+        <!-- ===============================================
+             ONLINE USERS
+        ================================================ -->
 
         <aside class="user-list">
-
-          <div class="user-list-title">
-            Online — 2
-          </div>
 
           <div class="user">
             <div class="status-dot"></div>
@@ -523,7 +437,7 @@
           <div class="user">
             <div
               class="status-dot"
-              style="background:#faa61a"
+              style="background-color:#faa61a"
             ></div>
 
             <img
@@ -539,495 +453,53 @@
 
       </div>
 
-      <!-- INPUT -->
+      <!-- =================================================
+           MESSAGE INPUT
+      ================================================== -->
 
-      <div class="chat-input-wrap">
+      <div class="chat-input">
 
-        <div class="chat-input">
+        <input
+          type="text"
+          id="chatInput"
+          placeholder="Type your message..."
+          autocomplete="off"
+        >
 
-          <input
-            id="fileInput"
-            type="file"
-            accept="image/*,video/*,audio/*,.avif,.heif,.heic,.aac,.m4a,.mp4,.pdf"
-            multiple
-          >
-
-          <button
-            class="icon-button"
-            id="attachBtn"
-            type="button"
-            title="Attach file"
-            aria-label="Attach file"
-          >
-            +
-          </button>
-
-          <input
-            type="text"
-            id="chatInput"
-            placeholder="Message #general"
-            autocomplete="off"
-          >
-
-          <button
-            id="sendBtn"
-            type="button"
-          >
-            Send
-          </button>
-
-        </div>
+        <button id="sendBtn">
+          Send
+        </button>
 
       </div>
 
-    </section>
+    </main>
 
   </div>
 
-</div>
+  <!-- =====================================================
+       CHAT LOGIC
+  ====================================================== -->
 
-<!-- =========================================================
-     KRYNET JS FILES
+  <script>
+    "use strict";
 
-     Normal scripts are loaded normally.
+    const input =
+      document.getElementById("chatInput");
 
-     embed.js MUST be a module because it imports:
+    const button =
+      document.getElementById("sendBtn");
 
-         import { Reactions } from "./reactions.js";
+    const chat =
+      document.getElementById("chatMessages");
 
-     That means reactions.js is loaded automatically by the
-     browser through embed.js.
-========================================================= -->
+    let msgCount = 0;
 
-<script src="./js/Cloudflare.js"></script>
-<script src="./js/anonymous-upload.js"></script>
-<script src="./js/blurNSFW.js"></script>
-<script src="./js/clearURLS.js"></script>
-<script src="./js/copyFileContents.js"></script>
-<script src="./js/country-blocker.js"></script>
-<script src="./js/dearrow.js"></script>
-
-<script type="module">
-  import { Embed } from "./js/embed.js";
-
-  /*
-   * Make Embed available to the rest of the page.
-   */
-  window.KrynetEmbed = Embed;
-
-  /*
-   * Scan existing messages once the module is ready.
-   */
-  Embed.scanMessages(
-    '[data-message="true"]'
-  );
-</script>
-
-<script src="./js/krysearch.js"></script>
-<script src="./js/markdownRenderer.js"></script>
-<script src="./js/openInApp.js"></script>
-<script src="./js/screenshare.js"></script>
-<script src="./js/sponsorblock.js"></script>
-<script src="./js/tpm.js"></script>
-<script src="./js/voicechat.js"></script>
-<script src="./js/webcam.js"></script>
-<script src="./js/youtubeAdblock.js"></script>
-
-<!-- =========================================================
-     CHAT APP
-========================================================= -->
-
-<script>
-  "use strict";
-
-  const input =
-    document.getElementById("chatInput");
-
-  const sendButton =
-    document.getElementById("sendBtn");
-
-  const chat =
-    document.getElementById("chatMessages");
-
-  const fileInput =
-    document.getElementById("fileInput");
-
-  const attachButton =
-    document.getElementById("attachBtn");
-
-  let messageCount = 0;
-
-  /*
-   * Keep local object URLs alive until the page is closed.
-   *
-   * This makes locally selected files render immediately.
-   */
-  const localObjectURLs = new Set();
-
-  /* ---------------------------------------------------------
-     HELPERS
-  --------------------------------------------------------- */
-
-  function getTime() {
-    return new Date().toLocaleTimeString(
-      [],
-      {
-        hour: "2-digit",
-        minute: "2-digit"
-      }
-    );
-  }
-
-  function formatFileSize(bytes) {
-    if (bytes < 1024) {
-      return `${bytes} B`;
-    }
-
-    if (bytes < 1024 * 1024) {
-      return `${(bytes / 1024).toFixed(1)} KB`;
-    }
-
-    if (bytes < 1024 * 1024 * 1024) {
-      return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-    }
-
-    return `${(
-      bytes /
-      1024 /
-      1024 /
-      1024
-    ).toFixed(1)} GB`;
-  }
-
-  function scrollChat() {
-    chat.scrollTop =
-      chat.scrollHeight;
-  }
-
-  /* ---------------------------------------------------------
-     CREATE MESSAGE
-  --------------------------------------------------------- */
-
-  function createMessage(text) {
-    const container =
-      document.createElement("div");
-
-    container.className =
-      "message self";
-
-    container.dataset.message =
-      "true";
-
-    const avatar =
-      document.createElement("img");
-
-    avatar.className =
-      "avatar";
-
-    avatar.src =
-      "https://cdn.krynet.com/avatars/default2.png";
-
-    avatar.alt =
-      "You";
-
-    const body =
-      document.createElement("div");
-
-    body.className =
-      "message-body";
-
-    const meta =
-      document.createElement("div");
-
-    meta.className =
-      "message-meta";
-
-    const name =
-      document.createElement("strong");
-
-    name.textContent =
-      "You";
-
-    meta.append(
-      name,
-      document.createTextNode(
-        ` • ${getTime()}`
-      )
-    );
-
-    const content =
-      document.createElement("div");
-
-    content.className =
-      "message-content";
-
-    content.textContent =
-      text;
-
-    body.append(
-      meta,
-      content
-    );
-
-    container.append(
-      avatar,
-      body
-    );
-
-    chat.appendChild(
-      container
-    );
-
-    /*
-     * Scan the newly-created message.
-     *
-     * This is what gives URLs their Discord-style embeds.
-     */
-    if (
-      window.KrynetEmbed &&
-      typeof window.KrynetEmbed.scanMessages ===
-        "function"
-    ) {
-      window.KrynetEmbed.scanMessages(
-        '[data-message="true"]'
-      );
-    }
-
-    scrollChat();
-
-    return container;
-  }
-
-  /* ---------------------------------------------------------
-     FILE ATTACHMENT
-  --------------------------------------------------------- */
-
-  function createFileAttachment(file) {
-    const url =
-      URL.createObjectURL(file);
-
-    localObjectURLs.add(url);
-
-    const attachment =
-      document.createElement("div");
-
-    attachment.className =
-      "file-attachment";
-
-    const header =
-      document.createElement("div");
-
-    header.className =
-      "file-attachment-header";
-
-    const icon =
-      document.createElement("div");
-
-    icon.className =
-      "file-icon";
-
-    const fileName =
-      file.name.toLowerCase();
-
-    if (
-      file.type.startsWith("image/")
-    ) {
-      icon.textContent = "IMG";
-    } else if (
-      file.type.startsWith("video/")
-    ) {
-      icon.textContent = "VID";
-    } else if (
-      file.type.startsWith("audio/")
-    ) {
-      icon.textContent = "AUD";
-    } else {
-      icon.textContent = "FILE";
-    }
-
-    const name =
-      document.createElement("div");
-
-    name.className =
-      "file-name";
-
-    name.textContent =
-      file.name;
-
-    const size =
-      document.createElement("div");
-
-    size.className =
-      "file-size";
-
-    size.textContent =
-      formatFileSize(file.size);
-
-    header.append(
-      icon,
-      name,
-      size
-    );
-
-    attachment.appendChild(
-      header
-    );
-
-    /*
-     * IMAGE
-     */
-
-    if (
-      file.type.startsWith("image/") ||
-      /\.(avif|heif|heic)$/i.test(file.name)
-    ) {
-      const image =
-        document.createElement("img");
-
-      image.src =
-        url;
-
-      image.alt =
-        file.name;
-
-      image.loading =
-        "lazy";
-
-      attachment.appendChild(
-        image
-      );
-    }
-
-    /*
-     * VIDEO
-     */
-
-    else if (
-      file.type.startsWith("video/") ||
-      /\.mp4$/i.test(file.name)
-    ) {
-      const video =
-        document.createElement("video");
-
-      video.src =
-        url;
-
-      video.controls =
-        true;
-
-      video.preload =
-        "metadata";
-
-      attachment.appendChild(
-        video
-      );
-    }
-
-    /*
-     * AUDIO
-     */
-
-    else if (
-      file.type.startsWith("audio/") ||
-      /\.(aac|m4a)$/i.test(file.name)
-    ) {
-      const audio =
-        document.createElement("audio");
-
-      audio.src =
-        url;
-
-      audio.controls =
-        true;
-
-      audio.preload =
-        "metadata";
-
-      attachment.appendChild(
-        audio
-      );
-    }
-
-    /*
-     * PDF
-     */
-
-    else if (
-      file.type ===
-      "application/pdf"
-    ) {
-      const frame =
-        document.createElement("iframe");
-
-      frame.src =
-        url;
-
-      frame.title =
-        file.name;
-
-      frame.loading =
-        "lazy";
-
-      Object.assign(
-        frame.style,
-        {
-          width: "100%",
-          height: "350px",
-          border: "0",
-          borderRadius: "7px",
-          background: "#090909"
-        }
-      );
-
-      attachment.appendChild(
-        frame
-      );
-    }
-
-    /*
-     * GENERIC FILE
-     */
-
-    const download =
-      document.createElement("a");
-
-    download.className =
-      "file-download";
-
-    download.href =
-      url;
-
-    download.download =
-      file.name;
-
-    download.textContent =
-      "Open / download file";
-
-    attachment.appendChild(
-      download
-    );
-
-    return attachment;
-  }
-
-  /* ---------------------------------------------------------
-     SEND FILES
-  --------------------------------------------------------- */
-
-  function sendFiles(files) {
-    if (!files.length) {
-      return;
-    }
-
-    for (const file of files) {
+    function createMessage(text) {
       const container =
         document.createElement("div");
 
       container.className =
         "message self";
-
-      container.dataset.message =
-        "true";
 
       const avatar =
         document.createElement("img");
@@ -1041,11 +513,11 @@
       avatar.alt =
         "You";
 
-      const body =
+      const wrapper =
         document.createElement("div");
 
-      body.className =
-        "message-body";
+      wrapper.className =
+        "message-content-wrapper";
 
       const meta =
         document.createElement("div");
@@ -1059,153 +531,226 @@
       name.textContent =
         "You";
 
+      const separator =
+        document.createTextNode(
+          " • " +
+          new Date().toLocaleTimeString(
+            [],
+            {
+              hour: "2-digit",
+              minute: "2-digit"
+            }
+          )
+        );
+
       meta.append(
         name,
-        document.createTextNode(
-          ` • ${getTime()}`
-        )
+        separator
       );
 
-      body.appendChild(
-        meta
-      );
+      const bubble =
+        document.createElement("div");
 
-      body.appendChild(
-        createFileAttachment(file)
+      bubble.className =
+        "message-content";
+
+      bubble.textContent =
+        text;
+
+      wrapper.append(
+        meta,
+        bubble
       );
 
       container.append(
         avatar,
-        body
+        wrapper
       );
+
+      return container;
+    }
+
+    function addAd() {
+      const adContainer =
+        document.createElement("div");
+
+      adContainer.className =
+        "message";
+
+      const ad =
+        document.createElement("ins");
+
+      ad.className =
+        "adsbygoogle";
+
+      ad.style.display =
+        "block";
+
+      ad.style.width =
+        "100%";
+
+      ad.dataset.adClient =
+        "ca-pub-3940256099942544";
+
+      ad.dataset.adSlot =
+        "6300978111";
+
+      ad.dataset.adFormat =
+        "auto";
+
+      ad.dataset.fullWidthResponsive =
+        "true";
+
+      adContainer.appendChild(ad);
 
       chat.appendChild(
-        container
+        adContainer
       );
+
+      try {
+        (
+          window.adsbygoogle =
+          window.adsbygoogle || []
+        ).push({});
+      } catch {
+        // AdSense may not be ready yet.
+      }
     }
 
-    fileInput.value =
-      "";
+    function sendMessage() {
+      const text =
+        input.value.trim();
 
-    scrollChat();
-  }
-
-  /* ---------------------------------------------------------
-     SEND TEXT
-  --------------------------------------------------------- */
-
-  function sendMessage() {
-    const text =
-      input.value.trim();
-
-    if (!text) {
-      return;
-    }
-
-    createMessage(
-      text
-    );
-
-    input.value =
-      "";
-
-    messageCount++;
-
-    /*
-     * Put the cursor back in the input.
-     */
-    input.focus();
-  }
-
-  /* ---------------------------------------------------------
-     INPUT EVENTS
-  --------------------------------------------------------- */
-
-  sendButton.addEventListener(
-    "click",
-    sendMessage
-  );
-
-  input.addEventListener(
-    "keydown",
-    event => {
-      if (
-        event.key !== "Enter" ||
-        event.shiftKey
-      ) {
+      if (!text) {
         return;
       }
 
-      event.preventDefault();
+      const message =
+        createMessage(text);
 
-      sendMessage();
-    }
-  );
+      chat.appendChild(
+        message
+      );
 
-  attachButton.addEventListener(
-    "click",
-    () => {
-      fileInput.click();
-    }
-  );
+      msgCount++;
 
-  fileInput.addEventListener(
-    "change",
-    () => {
-      const files =
-        Array.from(
-          fileInput.files || []
-        );
-
-      sendFiles(files);
-    }
-  );
-
-  /* ---------------------------------------------------------
-     DRAG + DROP
-  --------------------------------------------------------- */
-
-  chat.addEventListener(
-    "dragover",
-    event => {
-      event.preventDefault();
-    }
-  );
-
-  chat.addEventListener(
-    "drop",
-    event => {
-      event.preventDefault();
-
-      const files =
-        Array.from(
-          event.dataTransfer?.files || []
-        );
-
-      sendFiles(files);
-    }
-  );
-
-  /* ---------------------------------------------------------
-     CLEANUP
-  --------------------------------------------------------- */
-
-  window.addEventListener(
-    "beforeunload",
-    () => {
-      for (
-        const url of localObjectURLs
-      ) {
-        URL.revokeObjectURL(url);
+      if (msgCount % 5 === 0) {
+        addAd();
       }
-    }
-  );
 
-  /*
-   * Make sure the initial chat is at the bottom.
-   */
-  scrollChat();
-</script>
+      input.value = "";
+
+      chat.scrollTop =
+        chat.scrollHeight;
+    }
+
+    button.addEventListener(
+      "click",
+      sendMessage
+    );
+
+    input.addEventListener(
+      "keydown",
+      event => {
+        if (event.key !== "Enter") {
+          return;
+        }
+
+        event.preventDefault();
+
+        sendMessage();
+      }
+    );
+  </script>
+
+  <!-- =====================================================
+       KRYNET MODULES
+  ====================================================== -->
+
+  <script
+    type="module"
+    src="./js/reactions.js"
+  ></script>
+
+  <script
+    type="module"
+    src="./js/embed.js"
+  ></script>
+
+  <script
+    type="module"
+    src="./js/openInApp.js"
+  ></script>
+
+  <script
+    type="module"
+    src="./js/anonymous-upload.js"
+  ></script>
+
+  <script
+    type="module"
+    src="./js/youtubeAdblock.js"
+  ></script>
+
+  <script
+    type="module"
+    src="./js/clearURLS.js"
+  ></script>
+
+  <script
+    type="module"
+    src="./js/dearrow.js"
+  ></script>
+
+  <script
+    type="module"
+    src="./js/blurNSFW.js"
+  ></script>
+
+  <script
+    type="module"
+    src="./js/Cloudflare.js"
+  ></script>
+
+  <script
+    type="module"
+    src="./js/country-blocker.js"
+  ></script>
+
+  <script
+    type="module"
+    src="./js/copyFileContents.js"
+  ></script>
+
+  <script
+    type="module"
+    src="./js/krysearch.js"
+  ></script>
+
+  <script
+    type="module"
+    src="./js/markdownRenderer.js"
+  ></script>
+
+  <script
+    type="module"
+    src="./js/screenshare.js"
+  ></script>
+
+  <script
+    type="module"
+    src="./js/tpm.js"
+  ></script>
+
+  <script
+    type="module"
+    src="./js/voicechat.js"
+  ></script>
+
+  <script
+    type="module"
+    src="./js/webcam.js"
+  ></script>
 
 </body>
 </html>
