@@ -1,34 +1,20 @@
-type CopyFileLike = {
-    name: string;
-    type?: string;
-    size: number;
-    content: string;
-};
-
 class KrynetCopyFile {
-    static readonly MAX_COPY_SIZE = 500_000;
+    static MAX_COPY_SIZE = 500_000;
 
-    private static readonly TEXT_EXTENSIONS =
+    static TEXT_EXTENSIONS =
         /\.(txt|md|markdown|json|js|jsx|ts|tsx|html|htm|css|scss|sass|less|xml|csv|log|yaml|yml|toml|ini|conf|sh|bash|py|java|c|cpp|h|hpp|rs|go|php|rb|swift|kt|sql)$/i;
 
-    private static readonly TOAST_DURATION = 2000;
+    static TOAST_DURATION = 2000;
 
-    private static toastElement: HTMLElement | null = null;
-    private static toastTimer:
-        ReturnType<typeof setTimeout> | null = null;
-    private static fadeTimer:
-        ReturnType<typeof setTimeout> | null = null;
+    static toastElement = null;
+    static toastTimer = null;
+    static fadeTimer = null;
 
     /* ---------------------------------------------------------
        FILE DETECTION
     --------------------------------------------------------- */
 
-    /**
-     * Returns true when the file appears to contain text.
-     */
-    static isTextFile(
-        file: CopyFileLike
-    ): boolean {
+    static isTextFile(file) {
         const mimeType =
             file.type?.toLowerCase() ?? "";
 
@@ -36,7 +22,6 @@ class KrynetCopyFile {
             return true;
         }
 
-        // Common application/* types that are still text.
         const textMimeTypes = new Set([
             "application/json",
             "application/javascript",
@@ -60,12 +45,7 @@ class KrynetCopyFile {
        SIZE CHECK
     --------------------------------------------------------- */
 
-    /**
-     * Checks both declared file size and actual content size.
-     */
-    static canCopy(
-        file: CopyFileLike
-    ): boolean {
+    static canCopy(file) {
         if (
             file.size >
             this.MAX_COPY_SIZE
@@ -73,13 +53,11 @@ class KrynetCopyFile {
             return false;
         }
 
-        // UTF-8 byte length is more accurate than
-        // JavaScript string.length for clipboard limits.
         try {
             const bytes =
-                new TextEncoder().encode(
-                    file.content
-                ).byteLength;
+                new TextEncoder()
+                    .encode(file.content)
+                    .byteLength;
 
             return (
                 bytes <=
@@ -97,12 +75,7 @@ class KrynetCopyFile {
        BUTTON
     --------------------------------------------------------- */
 
-    /**
-     * Creates a copy button for a text file.
-     */
-    static createButton(
-        file: CopyFileLike
-    ): HTMLButtonElement | null {
+    static createButton(file) {
         if (!this.isTextFile(file)) {
             return null;
         }
@@ -114,11 +87,9 @@ class KrynetCopyFile {
         button.className = "kr-copy-btn";
 
         let copied = false;
-        let copyTimer:
-            ReturnType<typeof setTimeout> | null =
-                null;
+        let copyTimer = null;
 
-        const update = (): void => {
+        const update = () => {
             const disabled =
                 !this.canCopy(file);
 
@@ -126,8 +97,7 @@ class KrynetCopyFile {
 
             if (copied) {
                 button.textContent = "✔";
-                button.title =
-                    "Copied";
+                button.title = "Copied";
             } else if (disabled) {
                 button.textContent = "🚫";
                 button.title =
@@ -149,7 +119,7 @@ class KrynetCopyFile {
                     : "1";
         };
 
-        const doCopy = async (): Promise<void> => {
+        const doCopy = async () => {
             if (
                 button.disabled ||
                 !this.canCopy(file)
@@ -178,7 +148,6 @@ class KrynetCopyFile {
                     copyTimer = null;
                     update();
                 }, 2000);
-
             } catch (error) {
                 console.warn(
                     "[KrynetCopyFile] Clipboard failed:",
@@ -207,15 +176,7 @@ class KrynetCopyFile {
        CLIPBOARD
     --------------------------------------------------------- */
 
-    /**
-     * Copies text using the modern Clipboard API.
-     *
-     * Falls back to a temporary textarea when the
-     * Clipboard API is unavailable or denied.
-     */
-    private static async copyText(
-        text: string
-    ): Promise<void> {
+    static async copyText(text) {
         if (
             navigator.clipboard?.writeText
         ) {
@@ -226,7 +187,7 @@ class KrynetCopyFile {
 
                 return;
             } catch {
-                // Fall through to textarea fallback.
+                // Fall back to textarea.
             }
         }
 
@@ -237,9 +198,7 @@ class KrynetCopyFile {
        FALLBACK COPY
     --------------------------------------------------------- */
 
-    private static copyTextFallback(
-        text: string
-    ): Promise<void> {
+    static copyTextFallback(text) {
         return new Promise(
             (resolve, reject) => {
                 const textarea =
@@ -258,8 +217,7 @@ class KrynetCopyFile {
                         width: "1px",
                         height: "1px",
                         opacity: "0",
-                        pointerEvents:
-                            "none"
+                        pointerEvents: "none"
                     }
                 );
 
@@ -300,9 +258,7 @@ class KrynetCopyFile {
        TOAST
     --------------------------------------------------------- */
 
-    static toast(
-        message: string
-    ): void {
+    static toast(message) {
         if (!document.body) {
             return;
         }
@@ -343,12 +299,8 @@ class KrynetCopyFile {
             );
         }
 
-        toast.classList.remove(
-            "fade"
-        );
-
-        toast.textContent =
-            message;
+        toast.classList.remove("fade");
+        toast.textContent = message;
 
         this.toastTimer =
             setTimeout(() => {
@@ -368,28 +320,17 @@ class KrynetCopyFile {
                                 null;
                         }
 
-                        this.fadeTimer =
-                            null;
+                        this.fadeTimer = null;
                     }, 300);
 
-                this.toastTimer =
-                    null;
+                this.toastTimer = null;
             }, this.TOAST_DURATION);
     }
 }
 
-/* -------------------------------------------------------------
+/* ---------------------------------------------------------
    GLOBAL EXPORT
-------------------------------------------------------------- */
-
-declare global {
-    interface Window {
-        KrynetCopyFile?:
-            typeof KrynetCopyFile;
-    }
-}
+--------------------------------------------------------- */
 
 window.KrynetCopyFile =
     KrynetCopyFile;
-
-export default KrynetCopyFile;
