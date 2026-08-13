@@ -1,27 +1,4 @@
 ///////////////////////////////
-// Types
-///////////////////////////////
-
-export type Auth0ClientLike = {
-    getUser(): Promise<{
-        sub?: string;
-    } | null>;
-};
-
-export type TPMChallenge = {
-    challenge: string;
-    expiresAt?: number;
-};
-
-export type TPMProof = {
-    auth0Sub: string | null;
-    challenge: string;
-    signature: ArrayBuffer | null;
-    timestamp: number;
-    nonce: string;
-};
-
-///////////////////////////////
 // Constants
 ///////////////////////////////
 
@@ -34,9 +11,7 @@ const DEFAULT_TIMEOUT = 60_000;
 // Helpers
 ///////////////////////////////
 
-function arrayBufferToBase64(
-    buffer: ArrayBuffer
-): string {
+function arrayBufferToBase64(buffer) {
     const bytes =
         new Uint8Array(buffer);
 
@@ -54,11 +29,7 @@ function arrayBufferToBase64(
 ///////////////////////////////
 
 export class KrynetTPM {
-    private readonly auth0: Auth0ClientLike;
-
-    constructor(
-        auth0Client: Auth0ClientLike
-    ) {
+    constructor(auth0Client) {
         this.auth0 = auth0Client;
     }
 
@@ -66,7 +37,7 @@ export class KrynetTPM {
     // Challenge
     ///////////////////////////////
 
-    async fetchChallenge(): Promise<string> {
+    async fetchChallenge() {
         const response =
             await fetch(
                 CHALLENGE_ENDPOINT,
@@ -87,12 +58,11 @@ export class KrynetTPM {
         }
 
         const data =
-            (await response.json()) as
-                Partial<TPMChallenge>;
+            await response.json();
 
         if (
             typeof data.challenge !==
-            "string" ||
+                "string" ||
             !data.challenge
         ) {
             throw new Error(
@@ -107,9 +77,7 @@ export class KrynetTPM {
     // TPM / WebAuthn assertion
     ///////////////////////////////
 
-    async signChallenge(
-        challenge: string
-    ): Promise<ArrayBuffer | null> {
+    async signChallenge(challenge) {
         if (
             typeof window ===
                 "undefined" ||
@@ -118,12 +86,6 @@ export class KrynetTPM {
             return null;
         }
 
-        /*
-         * WebAuthn credentials are backed by
-         * platform authenticators on supported
-         * devices. Keep the TPM-specific
-         * implementation behind this boundary.
-         */
         const challengeBytes =
             new TextEncoder().encode(
                 challenge
@@ -134,8 +96,10 @@ export class KrynetTPM {
                 publicKey: {
                     challenge:
                         challengeBytes,
+
                     userVerification:
                         "required",
+
                     timeout:
                         DEFAULT_TIMEOUT
                 }
@@ -174,7 +138,7 @@ export class KrynetTPM {
     // Create proof
     ///////////////////////////////
 
-    async createProof(): Promise<TPMProof> {
+    async createProof() {
         const challenge =
             await this.fetchChallenge();
 
@@ -185,6 +149,7 @@ export class KrynetTPM {
             this.signChallenge(
                 challenge
             ),
+
             this.auth0.getUser()
         ]);
 
@@ -209,9 +174,9 @@ export class KrynetTPM {
     ///////////////////////////////
 
     async secureFetch(
-        url: string,
-        options: RequestInit = {}
-    ): Promise<Response> {
+        url,
+        options = {}
+    ) {
         const proof =
             await this.createProof();
 
@@ -261,7 +226,8 @@ export class KrynetTPM {
             {
                 ...options,
                 headers,
-                credentials: "include"
+                credentials:
+                    "include"
             }
         );
     }
@@ -270,7 +236,7 @@ export class KrynetTPM {
     // Support check
     ///////////////////////////////
 
-    static isSupported(): boolean {
+    static isSupported() {
         return (
             typeof window !==
                 "undefined" &&
