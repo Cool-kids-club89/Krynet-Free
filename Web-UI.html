@@ -185,22 +185,26 @@
             color: #fff;
         }
 
-        .voice-channel.connected {
-            background: #263d32;
-            color: #57f287;
+        .channel.voice {
+            position: relative;
         }
 
-        .voice-channel.connected .channel-icon {
-            color: #57f287;
+        .channel.voice.connected {
+            color: #fff;
+            background: #35373c;
         }
 
-        .voice-channel.connecting {
-            background: #3d3926;
-            color: #faa61a;
+        .voice-connection-dot {
+            width: 7px;
+            height: 7px;
+            margin-left: auto;
+            border-radius: 50%;
+            background: #23a559;
+            display: none;
         }
 
-        .voice-channel.connecting .channel-icon {
-            color: #faa61a;
+        .channel.voice.connected .voice-connection-dot {
+            display: block;
         }
 
         /* =====================================================
@@ -246,18 +250,8 @@
             font-size: 11px;
         }
 
-        .voice-status {
-            color: #57f287;
-            font-size: 10px;
-            white-space: nowrap;
-        }
-
-        .voice-status.error {
-            color: #ed4245;
-        }
-
-        .voice-status.connecting {
-            color: #faa61a;
+        .status-text.in-vc {
+            color: #23a559;
         }
 
         /* =====================================================
@@ -288,6 +282,10 @@
             font-size: 22px;
         }
 
+        .chat-header-icon.voice {
+            font-size: 17px;
+        }
+
         .chat-header-name {
             font-weight: 700;
         }
@@ -299,30 +297,13 @@
             padding-left: 10px;
         }
 
-        .voice-header-status {
-            display: none;
-            align-items: center;
-            gap: 7px;
-            margin-left: 4px;
-            padding-left: 10px;
-            border-left: 1px solid #4b4d53;
-            color: #57f287;
-            font-size: 12px;
-        }
-
-        .voice-header-status.visible {
-            display: flex;
-        }
-
-        .voice-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: currentColor;
-        }
+        /* =====================================================
+           VC CONTROLS
+        ===================================================== */
 
         .call-controls {
             display: flex;
+            align-items: center;
             gap: 5px;
             margin-left: auto;
         }
@@ -334,6 +315,7 @@
             background: transparent;
             color: #b5bac1;
             cursor: pointer;
+            font-size: 15px;
         }
 
         .call-button:hover {
@@ -344,6 +326,45 @@
         .call-button.active {
             background: #5865f2;
             color: #fff;
+        }
+
+        .call-button.leave {
+            color: #f23f42;
+        }
+
+        .call-button.leave:hover {
+            background: #f23f42;
+            color: #fff;
+        }
+
+        /*
+         * Nothing is shown in a text channel.
+         */
+
+        #joinVoiceButton,
+        .vc-control {
+            display: none;
+        }
+
+        /*
+         * Voice channel selected but not joined.
+         */
+
+        .call-controls.voice-available #joinVoiceButton {
+            display: block;
+        }
+
+        /*
+         * Once inside VC, show microphone,
+         * camera, screen share and leave.
+         */
+
+        .call-controls.in-vc .vc-control {
+            display: block;
+        }
+
+        .call-controls.in-vc #joinVoiceButton {
+            display: none;
         }
 
         /* =====================================================
@@ -797,6 +818,10 @@
                 display: none;
             }
 
+            .voice-connection-dot {
+                display: none !important;
+            }
+
             .user-info {
                 display: none;
             }
@@ -816,11 +841,6 @@
 
             .chat-header-topic {
                 display: none;
-            }
-
-            .voice-header-status {
-                border-left: 0;
-                padding-left: 0;
             }
 
             .call-panel {
@@ -846,7 +866,6 @@
         <button
             class="server-button active"
             title="Krynet"
-            type="button"
         >
             K
         </button>
@@ -856,7 +875,6 @@
         <button
             class="server-button"
             title="Community"
-            type="button"
         >
             C
         </button>
@@ -864,7 +882,6 @@
         <button
             class="server-button"
             title="Add server"
-            type="button"
         >
             +
         </button>
@@ -919,28 +936,31 @@
                 <span>development</span>
             </button>
 
+
             <div class="channel-category">
                 Voice Channels
             </div>
 
             <button
-                class="channel voice-channel"
+                class="channel voice"
                 data-channel="Lounge"
                 data-type="voice"
                 type="button"
             >
                 <span class="channel-icon">🔊</span>
                 <span>Lounge</span>
+                <span class="voice-connection-dot"></span>
             </button>
 
             <button
-                class="channel voice-channel"
+                class="channel voice"
                 data-channel="Gaming"
                 data-type="voice"
                 type="button"
             >
                 <span class="channel-icon">🔊</span>
                 <span>Gaming</span>
+                <span class="voice-connection-dot"></span>
             </button>
 
         </div>
@@ -951,18 +971,12 @@
 
             <div class="user-info">
                 <div class="username">Barney</div>
-
                 <div
                     class="status-text"
                     id="userStatus"
                 >
                     Online
                 </div>
-
-                <div
-                    class="voice-status"
-                    id="voiceStatus"
-                ></div>
             </div>
 
             <button
@@ -988,7 +1002,7 @@
 
             <span
                 class="chat-header-icon"
-                id="headerChannelIcon"
+                id="channelIcon"
             >
                 #
             </span>
@@ -1004,20 +1018,38 @@
                 Krynet Community
             </span>
 
-            <div
-                class="voice-header-status"
-                id="voiceHeaderStatus"
-            >
-                <span class="voice-dot"></span>
-                <span id="voiceHeaderText">
-                    Voice connected
-                </span>
-            </div>
 
-            <div class="call-controls">
+            <!-- =================================================
+                 VC CONTROLS
+
+                 Hidden entirely for text channels.
+            ================================================== -->
+
+            <div
+                class="call-controls"
+                id="callControls"
+            >
 
                 <button
                     class="call-button"
+                    id="joinVoiceButton"
+                    type="button"
+                    title="Join voice channel"
+                >
+                    🎙
+                </button>
+
+                <button
+                    class="call-button vc-control"
+                    id="muteButton"
+                    type="button"
+                    title="Mute microphone"
+                >
+                    🎤
+                </button>
+
+                <button
+                    class="call-button vc-control"
                     id="cameraButton"
                     type="button"
                     title="Camera"
@@ -1026,7 +1058,7 @@
                 </button>
 
                 <button
-                    class="call-button"
+                    class="call-button vc-control"
                     id="screenButton"
                     type="button"
                     title="Share screen"
@@ -1035,11 +1067,10 @@
                 </button>
 
                 <button
-                    class="call-button"
+                    class="call-button vc-control leave"
                     id="leaveVoiceButton"
                     type="button"
-                    title="Leave voice"
-                    style="display:none"
+                    title="Leave voice channel"
                 >
                     📞
                 </button>
@@ -1214,7 +1245,7 @@
     <div class="call-panel-header">
 
         <span id="callTitle">
-            Camera
+            Voice Channel
         </span>
 
         <button
@@ -1264,30 +1295,10 @@
 
 
 <!-- =========================================================
-     VOICE CHAT CONFIG
+     VOICE CHAT
 ========================================================= -->
 
-<script>
-    /*
-     * These can also be populated by your server before
-     * this HTML is served.
-     *
-     * Example:
-     *
-     * window.KRYNET_VOICE_CONFIG = {
-     *     serverUrl: "https://voice.example.com",
-     *     serverPublicKey: "BASE64_P256_PUBLIC_KEY"
-     * };
-     *
-     * Do NOT put a server private key here.
-     */
-
-    window.KRYNET_VOICE_CONFIG =
-        window.KRYNET_VOICE_CONFIG || {
-            serverUrl: "",
-            serverPublicKey: ""
-        };
-</script>
+<script src="./js/voicechat.js"></script>
 
 
 <!-- =========================================================
@@ -1298,7 +1309,6 @@
 
     import { Embed } from "./js/embed.js";
     import { Reactions } from "./js/reactions.js";
-    import { VoiceChatApex } from "./js/voicechat.js";
 
     "use strict";
 
@@ -1337,8 +1347,17 @@
     const channelName =
         document.getElementById("channelName");
 
-    const headerChannelIcon =
-        document.getElementById("headerChannelIcon");
+    const channelIcon =
+        document.getElementById("channelIcon");
+
+    const callControls =
+        document.getElementById("callControls");
+
+    const joinVoiceButton =
+        document.getElementById("joinVoiceButton");
+
+    const muteButton =
+        document.getElementById("muteButton");
 
     const cameraButton =
         document.getElementById("cameraButton");
@@ -1364,17 +1383,8 @@
     const callClose =
         document.getElementById("callClose");
 
-    const voiceStatus =
-        document.getElementById("voiceStatus");
-
     const userStatus =
         document.getElementById("userStatus");
-
-    const voiceHeaderStatus =
-        document.getElementById("voiceHeaderStatus");
-
-    const voiceHeaderText =
-        document.getElementById("voiceHeaderText");
 
 
     /* ========================================================
@@ -1386,371 +1396,39 @@
     let webcamSession = null;
     let screenSession = null;
 
-    let voiceClient = null;
-    let activeVoiceChannel = null;
+    let voiceChat = null;
 
-    let voiceConnectionId = null;
-
+    let currentVoiceChannel = null;
+    let voiceJoined = false;
+    let microphoneMuted = false;
 
     /*
-     * Use your real authenticated session/user values here.
+     * These can be supplied by your application before
+     * this script runs.
      *
-     * If your application already exposes these globally,
-     * those values are preferred.
+     * Example:
+     *
+     * window.KRYNET_VOICE_SERVER_URL = "https://...";
+     * window.KRYNET_VOICE_SESSION_ID = "...";
+     * window.KRYNET_VOICE_USER_ID = "...";
+     * window.KRYNET_VOICE_SERVER_PUBLIC_KEY = "...";
      */
 
-    const userId =
-        window.KRYNET_USER_ID ||
-        "barney";
+    const VOICE_SERVER_URL =
+        window.KRYNET_VOICE_SERVER_URL || "";
 
-    const sessionId =
-        window.KRYNET_SESSION_ID ||
-        crypto.randomUUID();
+    const VOICE_SESSION_ID =
+        window.KRYNET_VOICE_SESSION_ID || "";
 
+    const VOICE_USER_ID =
+        window.KRYNET_VOICE_USER_ID || "";
 
-    const voiceConfig =
-        window.KRYNET_VOICE_CONFIG || {};
+    const VOICE_SERVER_PUBLIC_KEY =
+        window.KRYNET_VOICE_SERVER_PUBLIC_KEY || "";
 
 
     /* ========================================================
-       VOICE HELPERS
-    ======================================================== */
-
-    function setVoiceStatus(
-        text,
-        state = ""
-    ) {
-
-        voiceStatus.textContent =
-            text;
-
-        voiceStatus.className =
-            "voice-status";
-
-        if (state) {
-            voiceStatus.classList.add(state);
-        }
-    }
-
-
-    function setVoiceHeader(
-        visible,
-        text = "Voice connected"
-    ) {
-
-        voiceHeaderStatus.classList.toggle(
-            "visible",
-            visible
-        );
-
-        voiceHeaderText.textContent =
-            text;
-    }
-
-
-    function setVoiceChannelState(
-        channel,
-        state
-    ) {
-
-        document
-            .querySelectorAll(".voice-channel")
-            .forEach(item => {
-
-                item.classList.remove(
-                    "connected",
-                    "connecting"
-                );
-            });
-
-        if (!channel) {
-            return;
-        }
-
-        const element =
-            document.querySelector(
-                `.voice-channel[data-channel="${CSS.escape(channel)}"]`
-            );
-
-        element?.classList.add(state);
-    }
-
-
-    function getVoiceServerUrl() {
-
-        return (
-            voiceConfig.serverUrl ||
-            window.KRYNET_VOICE_SERVER_URL ||
-            ""
-        ).replace(/\/+$/, "");
-    }
-
-
-    function getVoiceServerPublicKey() {
-
-        return (
-            voiceConfig.serverPublicKey ||
-            window.KRYNET_VOICE_SERVER_PUBLIC_KEY ||
-            ""
-        );
-    }
-
-
-    function ensureVoiceConfiguration() {
-
-        const serverUrl =
-            getVoiceServerUrl();
-
-        const serverPublicKey =
-            getVoiceServerPublicKey();
-
-
-        if (!serverUrl) {
-
-            throw new Error(
-                "Voice server URL is not configured"
-            );
-        }
-
-
-        if (!serverPublicKey) {
-
-            throw new Error(
-                "Voice server public key is not configured"
-            );
-        }
-
-
-        return {
-            serverUrl,
-            serverPublicKey
-        };
-    }
-
-
-    async function connectVoice(channel) {
-
-        if (
-            activeVoiceChannel === channel &&
-            voiceClient
-        ) {
-            return;
-        }
-
-
-        if (voiceClient) {
-            await disconnectVoice();
-        }
-
-
-        const config =
-            ensureVoiceConfiguration();
-
-
-        activeVoiceChannel =
-            channel;
-
-        voiceConnectionId =
-            crypto.randomUUID();
-
-
-        setVoiceChannelState(
-            channel,
-            "connecting"
-        );
-
-        setVoiceStatus(
-            `Connecting to ${channel}...`,
-            "connecting"
-        );
-
-        setVoiceHeader(
-            true,
-            `Connecting • ${channel}`
-        );
-
-
-        try {
-
-            voiceClient =
-                new VoiceChatApex(
-                    config.serverUrl,
-                    sessionId,
-                    userId,
-                    {
-                        serverPublicKey:
-                            config.serverPublicKey,
-
-                        frameSize:
-                            960,
-
-                        bitrate:
-                            128000,
-
-                        sampleRate:
-                            48000
-                    }
-                );
-
-
-            await voiceClient.init();
-
-
-            /*
-             * init() starts:
-             *
-             * - microphone capture
-             * - Opus encoder
-             * - Opus decoder
-             * - RNNoise
-             * - ECDH/AES-GCM session key
-             * - encrypted upload
-             * - encrypted receive stream
-             * - heartbeat
-             *
-             * The VoiceChatApex instance owns the complete
-             * voice lifecycle from this point onward.
-             */
-
-
-            if (
-                activeVoiceChannel !== channel ||
-                voiceConnectionId === null
-            ) {
-                await voiceClient.stop();
-                return;
-            }
-
-
-            setVoiceChannelState(
-                channel,
-                "connected"
-            );
-
-            setVoiceStatus(
-                `Connected to ${channel}`,
-                ""
-            );
-
-            setVoiceHeader(
-                true,
-                `Voice connected • ${channel}`
-            );
-
-            leaveVoiceButton.style.display =
-                "block";
-
-
-            userStatus.textContent =
-                "In voice";
-
-
-        } catch (error) {
-
-            console.error(
-                "[Krynet] Voice connection failed:",
-                error
-            );
-
-
-            try {
-                await voiceClient?.stop();
-            } catch {
-                // Already failed.
-            }
-
-
-            voiceClient =
-                null;
-
-            activeVoiceChannel =
-                null;
-
-            voiceConnectionId =
-                null;
-
-
-            setVoiceChannelState(
-                channel,
-                ""
-            );
-
-            setVoiceStatus(
-                error?.message ||
-                "Voice connection failed",
-                "error"
-            );
-
-            setVoiceHeader(
-                false
-            );
-
-            leaveVoiceButton.style.display =
-                "none";
-
-            userStatus.textContent =
-                "Online";
-        }
-    }
-
-
-    async function disconnectVoice() {
-
-        const oldChannel =
-            activeVoiceChannel;
-
-
-        const oldClient =
-            voiceClient;
-
-
-        activeVoiceChannel =
-            null;
-
-        voiceClient =
-            null;
-
-        voiceConnectionId =
-            null;
-
-
-        if (oldClient) {
-
-            try {
-                await oldClient.stop();
-            } catch (error) {
-
-                console.warn(
-                    "[Krynet] Voice shutdown:",
-                    error
-                );
-            }
-        }
-
-
-        setVoiceChannelState(
-            oldChannel,
-            ""
-        );
-
-        setVoiceStatus(
-            ""
-        );
-
-        setVoiceHeader(
-            false
-        );
-
-        leaveVoiceButton.style.display =
-            "none";
-
-        userStatus.textContent =
-            "Online";
-    }
-
-
-    /* ========================================================
-       ELEMENT HELPERS
+       HELPERS
     ======================================================== */
 
     function getTime() {
@@ -1857,15 +1535,12 @@
                 if (
                     url.pathname === "/watch"
                 ) {
-
                     return url.searchParams.get("v");
                 }
-
 
                 if (
                     url.pathname.startsWith("/shorts/")
                 ) {
-
                     return (
                         url.pathname
                             .split("/")
@@ -1874,11 +1549,9 @@
                     );
                 }
 
-
                 if (
                     url.pathname.startsWith("/embed/")
                 ) {
-
                     return (
                         url.pathname
                             .split("/")
@@ -1887,7 +1560,6 @@
                     );
                 }
             }
-
 
             return null;
 
@@ -1906,8 +1578,399 @@
     }
 
 
+    function isVoiceChannel(channel) {
+
+        return (
+            channel === "Lounge" ||
+            channel === "Gaming"
+        );
+    }
+
+
+    function getSelectedChannelType() {
+
+        const active =
+            document.querySelector(
+                ".channel.active"
+            );
+
+        return active?.dataset.type || "text";
+    }
+
+
     /* ========================================================
-       YOUTUBE
+       VOICE UI
+    ======================================================== */
+
+    function updateVoiceControls() {
+
+        const type =
+            getSelectedChannelType();
+
+        const voiceChannel =
+            type === "voice";
+
+
+        callControls.classList.toggle(
+            "voice-available",
+            voiceChannel
+        );
+
+        callControls.classList.toggle(
+            "in-vc",
+            voiceJoined
+        );
+
+
+        if (voiceJoined) {
+
+            channelIcon.textContent =
+                "🔊";
+
+            userStatus.textContent =
+                `Connected to ${currentVoiceChannel}`;
+
+            userStatus.classList.add(
+                "in-vc"
+            );
+
+        } else {
+
+            userStatus.textContent =
+                "Online";
+
+            userStatus.classList.remove(
+                "in-vc"
+            );
+        }
+    }
+
+
+    function markVoiceChannelConnected(
+        channel,
+        connected
+    ) {
+
+        document
+            .querySelectorAll(".channel.voice")
+            .forEach(element => {
+
+                element.classList.toggle(
+                    "connected",
+                    connected &&
+                    element.dataset.channel === channel
+                );
+            });
+    }
+
+
+    /* ========================================================
+       VOICE CHAT
+    ======================================================== */
+
+    async function createVoiceChat() {
+
+        if (
+            !VOICE_SERVER_URL ||
+            !VOICE_SESSION_ID ||
+            !VOICE_USER_ID ||
+            !VOICE_SERVER_PUBLIC_KEY
+        ) {
+
+            throw new Error(
+                "Voice chat configuration is missing"
+            );
+        }
+
+
+        if (
+            typeof window.VoiceChatApex !==
+            "function"
+        ) {
+
+            throw new Error(
+                "voicechat.js did not expose VoiceChatApex"
+            );
+        }
+
+
+        const instance =
+            new window.VoiceChatApex(
+                VOICE_SERVER_URL,
+                VOICE_SESSION_ID,
+                VOICE_USER_ID,
+                {
+                    serverPublicKey:
+                        VOICE_SERVER_PUBLIC_KEY
+                }
+            );
+
+
+        await instance.init();
+
+        return instance;
+    }
+
+
+    async function joinVoiceChannel(
+        channel
+    ) {
+
+        if (
+            !isVoiceChannel(channel)
+        ) {
+            return;
+        }
+
+
+        if (voiceJoined) {
+
+            if (
+                currentVoiceChannel ===
+                channel
+            ) {
+                return;
+            }
+
+            await leaveVoiceChannel();
+        }
+
+
+        showCallPanel(
+            channel,
+            "Connecting to voice..."
+        );
+
+
+        joinVoiceButton.disabled =
+            true;
+
+
+        try {
+
+            voiceChat =
+                await createVoiceChat();
+
+
+            currentVoiceChannel =
+                channel;
+
+            voiceJoined =
+                true;
+
+            microphoneMuted =
+                false;
+
+
+            muteButton.textContent =
+                "🎤";
+
+            muteButton.classList.remove(
+                "active"
+            );
+
+
+            markVoiceChannelConnected(
+                channel,
+                true
+            );
+
+
+            updateVoiceControls();
+
+
+            callTitle.textContent =
+                `🔊 ${channel}`;
+
+            callStatus.textContent =
+                "Connected to voice";
+
+
+        } catch (error) {
+
+            console.error(
+                "[Krynet] Voice connection failed:",
+                error
+            );
+
+
+            try {
+                await voiceChat?.stop();
+            } catch {
+                // Ignore cleanup errors.
+            }
+
+
+            voiceChat =
+                null;
+
+            currentVoiceChannel =
+                null;
+
+            voiceJoined =
+                false;
+
+
+            markVoiceChannelConnected(
+                channel,
+                false
+            );
+
+            updateVoiceControls();
+
+
+            callStatus.textContent =
+                error?.message ||
+                "Could not connect to voice";
+
+
+        } finally {
+
+            joinVoiceButton.disabled =
+                false;
+        }
+    }
+
+
+    async function leaveVoiceChannel() {
+
+        const previousChannel =
+            currentVoiceChannel;
+
+
+        voiceJoined =
+            false;
+
+        currentVoiceChannel =
+            null;
+
+
+        try {
+
+            await voiceChat?.stop();
+
+        } catch (error) {
+
+            console.warn(
+                "[Krynet] Voice cleanup failed:",
+                error
+            );
+        }
+
+
+        voiceChat =
+            null;
+
+
+        if (previousChannel) {
+
+            markVoiceChannelConnected(
+                previousChannel,
+                false
+            );
+        }
+
+
+        await stopWebcam();
+        await stopScreenshare();
+
+
+        microphoneMuted =
+            false;
+
+        muteButton.classList.remove(
+            "active"
+        );
+
+        muteButton.textContent =
+            "🎤";
+
+
+        updateVoiceControls();
+
+        hideCallPanel();
+    }
+
+
+    /* ========================================================
+       MUTE
+    ======================================================== */
+
+    muteButton.addEventListener(
+        "click",
+        () => {
+
+            if (!voiceJoined) {
+                return;
+            }
+
+
+            microphoneMuted =
+                !microphoneMuted;
+
+
+            muteButton.classList.toggle(
+                "active",
+                microphoneMuted
+            );
+
+
+            muteButton.textContent =
+                microphoneMuted
+                    ? "🔇"
+                    : "🎤";
+
+
+            /*
+             * VoiceChatApex currently owns the microphone
+             * internally. When you add a mute() method to
+             * voicechat.js, call it here.
+             *
+             * Example:
+             *
+             * voiceChat.setMuted(microphoneMuted);
+             */
+        }
+    );
+
+
+    /* ========================================================
+       JOIN
+    ======================================================== */
+
+    joinVoiceButton.addEventListener(
+        "click",
+        async () => {
+
+            if (!isVoiceChannel(
+                channelName.textContent
+            )) {
+                return;
+            }
+
+
+            await joinVoiceChannel(
+                channelName.textContent
+            );
+        }
+    );
+
+
+    /* ========================================================
+       LEAVE
+    ======================================================== */
+
+    leaveVoiceButton.addEventListener(
+        "click",
+        async () => {
+
+            await leaveVoiceChannel();
+        }
+    );
+
+
+    /* ========================================================
+       YOUTUBE EMBED
     ======================================================== */
 
     function createYouTubeEmbed(url) {
@@ -2070,7 +2133,6 @@
         card.textContent =
             "📎 " + file.name;
 
-
         Object.assign(
             card.style,
             {
@@ -2081,7 +2143,6 @@
                 fontSize: "13px"
             }
         );
-
 
         wrapper.appendChild(
             card
@@ -2118,7 +2179,9 @@
             isURLOnly(text);
 
         if (linkOnly) {
-            article.classList.add("link-only");
+            article.classList.add(
+                "link-only"
+            );
         }
 
 
@@ -2329,7 +2392,7 @@
             }
 
         } catch {
-            // Constructor implementations
+            // Constructor-based implementations
             // initialize themselves.
         }
 
@@ -2352,7 +2415,6 @@
 
         messages.scrollTop =
             messages.scrollHeight;
-
 
         return article;
     }
@@ -2521,7 +2583,9 @@
 
 
         try {
+
             webcamSession.stop();
+
         } catch {
             // Ignore shutdown errors.
         }
@@ -2534,89 +2598,98 @@
         cameraButton.classList.remove(
             "active"
         );
+    }
 
 
-        hideCallPanel();
+    async function startWebcam() {
+
+        if (!voiceJoined) {
+            return;
+        }
+
+
+        if (webcamSession) {
+
+            await stopWebcam();
+
+            if (!screenSession) {
+                hideCallPanel();
+            }
+
+            return;
+        }
+
+
+        if (
+            typeof window.startWebcamStream !==
+            "function"
+        ) {
+
+            showCallPanel(
+                "Camera",
+                "webcam.js is not loaded"
+            );
+
+            return;
+        }
+
+
+        try {
+
+            showCallPanel(
+                `🔊 ${currentVoiceChannel}`,
+                "Starting camera..."
+            );
+
+
+            webcamSession =
+                await window.startWebcamStream();
+
+
+            if (
+                webcamSession?.stream
+            ) {
+
+                callVideo.srcObject =
+                    webcamSession.stream;
+
+                await callVideo
+                    .play()
+                    .catch(() => {});
+            }
+
+
+            cameraButton.classList.add(
+                "active"
+            );
+
+
+            callStatus.textContent =
+                "Camera active";
+
+
+        } catch (error) {
+
+            webcamSession =
+                null;
+
+
+            callStatus.textContent =
+                error?.message ||
+                "Could not start camera";
+
+
+            console.error(
+                "[Krynet] Camera failed:",
+                error
+            );
+        }
     }
 
 
     cameraButton.addEventListener(
         "click",
-        async () => {
-
-            if (webcamSession) {
-
-                await stopWebcam();
-
-                return;
-            }
-
-
-            if (
-                typeof window.startWebcamStream !==
-                "function"
-            ) {
-
-                showCallPanel(
-                    "Camera",
-                    "webcam.js is not loaded"
-                );
-
-                return;
-            }
-
-
-            try {
-
-                showCallPanel(
-                    "Camera",
-                    "Starting camera..."
-                );
-
-
-                webcamSession =
-                    await window.startWebcamStream();
-
-
-                if (
-                    webcamSession?.stream
-                ) {
-
-                    callVideo.srcObject =
-                        webcamSession.stream;
-
-                    await callVideo
-                        .play()
-                        .catch(() => {});
-                }
-
-
-                cameraButton.classList.add(
-                    "active"
-                );
-
-
-                callStatus.textContent =
-                    "Camera active";
-
-
-            } catch (error) {
-
-                webcamSession =
-                    null;
-
-
-                callStatus.textContent =
-                    error?.message ||
-                    "Could not start camera";
-
-
-                console.error(
-                    "[Krynet] Camera failed:",
-                    error
-                );
-            }
-        }
+        startWebcam
     );
 
 
@@ -2632,7 +2705,9 @@
 
 
         try {
+
             screenSession.stop();
+
         } catch {
             // Ignore shutdown errors.
         }
@@ -2645,135 +2720,145 @@
         screenButton.classList.remove(
             "active"
         );
+    }
 
 
-        hideCallPanel();
+    async function startScreenshare() {
+
+        if (!voiceJoined) {
+            return;
+        }
+
+
+        if (screenSession) {
+
+            await stopScreenshare();
+
+            if (!webcamSession) {
+                hideCallPanel();
+            }
+
+            return;
+        }
+
+
+        if (
+            typeof window.startMonitorAdaptiveScreenshare !==
+            "function"
+        ) {
+
+            showCallPanel(
+                "Screen Share",
+                "screenshare.js is not loaded"
+            );
+
+            return;
+        }
+
+
+        const wsUrl =
+            window.KRYNET_SCREEN_WS_URL ||
+            "wss://localhost:8443/screenshare";
+
+
+        const wtUrl =
+            window.KRYNET_SCREEN_WT_URL ||
+            "https://localhost:8443/screenshare";
+
+
+        try {
+
+            showCallPanel(
+                `🔊 ${currentVoiceChannel}`,
+                "Starting screen capture..."
+            );
+
+
+            screenSession =
+                await window.startMonitorAdaptiveScreenshare(
+                    wsUrl,
+                    wtUrl,
+                    {
+                        captureAudio: true,
+                        videoQuality: .82,
+                        maxFPS: 60,
+                        useSpatialAudio: false
+                    }
+                );
+
+
+            if (
+                screenSession?.stream
+            ) {
+
+                callVideo.srcObject =
+                    screenSession.stream;
+
+                await callVideo
+                    .play()
+                    .catch(() => {});
+            }
+
+
+            screenButton.classList.add(
+                "active"
+            );
+
+
+            callStatus.textContent =
+                "Screen sharing active";
+
+
+        } catch (error) {
+
+            screenSession =
+                null;
+
+
+            callStatus.textContent =
+                error?.message ||
+                "Could not start screen share";
+
+
+            console.error(
+                "[Krynet] Screen share failed:",
+                error
+            );
+        }
     }
 
 
     screenButton.addEventListener(
         "click",
-        async () => {
-
-            if (screenSession) {
-
-                await stopScreenshare();
-
-                return;
-            }
-
-
-            if (
-                typeof window.startMonitorAdaptiveScreenshare !==
-                "function"
-            ) {
-
-                showCallPanel(
-                    "Screen Share",
-                    "screenshare.js is not loaded"
-                );
-
-                return;
-            }
-
-
-            const wsUrl =
-                window.KRYNET_SCREEN_WS_URL ||
-                "wss://localhost:8443/screenshare";
-
-
-            const wtUrl =
-                window.KRYNET_SCREEN_WT_URL ||
-                "https://localhost:8443/screenshare";
-
-
-            try {
-
-                showCallPanel(
-                    "Screen Share",
-                    "Starting screen capture..."
-                );
-
-
-                screenSession =
-                    await window.startMonitorAdaptiveScreenshare(
-                        wsUrl,
-                        wtUrl,
-                        {
-                            captureAudio: true,
-                            videoQuality: .82,
-                            maxFPS: 60,
-                            useSpatialAudio: false
-                        }
-                    );
-
-
-                if (
-                    screenSession?.stream
-                ) {
-
-                    callVideo.srcObject =
-                        screenSession.stream;
-
-                    await callVideo
-                        .play()
-                        .catch(() => {});
-                }
-
-
-                screenButton.classList.add(
-                    "active"
-                );
-
-
-                callStatus.textContent =
-                    "Screen sharing active";
-
-
-            } catch (error) {
-
-                screenSession =
-                    null;
-
-
-                callStatus.textContent =
-                    error?.message ||
-                    "Could not start screen share";
-
-
-                console.error(
-                    "[Krynet] Screen share failed:",
-                    error
-                );
-            }
-        }
+        startScreenshare
     );
 
 
     /* ========================================================
-       LEAVE VOICE
-    ======================================================== */
-
-    leaveVoiceButton.addEventListener(
-        "click",
-        async () => {
-
-            await disconnectVoice();
-        }
-    );
-
-
-    /* ========================================================
-       CALL CLOSE
+       CALL PANEL CLOSE
     ======================================================== */
 
     callClose.addEventListener(
         "click",
         async () => {
 
-            await stopWebcam();
+            if (voiceJoined) {
 
-            await stopScreenshare();
+                /*
+                 * Closing the preview should not
+                 * disconnect VC. Just stop camera/
+                 * screen capture.
+                 */
+
+                await stopWebcam();
+                await stopScreenshare();
+
+                hideCallPanel();
+
+                return;
+            }
+
+            hideCallPanel();
         }
     );
 
@@ -2871,46 +2956,24 @@
 
 
                     /*
-                     * Voice channels are real voice actions.
-                     * Clicking the currently connected channel
-                     * leaves it.
+                     * If we're in a VC and select
+                     * another channel, leave the VC.
                      */
 
-                    if (type === "voice") {
+                    if (
+                        voiceJoined &&
+                        (
+                            type !== "voice" ||
+                            name !== currentVoiceChannel
+                        )
+                    ) {
 
-                        if (
-                            activeVoiceChannel === name &&
-                            voiceClient
-                        ) {
-
-                            await disconnectVoice();
-
-                            return;
-                        }
-
-
-                        await connectVoice(name);
-
-                        return;
-                    }
-
-
-                    /*
-                     * Text channel selection.
-                     */
-
-                    if (voiceClient) {
-                        /*
-                         * Deliberately keep voice connected while
-                         * moving through text channels.
-                         */
+                        await leaveVoiceChannel();
                     }
 
 
                     document
-                        .querySelectorAll(
-                            ".channel"
-                        )
+                        .querySelectorAll(".channel")
                         .forEach(item => {
 
                             item.classList.remove(
@@ -2927,36 +2990,55 @@
                     channelName.textContent =
                         name;
 
-                    headerChannelIcon.textContent =
-                        "#";
+
+                    if (type === "voice") {
+
+                        channelIcon.textContent =
+                            "🔊";
+
+                        messageInput.placeholder =
+                            `Message #${name}`;
+
+                    } else {
+
+                        channelIcon.textContent =
+                            "#";
+
+                        messageInput.placeholder =
+                            `Message #${name}`;
+                    }
 
 
-                    messageInput.placeholder =
-                        `Message #${name}`;
+                    updateVoiceControls();
                 }
             );
-
         });
 
 
     /* ========================================================
-       VOICE CLEANUP
+       CLEANUP
     ======================================================== */
 
     window.addEventListener(
         "beforeunload",
         () => {
 
-            /*
-             * stop() is intentionally fired without awaiting.
-             * The VoiceChatApex implementation handles its own
-             * stream shutdown.
-             */
+            try {
+                voiceChat?.stop();
+            } catch {
+                // Ignore unload cleanup errors.
+            }
 
             try {
-                voiceClient?.stop();
+                webcamSession?.stop();
             } catch {
-                // Ignore page shutdown errors.
+                // Ignore unload cleanup errors.
+            }
+
+            try {
+                screenSession?.stop();
+            } catch {
+                // Ignore unload cleanup errors.
             }
         }
     );
@@ -2971,6 +3053,7 @@
         Embed.scanMessages(
             ".message"
         );
+
     });
 
 
@@ -2997,12 +3080,8 @@
                         if (
                             node instanceof Element &&
                             (
-                                node.matches(
-                                    ".message"
-                                ) ||
-                                node.querySelector?.(
-                                    ".message"
-                                )
+                                node.matches(".message") ||
+                                node.querySelector?.(".message")
                             )
                         ) {
 
@@ -3033,12 +3112,10 @@
 
 
     /* ========================================================
-       STARTUP
+       INITIAL STATE
     ======================================================== */
 
-    setVoiceStatus("");
-
-    setVoiceHeader(false);
+    updateVoiceControls();
 
 </script>
 
