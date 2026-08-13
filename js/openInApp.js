@@ -1,39 +1,9 @@
 ///////////////////////////////
-// Platform Types
-///////////////////////////////
-
-type SciterView = {
-    open(url: string): void;
-};
-
-declare const view:
-    | SciterView
-    | undefined;
-
-declare const Sciter:
-    | SciterView
-    | undefined;
-
-///////////////////////////////
-// Service Types
-///////////////////////////////
-
-type Service = {
-    id: string;
-    match(url: URL): boolean;
-    transform(url: URL): string;
-};
-
-///////////////////////////////
 // Helpers
 ///////////////////////////////
 
-function isHost(
-    url: URL,
-    hosts: string[]
-): boolean {
-    const hostname =
-        url.hostname.toLowerCase();
+function isHost(url, hosts) {
+    const hostname = url.hostname.toLowerCase();
 
     return hosts.some(
         host =>
@@ -42,9 +12,7 @@ function isHost(
     );
 }
 
-function getPathParts(
-    url: URL
-): string[] {
+function getPathParts(url) {
     return url.pathname
         .split("/")
         .filter(Boolean);
@@ -54,7 +22,7 @@ function getPathParts(
 // Service Rules
 ///////////////////////////////
 
-const SERVICES: Service[] = [
+const SERVICES = [
     {
         id: "spotify",
 
@@ -67,21 +35,15 @@ const SERVICES: Service[] = [
                 return false;
             }
 
-            const parts =
-                getPathParts(url);
+            const parts = getPathParts(url);
 
             const offset =
-                parts[0]?.startsWith(
-                    "intl-"
-                )
+                parts[0]?.startsWith("intl-")
                     ? 1
                     : 0;
 
-            const type =
-                parts[offset];
-
-            const id =
-                parts[offset + 1];
+            const type = parts[offset];
+            const id = parts[offset + 1];
 
             return Boolean(
                 type &&
@@ -99,13 +61,10 @@ const SERVICES: Service[] = [
         },
 
         transform(url) {
-            const parts =
-                getPathParts(url);
+            const parts = getPathParts(url);
 
             const offset =
-                parts[0]?.startsWith(
-                    "intl-"
-                )
+                parts[0]?.startsWith("intl-")
                     ? 1
                     : 0;
 
@@ -127,9 +86,7 @@ const SERVICES: Service[] = [
         },
 
         transform(url) {
-            return (
-                `steam://openurl/${url.href}`
-            );
+            return `steam://openurl/${url.href}`;
         }
     },
 
@@ -143,11 +100,10 @@ const SERVICES: Service[] = [
         },
 
         transform(url) {
-            const path =
-                url.pathname.replace(
-                    /^\/+/,
-                    ""
-                );
+            const path = url.pathname.replace(
+                /^\/+/,
+                ""
+            );
 
             return (
                 `com.epicgames.launcher://` +
@@ -169,19 +125,15 @@ const SERVICES: Service[] = [
                 return false;
             }
 
-            const parts =
-                getPathParts(url);
+            const parts = getPathParts(url);
 
             const browse =
                 parts[0] === "browse"
                     ? 1
                     : 0;
 
-            const type =
-                parts[browse];
-
-            const id =
-                parts[browse + 1];
+            const type = parts[browse];
+            const id = parts[browse + 1];
 
             if (!type || !id) {
                 return false;
@@ -201,14 +153,11 @@ const SERVICES: Service[] = [
                 return false;
             }
 
-            return /^[a-f0-9-]+$/i.test(
-                id
-            );
+            return /^[a-f0-9-]+$/i.test(id);
         },
 
         transform(url) {
-            const parts =
-                getPathParts(url);
+            const parts = getPathParts(url);
 
             const browse =
                 parts[0] === "browse"
@@ -271,8 +220,7 @@ const SERVICES: Service[] = [
                 return false;
             }
 
-            const parts =
-                getPathParts(url);
+            const parts = getPathParts(url);
 
             return (
                 parts[0] === "games" &&
@@ -283,8 +231,7 @@ const SERVICES: Service[] = [
         },
 
         transform(url) {
-            const parts =
-                getPathParts(url);
+            const parts = getPathParts(url);
 
             return (
                 `roblox-player://placeId=` +
@@ -298,12 +245,9 @@ const SERVICES: Service[] = [
 // URL Parsing
 ///////////////////////////////
 
-function parseHttpUrl(
-    value: string
-): URL | null {
+function parseHttpUrl(value) {
     try {
-        const url =
-            new URL(value);
+        const url = new URL(value);
 
         if (
             url.protocol !== "http:" &&
@@ -322,25 +266,17 @@ function parseHttpUrl(
 // URL Transform
 ///////////////////////////////
 
-export function transformUrl(
-    value: string
-): string {
-    const url =
-        parseHttpUrl(value);
+export function transformUrl(value) {
+    const url = parseHttpUrl(value);
 
     if (!url) {
         return value;
     }
 
-    for (
-        const service
-        of SERVICES
-    ) {
+    for (const service of SERVICES) {
         try {
             if (service.match(url)) {
-                return service.transform(
-                    url
-                );
+                return service.transform(url);
             }
         } catch {
             // One broken service rule
@@ -355,26 +291,19 @@ export function transformUrl(
 // External Open
 ///////////////////////////////
 
-function openExternal(
-    url: string,
-    fallbackUrl?: string
-): void {
+function openExternal(url, fallbackUrl) {
     try {
         if (
-            typeof view !==
-                "undefined" &&
-            typeof view?.open ===
-                "function"
+            typeof view !== "undefined" &&
+            typeof view?.open === "function"
         ) {
             view.open(url);
             return;
         }
 
         if (
-            typeof Sciter !==
-                "undefined" &&
-            typeof Sciter?.open ===
-                "function"
+            typeof Sciter !== "undefined" &&
+            typeof Sciter?.open === "function"
         ) {
             Sciter.open(url);
             return;
@@ -419,16 +348,9 @@ function openExternal(
 // Click Handler
 ///////////////////////////////
 
-function handleClick(
-    event: MouseEvent
-): void {
+function handleClick(event) {
     /*
      * Ignore modified clicks.
-     *
-     * Ctrl/Cmd click,
-     * middle click,
-     * Shift click, etc.
-     * should retain normal browser behavior.
      */
     if (
         event.button !== 0 ||
@@ -440,23 +362,16 @@ function handleClick(
         return;
     }
 
-    const target =
-        event.target;
+    const target = event.target;
 
-    if (
-        !(target instanceof Element)
-    ) {
+    if (!(target instanceof Element)) {
         return;
     }
 
-    const anchor =
-        target.closest(
-            "a[href]"
-        );
+    const anchor = target.closest("a[href]");
 
     if (
-        !(anchor instanceof
-            HTMLAnchorElement)
+        !(anchor instanceof HTMLAnchorElement)
     ) {
         return;
     }
@@ -464,26 +379,16 @@ function handleClick(
     /*
      * Don't hijack downloads.
      */
-    if (
-        anchor.hasAttribute(
-            "download"
-        )
-    ) {
+    if (anchor.hasAttribute("download")) {
         return;
     }
 
-    const originalUrl =
-        anchor.href;
+    const originalUrl = anchor.href;
 
     const transformed =
-        transformUrl(
-            originalUrl
-        );
+        transformUrl(originalUrl);
 
-    if (
-        transformed ===
-        originalUrl
-    ) {
+    if (transformed === originalUrl) {
         return;
     }
 
@@ -502,7 +407,7 @@ function handleClick(
 
 let initialized = false;
 
-export function initOpenInApp(): void {
+export function initOpenInApp() {
     if (initialized) {
         return;
     }
