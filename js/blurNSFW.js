@@ -1,20 +1,8 @@
-type KrynetNSFWSettings = {
-    blurAmount: number;
-    enabled: boolean;
-};
-
-type ChannelLike = {
-    nsfw?: boolean;
-};
+"use strict";
 
 class KrynetBlurNSFW {
-    private static readonly CSS_VAR =
-        "--kr-nsfw-blur";
-
-    private static readonly BLUR_CLASS =
-        "kr-nsfw-blur";
-
-    private settings: KrynetNSFWSettings;
+    static CSS_VAR = "--kr-nsfw-blur";
+    static BLUR_CLASS = "kr-nsfw-blur";
 
     constructor(initialBlur = 10) {
         this.settings = {
@@ -29,13 +17,7 @@ class KrynetBlurNSFW {
        APPLY
     --------------------------------------------------------- */
 
-    /**
-     * Applies or removes NSFW blur from a message element.
-     */
-    apply(
-        messageEl: HTMLElement | null,
-        channel?: ChannelLike
-    ): void {
+    apply(messageEl, channel) {
         if (!messageEl) {
             return;
         }
@@ -54,14 +36,8 @@ class KrynetBlurNSFW {
        BLUR
     --------------------------------------------------------- */
 
-    /**
-     * Updates the global blur amount.
-     */
-    setBlur(px: number): void {
-        if (
-            !Number.isFinite(px) ||
-            px < 0
-        ) {
+    setBlur(px) {
+        if (!Number.isFinite(px) || px < 0) {
             throw new Error(
                 "Blur amount must be a non-negative number."
             );
@@ -75,10 +51,7 @@ class KrynetBlurNSFW {
         );
     }
 
-    /**
-     * Returns the current blur amount.
-     */
-    getBlur(): number {
+    getBlur() {
         return this.settings.blurAmount;
     }
 
@@ -86,32 +59,19 @@ class KrynetBlurNSFW {
        ENABLE / DISABLE
     --------------------------------------------------------- */
 
-    /**
-     * Enables or disables NSFW blurring.
-     */
-    toggle(enabled: boolean): void {
-        this.settings.enabled =
-            Boolean(enabled);
+    toggle(enabled) {
+        this.settings.enabled = Boolean(enabled);
     }
 
-    /**
-     * Enables NSFW blurring.
-     */
-    enable(): void {
+    enable() {
         this.toggle(true);
     }
 
-    /**
-     * Disables NSFW blurring.
-     */
-    disable(): void {
+    disable() {
         this.toggle(false);
     }
 
-    /**
-     * Returns whether blurring is enabled.
-     */
-    isEnabled(): boolean {
+    isEnabled() {
         return this.settings.enabled;
     }
 
@@ -119,10 +79,7 @@ class KrynetBlurNSFW {
        SETTINGS
     --------------------------------------------------------- */
 
-    /**
-     * Returns a copy of the current settings.
-     */
-    getSettings(): Readonly<KrynetNSFWSettings> {
+    getSettings() {
         return {
             ...this.settings
         };
@@ -133,27 +90,10 @@ class KrynetBlurNSFW {
    GLOBAL INSTANCE
 ------------------------------------------------------------- */
 
-const instance =
-    new KrynetBlurNSFW(10);
-
-/* -------------------------------------------------------------
-   GLOBAL TYPE
-------------------------------------------------------------- */
-
-declare global {
-    interface Window {
-        KrynetNSFW?: KrynetBlurNSFW;
-    }
-}
+const instance = new KrynetBlurNSFW(10);
 
 /* -------------------------------------------------------------
    GLOBAL EXPORT
 ------------------------------------------------------------- */
 
 window.KrynetNSFW = instance;
-
-/* -------------------------------------------------------------
-   EXPORT
-------------------------------------------------------------- */
-
-export default instance;
