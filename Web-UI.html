@@ -1,18 +1,10 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1"
-    >
-
-    <meta
-        name="color-scheme"
-        content="dark"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
     <title>Krynet Community</title>
 
     <style>
@@ -38,7 +30,7 @@
                 sans-serif;
 
             background: #202225;
-            color: #ffffff;
+            color: #fff;
             overflow: hidden;
         }
 
@@ -58,6 +50,8 @@
             display: flex;
             overflow: hidden;
         }
+
+        /* SERVER SIDEBAR */
 
         .server-sidebar {
             width: 72px;
@@ -84,15 +78,14 @@
                 transform .15s;
         }
 
-        .server-button:hover {
-            border-radius: 14px;
-            background: #5865f2;
-            transform: translateY(-1px);
-        }
-
+        .server-button:hover,
         .server-button.active {
             border-radius: 14px;
             background: #5865f2;
+        }
+
+        .server-button:hover {
+            transform: translateY(-1px);
         }
 
         .server-divider {
@@ -100,6 +93,8 @@
             height: 1px;
             background: #35363c;
         }
+
+        /* CHANNEL SIDEBAR */
 
         .channel-sidebar {
             width: 240px;
@@ -173,10 +168,6 @@
             color: #fff;
         }
 
-        .channel.voice {
-            position: relative;
-        }
-
         .channel.voice.connected {
             color: #fff;
             background: #35373c;
@@ -194,6 +185,8 @@
         .channel.voice.connected .voice-connection-dot {
             display: block;
         }
+
+        /* USER */
 
         .user-panel {
             min-height: 52px;
@@ -238,6 +231,8 @@
             color: #23a559;
         }
 
+        /* CHAT */
+
         .chat {
             min-width: 0;
             flex: 1;
@@ -272,6 +267,8 @@
             border-left: 1px solid #4b4d53;
             padding-left: 10px;
         }
+
+        /* CALL */
 
         .call-controls {
             display: flex;
@@ -325,6 +322,8 @@
         .call-controls.in-vc #joinVoiceButton {
             display: none;
         }
+
+        /* MESSAGES */
 
         .messages {
             flex: 1;
@@ -381,6 +380,12 @@
             font-size: 11px;
         }
 
+        /*
+         * IMPORTANT:
+         * Markdown is rendered INTO .message-text.
+         * Do not use textContent for rendered Markdown.
+         */
+
         .message-text {
             color: #dbdee1;
             font-size: 15px;
@@ -388,140 +393,129 @@
             overflow-wrap: anywhere;
         }
 
-        /*
-         * Markdown styling.
-         * krynet-markdown.js generates the actual elements.
-         */
-
-        .message-text.kr-markdown {
-            white-space: normal;
-        }
-
-        .message-text.kr-markdown p {
+        .message-text p {
             margin: 0 0 8px;
         }
 
-        .message-text.kr-markdown p:last-child {
+        .message-text p:last-child {
             margin-bottom: 0;
         }
 
-        .message-text.kr-markdown h1,
-        .message-text.kr-markdown h2,
-        .message-text.kr-markdown h3,
-        .message-text.kr-markdown h4,
-        .message-text.kr-markdown h5,
-        .message-text.kr-markdown h6 {
-            margin: 8px 0 5px;
+        .message-text h1,
+        .message-text h2,
+        .message-text h3,
+        .message-text h4,
+        .message-text h5,
+        .message-text h6 {
             color: #fff;
+            margin: 10px 0 5px;
             line-height: 1.25;
         }
 
-        .message-text.kr-markdown h1 {
-            font-size: 24px;
+        .message-text h1 {
+            font-size: 25px;
         }
 
-        .message-text.kr-markdown h2 {
-            font-size: 20px;
+        .message-text h2 {
+            font-size: 21px;
         }
 
-        .message-text.kr-markdown h3 {
-            font-size: 17px;
+        .message-text h3 {
+            font-size: 18px;
         }
 
-        .message-text.kr-markdown strong {
+        .message-text strong {
             color: #fff;
             font-weight: 700;
         }
 
-        .message-text.kr-markdown em {
-            font-style: italic;
+        .message-text em {
+            color: #e1e3e6;
         }
 
-        .message-text.kr-markdown del {
-            opacity: .8;
+        .message-text del {
+            color: #949ba4;
         }
 
-        .message-text.kr-markdown a {
+        .message-text a {
             color: #00a8fc;
             text-decoration: none;
         }
 
-        .message-text.kr-markdown a:hover {
+        .message-text a:hover {
             text-decoration: underline;
         }
 
-        .message-text.kr-markdown ul,
-        .message-text.kr-markdown ol {
-            margin: 5px 0;
-            padding-left: 25px;
+        .message-text ul,
+        .message-text ol {
+            margin: 6px 0;
+            padding-left: 24px;
         }
 
-        .message-text.kr-markdown li {
+        .message-text li {
             margin: 2px 0;
         }
 
-        .message-text.kr-markdown blockquote {
+        .message-text blockquote {
             margin: 6px 0;
-            padding: 2px 10px;
-            border-left: 4px solid #4e5058;
+            padding: 4px 10px;
+            border-left: 4px solid #4f545c;
             color: #b5bac1;
         }
 
-        .message-text.kr-markdown code {
+        .message-text code {
             padding: 2px 5px;
             border-radius: 4px;
             background: #1e1f22;
-            color: #f2f3f5;
+            color: #e3e5e8;
             font-family:
                 "Fira Code",
                 "Cascadia Code",
                 monospace;
-            font-size: 13px;
+            font-size: .9em;
         }
 
-        .message-text.kr-markdown pre {
-            margin: 7px 0;
-            padding: 10px 12px;
-            max-width: 100%;
+        .message-text pre {
+            margin: 8px 0;
+            padding: 12px;
             overflow-x: auto;
             border-radius: 7px;
             background: #1e1f22;
         }
 
-        .message-text.kr-markdown pre code {
+        .message-text pre code {
             padding: 0;
             background: transparent;
-            white-space: pre;
+            font-size: 13px;
         }
 
-        .message-text.kr-markdown hr {
-            border: 0;
-            border-top: 1px solid #4b4d53;
-            margin: 10px 0;
-        }
-
-        .message-text.kr-markdown img {
+        .message-text img {
             max-width: 100%;
             border-radius: 7px;
         }
 
-        .message-text.kr-markdown table {
-            max-width: 100%;
+        .message-text table {
+            width: 100%;
             border-collapse: collapse;
-            margin: 7px 0;
-            overflow: hidden;
+            margin: 8px 0;
         }
 
-        .message-text.kr-markdown th,
-        .message-text.kr-markdown td {
+        .message-text th,
+        .message-text td {
             padding: 6px 9px;
-            border: 1px solid #4b4d53;
+            border: 1px solid #4f5158;
+            text-align: left;
         }
 
-        .message-text.kr-markdown th {
+        .message-text th {
             background: #2b2d31;
-            color: #fff;
         }
+
+        .message.link-only .message-text {
+            display: none;
+        }
+
+        /* FILES */
 
         .kr-file-card {
             display: flex;
@@ -563,10 +557,6 @@
             color: #fff;
         }
 
-        .kr-copy-btn:disabled {
-            cursor: not-allowed;
-        }
-
         .kr-toast {
             position: fixed;
             left: 50%;
@@ -579,7 +569,6 @@
             color: #fff;
             font-size: 13px;
             box-shadow: 0 8px 25px rgba(0,0,0,.4);
-            opacity: 1;
             transition: opacity .3s ease;
             pointer-events: none;
         }
@@ -587,6 +576,8 @@
         .kr-toast.fade {
             opacity: 0;
         }
+
+        /* EMBEDS */
 
         .kr-embed {
             margin-top: 5px;
@@ -616,18 +607,21 @@
             background: #000;
         }
 
+        /* YOUTUBE */
+
         .youtube-embed {
             display: flex;
             max-width: 520px;
             overflow: hidden;
             border-radius: 8px;
             background: #2f3136;
+            margin-top: 5px;
         }
 
         .youtube-embed-bar {
             width: 4px;
             flex-shrink: 0;
-            background: #ff0000;
+            background: #f00;
         }
 
         .youtube-embed-body {
@@ -640,6 +634,8 @@
             min-height: 292px;
             width: 100%;
         }
+
+        /* REACTIONS */
 
         .kr-message-reactions,
         .message-reactions {
@@ -672,6 +668,8 @@
             border-color: #5865f2;
             background: #3c4270;
         }
+
+        /* ACTIONS */
 
         .message-actions {
             position: absolute;
@@ -706,6 +704,8 @@
             color: #fff;
         }
 
+        /* WELCOME */
+
         .welcome {
             padding: 18px 8px 20px;
         }
@@ -720,6 +720,8 @@
             color: #949ba4;
             font-size: 14px;
         }
+
+        /* COMPOSER */
 
         .composer-wrap {
             padding: 0 16px 18px;
@@ -831,6 +833,8 @@
         #fileInput {
             display: none;
         }
+
+        /* CALL PANEL */
 
         .call-panel {
             position: fixed;
@@ -976,33 +980,10 @@
 <div class="app">
 
     <aside class="server-sidebar">
-
-        <button
-            class="server-button active"
-            title="Krynet"
-            type="button"
-        >
-            K
-        </button>
-
+        <button class="server-button active" title="Krynet" type="button">K</button>
         <div class="server-divider"></div>
-
-        <button
-            class="server-button"
-            title="Community"
-            type="button"
-        >
-            C
-        </button>
-
-        <button
-            class="server-button"
-            title="Add server"
-            type="button"
-        >
-            +
-        </button>
-
+        <button class="server-button" title="Community" type="button">C</button>
+        <button class="server-button" title="Add server" type="button">+</button>
     </aside>
 
     <aside class="channel-sidebar">
@@ -1018,32 +999,26 @@
                 Text Channels
             </div>
 
-            <button
-                class="channel active"
-                data-channel="general"
-                data-type="text"
-                type="button"
-            >
+            <button class="channel active"
+                    data-channel="general"
+                    data-type="text"
+                    type="button">
                 <span class="channel-icon">#</span>
                 <span>general</span>
             </button>
 
-            <button
-                class="channel"
-                data-channel="community"
-                data-type="text"
-                type="button"
-            >
+            <button class="channel"
+                    data-channel="community"
+                    data-type="text"
+                    type="button">
                 <span class="channel-icon">#</span>
                 <span>community</span>
             </button>
 
-            <button
-                class="channel"
-                data-channel="development"
-                data-type="text"
-                type="button"
-            >
+            <button class="channel"
+                    data-channel="development"
+                    data-type="text"
+                    type="button">
                 <span class="channel-icon">#</span>
                 <span>development</span>
             </button>
@@ -1052,23 +1027,19 @@
                 Voice Channels
             </div>
 
-            <button
-                class="channel voice"
-                data-channel="Lounge"
-                data-type="voice"
-                type="button"
-            >
+            <button class="channel voice"
+                    data-channel="Lounge"
+                    data-type="voice"
+                    type="button">
                 <span class="channel-icon">🔊</span>
                 <span>Lounge</span>
                 <span class="voice-connection-dot"></span>
             </button>
 
-            <button
-                class="channel voice"
-                data-channel="Gaming"
-                data-type="voice"
-                type="button"
-            >
+            <button class="channel voice"
+                    data-channel="Gaming"
+                    data-type="voice"
+                    type="button">
                 <span class="channel-icon">🔊</span>
                 <span>Gaming</span>
                 <span class="voice-connection-dot"></span>
@@ -1083,19 +1054,14 @@
             <div class="user-info">
                 <div class="username">Barney</div>
 
-                <div
-                    class="status-text"
-                    id="userStatus"
-                >
+                <div class="status-text" id="userStatus">
                     Online
                 </div>
             </div>
 
-            <button
-                class="composer-button"
-                title="Settings"
-                type="button"
-            >
+            <button class="composer-button"
+                    title="Settings"
+                    type="button">
                 ⚙
             </button>
 
@@ -1107,17 +1073,9 @@
 
         <header class="chat-header">
 
-            <span
-                class="chat-header-icon"
-                id="channelIcon"
-            >
-                #
-            </span>
+            <span class="chat-header-icon" id="channelIcon">#</span>
 
-            <span
-                class="chat-header-name"
-                id="channelName"
-            >
+            <span class="chat-header-name" id="channelName">
                 general
             </span>
 
@@ -1125,53 +1083,40 @@
                 Krynet Community
             </span>
 
-            <div
-                class="call-controls"
-                id="callControls"
-            >
+            <div class="call-controls" id="callControls">
 
-                <button
-                    class="call-button"
-                    id="joinVoiceButton"
-                    type="button"
-                    title="Join voice channel"
-                >
+                <button class="call-button"
+                        id="joinVoiceButton"
+                        type="button"
+                        title="Join voice channel">
                     🎙
                 </button>
 
-                <button
-                    class="call-button vc-control"
-                    id="muteButton"
-                    type="button"
-                    title="Mute microphone"
-                >
+                <button class="call-button vc-control"
+                        id="muteButton"
+                        type="button"
+                        title="Mute microphone">
                     🎤
                 </button>
 
-                <button
-                    class="call-button vc-control"
-                    id="cameraButton"
-                    type="button"
-                    title="Camera"
-                >
+                <button class="call-button vc-control"
+                        id="cameraButton"
+                        type="button"
+                        title="Camera">
                     📷
                 </button>
 
-                <button
-                    class="call-button vc-control"
-                    id="screenButton"
-                    type="button"
-                    title="Share screen"
-                >
+                <button class="call-button vc-control"
+                        id="screenButton"
+                        type="button"
+                        title="Share screen">
                     🖥
                 </button>
 
-                <button
-                    class="call-button vc-control leave"
-                    id="leaveVoiceButton"
-                    type="button"
-                    title="Leave voice channel"
-                >
+                <button class="call-button vc-control leave"
+                        id="leaveVoiceButton"
+                        type="button"
+                        title="Leave voice channel">
                     📞
                 </button>
 
@@ -1179,11 +1124,9 @@
 
         </header>
 
-        <section
-            class="messages"
-            id="messages"
-            aria-live="polite"
-        >
+        <section class="messages"
+                 id="messages"
+                 aria-live="polite">
 
             <div class="welcome">
 
@@ -1193,16 +1136,13 @@
 
                 <div class="welcome-description">
                     This is the beginning of this channel.
-                    Select text in a message and right-click it
-                    to search with KrySearch.
+                    Write Markdown in messages to test the Krynet renderer.
                 </div>
 
             </div>
 
-            <article
-                class="message"
-                data-message-id="welcome-1"
-            >
+            <article class="message"
+                     data-message-id="welcome-1">
 
                 <div class="message-avatar">
                     K
@@ -1211,22 +1151,15 @@
                 <div class="message-content">
 
                     <div class="message-author-row">
-
-                        <span class="message-author">
-                            Krynet
-                        </span>
+                        <span class="message-author">Krynet</span>
 
                         <span class="message-time">
                             Today at 12:00 PM
                         </span>
-
                     </div>
 
-                    <div
-                        class="message-text kr-markdown"
-                        data-markdown="true"
-                    >
-                        Welcome to the **Krynet Community**.
+                    <div class="message-text">
+                        Welcome to the Krynet Community.
                     </div>
 
                     <div class="kr-message-reactions"></div>
@@ -1235,21 +1168,17 @@
 
                 <div class="message-actions">
 
-                    <button
-                        class="message-action"
-                        data-action="react"
-                        title="Add Reaction"
-                        type="button"
-                    >
+                    <button class="message-action"
+                            data-action="react"
+                            title="Add Reaction"
+                            type="button">
                         😊
                     </button>
 
-                    <button
-                        class="message-action"
-                        data-action="reply"
-                        title="Reply"
-                        type="button"
-                    >
+                    <button class="message-action"
+                            data-action="reply"
+                            title="Reply"
+                            type="button">
                         ↩
                     </button>
 
@@ -1261,24 +1190,18 @@
 
         <div class="composer-wrap">
 
-            <div
-                class="attachment-preview"
-                id="attachmentPreview"
-            >
+            <div class="attachment-preview"
+                 id="attachmentPreview">
 
                 <div id="attachmentContent"></div>
 
-                <div
-                    class="attachment-name"
-                    id="attachmentName"
-                ></div>
+                <div class="attachment-name"
+                     id="attachmentName"></div>
 
-                <button
-                    class="attachment-remove"
-                    id="removeAttachment"
-                    type="button"
-                    title="Remove attachment"
-                >
+                <button class="attachment-remove"
+                        id="removeAttachment"
+                        type="button"
+                        title="Remove attachment">
                     ×
                 </button>
 
@@ -1286,35 +1209,27 @@
 
             <div class="composer">
 
-                <button
-                    class="composer-button"
-                    id="uploadButton"
-                    type="button"
-                    title="Upload a file"
-                >
+                <button class="composer-button"
+                        id="uploadButton"
+                        type="button"
+                        title="Upload a file">
                     +
                 </button>
 
-                <input
-                    id="fileInput"
-                    type="file"
-                    accept="image/*,video/*,audio/*,.avif,.heif,.heic,.aac,.m4a,.mp4,.pdf,.txt,.md,.markdown,.json,.js,.jsx,.ts,.tsx,.html,.htm,.css,.scss,.sass,.less,.xml,.csv,.log,.yaml,.yml,.toml,.ini,.conf,.sh,.bash,.py,.java,.c,.cpp,.h,.hpp,.rs,.go,.php,.rb,.swift,.kt,.sql"
-                >
+                <input id="fileInput"
+                       type="file"
+                       accept="image/*,video/*,audio/*,.avif,.heif,.heic,.aac,.m4a,.mp4,.pdf,.txt,.md,.markdown,.json,.js,.jsx,.ts,.tsx,.html,.htm,.css,.scss,.sass,.less,.xml,.csv,.log,.yaml,.yml,.toml,.ini,.conf,.sh,.bash,.py,.java,.c,.cpp,.h,.hpp,.rs,.go,.php,.rb,.swift,.kt,.sql">
 
-                <textarea
-                    id="messageInput"
-                    class="composer-input"
-                    rows="1"
-                    placeholder="Message #general"
-                    autocomplete="off"
-                ></textarea>
+                <textarea id="messageInput"
+                          class="composer-input"
+                          rows="1"
+                          placeholder="Message #general"
+                          autocomplete="off"></textarea>
 
-                <button
-                    class="send-button"
-                    id="sendButton"
-                    type="button"
-                    title="Send"
-                >
+                <button class="send-button"
+                        id="sendButton"
+                        type="button"
+                        title="Send">
                     ➤
                 </button>
 
@@ -1326,10 +1241,7 @@
 
 </div>
 
-<div
-    class="call-panel"
-    id="callPanel"
->
+<div class="call-panel" id="callPanel">
 
     <div class="call-panel-header">
 
@@ -1337,33 +1249,30 @@
             Voice Channel
         </span>
 
-        <button
-            class="call-close"
-            id="callClose"
-            type="button"
-            title="Close"
-        >
+        <button class="call-close"
+                id="callClose"
+                type="button"
+                title="Close">
             ×
         </button>
 
     </div>
 
-    <video
-        class="call-video"
-        id="callVideo"
-        autoplay
-        muted
-        playsinline
-    ></video>
+    <video class="call-video"
+           id="callVideo"
+           autoplay
+           muted
+           playsinline></video>
 
-    <div
-        class="call-status"
-        id="callStatus"
-    >
+    <div class="call-status"
+         id="callStatus">
         Ready
     </div>
 
 </div>
+
+
+<!-- EXISTING KRYNET SCRIPTS -->
 
 <script src="./js/anonymous-upload.js"></script>
 <script src="./js/youtubeAdblock.js"></script>
@@ -1375,188 +1284,32 @@
 <script src="./js/clearURLS.js"></script>
 <script src="./js/copyFileContents.js"></script>
 
+
+<!-- EVERYTHING THAT EXPORTS MODULES IS IMPORTED HERE -->
+
 <script type="module">
 
-    import * as MarkdownModule
-        from "./krynet-markdown.js";
+    import { Embed } from "./js/embed.js";
+    import { Reactions } from "./js/reactions.js";
+    import { KrySearch } from "./js/krysearch.js";
 
-    import { Embed }
-        from "./js/embed.js";
-
-    import { Reactions }
-        from "./js/reactions.js";
-
-    import { KrySearch }
-        from "./js/krysearch.js";
+    /*
+     * IMPORTANT:
+     *
+     * Your previous HTML loaded krynet-markdown.js separately,
+     * but never used its renderer.
+     *
+     * It also attempted:
+     *
+     *     ./krynet-markdown.js
+     *
+     * The actual file should be in ./js/ if that is where your
+     * existing Krynet files live.
+     */
+    import { KrynetMarkdown } from "./js/krynet-markdown.js";
 
 
     "use strict";
-
-
-    /* ========================================================
-       MARKDOWN
-    ======================================================== */
-
-    const KrynetMarkdown =
-        MarkdownModule.KrynetMarkdown ||
-        MarkdownModule.default;
-
-
-    function renderMarkdown(
-        element,
-        text
-    ) {
-        if (
-            !KrynetMarkdown
-        ) {
-            console.error(
-                "[KrynetMarkdown] Module was not exported."
-            );
-
-            element.textContent =
-                text;
-
-            return;
-        }
-
-
-        /*
-         * Reuse the existing Krynet Markdown
-         * implementation instead of creating another
-         * Markdown parser here.
-         */
-
-        try {
-
-            let html = null;
-
-
-            if (
-                typeof KrynetMarkdown.render ===
-                "function"
-            ) {
-                html =
-                    KrynetMarkdown.render(
-                        text
-                    );
-            }
-
-
-            else if (
-                typeof KrynetMarkdown.parse ===
-                "function"
-            ) {
-                html =
-                    KrynetMarkdown.parse(
-                        text
-                    );
-            }
-
-
-            else if (
-                typeof KrynetMarkdown.markdown ===
-                "function"
-            ) {
-                html =
-                    KrynetMarkdown.markdown(
-                        text
-                    );
-            }
-
-
-            if (
-                typeof html === "string"
-            ) {
-                element.innerHTML =
-                    html;
-
-                element.classList.add(
-                    "kr-markdown"
-                );
-
-                return;
-            }
-
-
-            /*
-             * Some versions of KrynetMarkdown
-             * render directly into an element.
-             */
-
-            if (
-                typeof KrynetMarkdown.renderInto ===
-                "function"
-            ) {
-                KrynetMarkdown.renderInto(
-                    element,
-                    text
-                );
-
-                element.classList.add(
-                    "kr-markdown"
-                );
-
-                return;
-            }
-
-
-            if (
-                typeof KrynetMarkdown.renderMessage ===
-                "function"
-            ) {
-                KrynetMarkdown.renderMessage(
-                    element,
-                    text
-                );
-
-                element.classList.add(
-                    "kr-markdown"
-                );
-
-                return;
-            }
-
-
-            console.warn(
-                "[KrynetMarkdown] No render method found.",
-                Object.keys(MarkdownModule)
-            );
-
-            element.textContent =
-                text;
-
-        } catch (error) {
-
-            console.error(
-                "[KrynetMarkdown] Failed to render Markdown:",
-                error
-            );
-
-            element.textContent =
-                text;
-        }
-    }
-
-
-    function renderExistingMarkdown() {
-
-        document
-            .querySelectorAll(
-                "[data-markdown='true']"
-            )
-            .forEach(element => {
-
-                const text =
-                    element.textContent || "";
-
-                renderMarkdown(
-                    element,
-                    text
-                );
-
-            });
-
-    }
 
 
     /* ========================================================
@@ -1649,7 +1402,6 @@
 
     let webcamSession = null;
     let screenSession = null;
-
     let voiceChat = null;
 
     let currentVoiceChannel = null;
@@ -1675,7 +1427,6 @@
     ======================================================== */
 
     function getTime() {
-
         return new Date().toLocaleTimeString(
             [],
             {
@@ -1683,33 +1434,26 @@
                 minute: "2-digit"
             }
         );
-
     }
 
 
     function getInitial(name) {
-
         return (
             name.trim().charAt(0).toUpperCase() ||
             "?"
         );
-
     }
 
 
     function isURLOnly(text) {
-
-        const value =
-            text.trim();
+        const value = text.trim();
 
         if (!value) {
             return false;
         }
 
         try {
-
-            const url =
-                new URL(value);
+            const url = new URL(value);
 
             return (
                 url.protocol === "http:" ||
@@ -1717,20 +1461,14 @@
             );
 
         } catch {
-
             return false;
-
         }
-
     }
 
 
     function isYouTubeURL(value) {
-
         try {
-
-            const url =
-                new URL(value);
+            const url = new URL(value);
 
             const host =
                 url.hostname
@@ -1744,20 +1482,14 @@
             );
 
         } catch {
-
             return false;
-
         }
-
     }
 
 
     function getYouTubeVideoId(value) {
-
         try {
-
-            const url =
-                new URL(value);
+            const url = new URL(value);
 
             const host =
                 url.hostname
@@ -1765,72 +1497,50 @@
                     .replace(/^www\./, "");
 
             if (host === "youtu.be") {
-
                 return (
                     url.pathname
                         .split("/")
                         .filter(Boolean)[0] ||
                     null
                 );
-
             }
 
             if (
                 host === "youtube.com" ||
                 host === "youtube-nocookie.com"
             ) {
-
-                if (
-                    url.pathname === "/watch"
-                ) {
-
-                    return url.searchParams.get(
-                        "v"
-                    );
-
+                if (url.pathname === "/watch") {
+                    return url.searchParams.get("v");
                 }
 
-                if (
-                    url.pathname.startsWith("/shorts/")
-                ) {
-
+                if (url.pathname.startsWith("/shorts/")) {
                     return (
                         url.pathname
                             .split("/")
                             .filter(Boolean)[1] ||
                         null
                     );
-
                 }
 
-                if (
-                    url.pathname.startsWith("/embed/")
-                ) {
-
+                if (url.pathname.startsWith("/embed/")) {
                     return (
                         url.pathname
                             .split("/")
                             .filter(Boolean)[1] ||
                         null
                     );
-
                 }
-
             }
 
             return null;
 
         } catch {
-
             return null;
-
         }
-
     }
 
 
     function createYouTubeEmbed(url) {
-
         const videoId =
             getYouTubeVideoId(url);
 
@@ -1874,9 +1584,7 @@
         iframe.allowFullscreen =
             true;
 
-        body.appendChild(
-            iframe
-        );
+        body.appendChild(iframe);
 
         wrapper.append(
             bar,
@@ -1884,38 +1592,83 @@
         );
 
         return wrapper;
-
     }
 
 
     function removeWelcome() {
-
         messages
             .querySelector(".welcome")
             ?.remove();
-
     }
 
 
     function isVoiceChannel(channel) {
-
         return (
             channel === "Lounge" ||
             channel === "Gaming"
         );
-
     }
 
 
     function getSelectedChannelType() {
-
         const active =
-            document.querySelector(
-                ".channel.active"
-            );
+            document.querySelector(".channel.active");
 
         return active?.dataset.type || "text";
+    }
 
+
+    /* ========================================================
+       MARKDOWN
+    ======================================================== */
+
+    function renderMarkdown(element, text) {
+
+        /*
+         * This is the important part.
+         *
+         * We reuse your existing KrynetMarkdown module.
+         * renderInto() receives the DOM element and Markdown.
+         */
+
+        if (
+            KrynetMarkdown &&
+            typeof KrynetMarkdown.renderInto ===
+                "function"
+        ) {
+            KrynetMarkdown.renderInto(
+                element,
+                text
+            );
+
+            return;
+        }
+
+
+        /*
+         * Fallback for older versions of the module
+         * that only expose render().
+         */
+
+        if (
+            KrynetMarkdown &&
+            typeof KrynetMarkdown.render ===
+                "function"
+        ) {
+            element.innerHTML =
+                KrynetMarkdown.render(text);
+
+            return;
+        }
+
+
+        /*
+         * This should never be reached if your existing
+         * krynet-markdown.js is loaded correctly.
+         */
+
+        element.textContent =
+            text;
     }
 
 
@@ -1924,7 +1677,6 @@
     ======================================================== */
 
     function updateVoiceControls() {
-
         const type =
             getSelectedChannelType();
 
@@ -1942,7 +1694,6 @@
         );
 
         if (voiceJoined) {
-
             channelIcon.textContent =
                 "🔊";
 
@@ -1954,16 +1705,13 @@
             );
 
         } else {
-
             userStatus.textContent =
                 "Online";
 
             userStatus.classList.remove(
                 "in-vc"
             );
-
         }
-
     }
 
 
@@ -1971,7 +1719,6 @@
         channel,
         connected
     ) {
-
         document
             .querySelectorAll(".channel.voice")
             .forEach(element => {
@@ -1983,7 +1730,6 @@
                 );
 
             });
-
     }
 
 
@@ -1999,22 +1745,18 @@
             !VOICE_USER_ID ||
             !VOICE_SERVER_PUBLIC_KEY
         ) {
-
             throw new Error(
                 "Voice chat configuration is missing"
             );
-
         }
 
         if (
             typeof window.VoiceChatApex !==
             "function"
         ) {
-
             throw new Error(
                 "voicechat.js did not expose VoiceChatApex"
             );
-
         }
 
         const instance =
@@ -2031,7 +1773,6 @@
         await instance.init();
 
         return instance;
-
     }
 
 
@@ -2050,7 +1791,6 @@
             }
 
             await leaveVoiceChannel();
-
         }
 
         showCallPanel(
@@ -2130,9 +1870,7 @@
 
             joinVoiceButton.disabled =
                 false;
-
         }
-
     }
 
 
@@ -2148,28 +1886,17 @@
             null;
 
         try {
-
             await voiceChat?.stop();
-
-        } catch (error) {
-
-            console.warn(
-                "[Krynet] Voice cleanup failed:",
-                error
-            );
-
-        }
+        } catch {}
 
         voiceChat =
             null;
 
         if (previousChannel) {
-
             markVoiceChannelConnected(
                 previousChannel,
                 false
             );
-
         }
 
         await stopWebcam();
@@ -2186,9 +1913,7 @@
             "🎤";
 
         updateVoiceControls();
-
         hideCallPanel();
-
     }
 
 
@@ -2217,24 +1942,12 @@
                 typeof voiceChat?.setMuted ===
                 "function"
             ) {
-
                 try {
-
                     voiceChat.setMuted(
                         microphoneMuted
                     );
-
-                } catch (error) {
-
-                    console.warn(
-                        "[Krynet] Failed to update microphone:",
-                        error
-                    );
-
-                }
-
+                } catch {}
             }
-
         }
     );
 
@@ -2251,7 +1964,6 @@
             }
 
             await joinVoiceChannel(channel);
-
         }
     );
 
@@ -2259,15 +1971,13 @@
     leaveVoiceButton.addEventListener(
         "click",
         async () => {
-
             await leaveVoiceChannel();
-
         }
     );
 
 
     /* ========================================================
-       LOCAL FILE EMBED
+       LOCAL FILE EMBEDS
     ======================================================== */
 
     function createLocalFileEmbed(
@@ -2284,9 +1994,7 @@
         wrapper.className =
             "kr-embed";
 
-        if (
-            file.type.startsWith("image/")
-        ) {
+        if (file.type.startsWith("image/")) {
 
             const image =
                 document.createElement("img");
@@ -2300,17 +2008,12 @@
             image.loading =
                 "lazy";
 
-            wrapper.appendChild(
-                image
-            );
+            wrapper.appendChild(image);
 
             return wrapper;
-
         }
 
-        if (
-            file.type.startsWith("video/")
-        ) {
+        if (file.type.startsWith("video/")) {
 
             const video =
                 document.createElement("video");
@@ -2324,17 +2027,12 @@
             video.preload =
                 "metadata";
 
-            wrapper.appendChild(
-                video
-            );
+            wrapper.appendChild(video);
 
             return wrapper;
-
         }
 
-        if (
-            file.type.startsWith("audio/")
-        ) {
+        if (file.type.startsWith("audio/")) {
 
             const audio =
                 document.createElement("audio");
@@ -2348,12 +2046,9 @@
             audio.style.width =
                 "100%";
 
-            wrapper.appendChild(
-                audio
-            );
+            wrapper.appendChild(audio);
 
             return wrapper;
-
         }
 
         const card =
@@ -2407,15 +2102,11 @@
                     copyButton
                 );
             }
-
         }
 
-        wrapper.appendChild(
-            card
-        );
+        wrapper.appendChild(card);
 
         return wrapper;
-
     }
 
 
@@ -2445,11 +2136,9 @@
             isURLOnly(text);
 
         if (linkOnly) {
-
             article.classList.add(
                 "link-only"
             );
-
         }
 
         const avatar =
@@ -2498,26 +2187,20 @@
 
 
         /*
-         * THIS is the important part.
+         * Markdown container.
          *
-         * Before:
+         * THIS replaces:
          *
          *     textElement.textContent = text;
          *
-         * That makes Markdown impossible.
-         *
-         * Now the existing Krynet Markdown module
-         * receives the raw message and renders it.
+         * which was the reason raw Markdown was showing.
          */
 
         const textElement =
             document.createElement("div");
 
         textElement.className =
-            "message-text kr-markdown";
-
-        textElement.dataset.markdown =
-            "true";
+            "message-text";
 
         renderMarkdown(
             textElement,
@@ -2531,14 +2214,12 @@
 
 
         if (file) {
-
             content.appendChild(
                 createLocalFileEmbed(
                     file,
                     fileContent
                 )
             );
-
         }
 
 
@@ -2552,11 +2233,9 @@
                     );
 
                 if (youtube) {
-
                     content.appendChild(
                         youtube
                     );
-
                 }
 
             } else {
@@ -2568,9 +2247,7 @@
                     );
 
                 });
-
             }
-
         }
 
 
@@ -2658,7 +2335,6 @@
 
 
         return article;
-
     }
 
 
@@ -2684,12 +2360,10 @@
         if (
             window.ClearURLsCleanText
         ) {
-
             cleanedText =
                 window.ClearURLsCleanText(
                     text
                 );
-
         }
 
 
@@ -2708,7 +2382,6 @@
             "auto";
 
         clearAttachment();
-
     }
 
 
@@ -2742,19 +2415,9 @@
         ) {
 
             try {
-
                 selectedFileContent =
                     await file.text();
-
-            } catch (error) {
-
-                console.warn(
-                    "[KrynetCopyFile] Failed to read file:",
-                    error
-                );
-
-            }
-
+            } catch {}
         }
 
 
@@ -2776,7 +2439,6 @@
             );
 
             return;
-
         }
 
 
@@ -2796,9 +2458,7 @@
             attachmentContent.appendChild(
                 video
             );
-
         }
-
     }
 
 
@@ -2821,7 +2481,6 @@
         attachmentPreview.classList.remove(
             "visible"
         );
-
     }
 
 
@@ -2843,7 +2502,6 @@
         callPanel.classList.add(
             "visible"
         );
-
     }
 
 
@@ -2857,7 +2515,6 @@
 
         callVideo.srcObject =
             null;
-
     }
 
 
@@ -2872,9 +2529,7 @@
         }
 
         try {
-
             webcamSession.stop();
-
         } catch {}
 
         webcamSession =
@@ -2883,7 +2538,6 @@
         cameraButton.classList.remove(
             "active"
         );
-
     }
 
 
@@ -2902,7 +2556,6 @@
             }
 
             return;
-
         }
 
 
@@ -2917,7 +2570,6 @@
             );
 
             return;
-
         }
 
 
@@ -2942,7 +2594,6 @@
                 await callVideo
                     .play()
                     .catch(() => {});
-
             }
 
 
@@ -2966,9 +2617,7 @@
                 "[Krynet] Camera failed:",
                 error
             );
-
         }
-
     }
 
 
@@ -2989,9 +2638,7 @@
         }
 
         try {
-
             screenSession.stop();
-
         } catch {}
 
         screenSession =
@@ -3000,7 +2647,6 @@
         screenButton.classList.remove(
             "active"
         );
-
     }
 
 
@@ -3019,7 +2665,6 @@
             }
 
             return;
-
         }
 
 
@@ -3034,7 +2679,6 @@
             );
 
             return;
-
         }
 
 
@@ -3053,6 +2697,7 @@
                 `🔊 ${currentVoiceChannel}`,
                 "Starting screen capture..."
             );
+
 
             screenSession =
                 await window.startMonitorAdaptiveScreenshare(
@@ -3077,7 +2722,6 @@
                 await callVideo
                     .play()
                     .catch(() => {});
-
             }
 
 
@@ -3101,9 +2745,7 @@
                 "[Krynet] Screen share failed:",
                 error
             );
-
         }
-
     }
 
 
@@ -3129,11 +2771,9 @@
                 hideCallPanel();
 
                 return;
-
             }
 
             hideCallPanel();
-
         }
     );
 
@@ -3152,7 +2792,9 @@
 
     uploadButton.addEventListener(
         "click",
-        () => fileInput.click()
+        () => {
+            fileInput.click();
+        }
     );
 
 
@@ -3168,7 +2810,6 @@
             }
 
             void showAttachment(file);
-
         }
     );
 
@@ -3191,9 +2832,7 @@
                 event.preventDefault();
 
                 void sendMessage();
-
             }
-
         }
     );
 
@@ -3210,7 +2849,6 @@
                     messageInput.scrollHeight,
                     160
                 ) + "px";
-
         }
     );
 
@@ -3243,20 +2881,16 @@
                             name !== currentVoiceChannel
                         )
                     ) {
-
                         await leaveVoiceChannel();
-
                     }
 
 
                     document
                         .querySelectorAll(".channel")
                         .forEach(item => {
-
                             item.classList.remove(
                                 "active"
                             );
-
                         });
 
 
@@ -3268,22 +2902,17 @@
                     channelName.textContent =
                         name;
 
-
                     channelIcon.textContent =
                         type === "voice"
                             ? "🔊"
                             : "#";
 
-
                     messageInput.placeholder =
                         `Message #${name}`;
 
-
                     updateVoiceControls();
-
                 }
             );
-
         });
 
 
@@ -3306,20 +2935,12 @@
             try {
                 screenSession?.stop();
             } catch {}
-
         }
     );
 
 
     /* ========================================================
-       INITIAL MARKDOWN
-    ======================================================== */
-
-    renderExistingMarkdown();
-
-
-    /* ========================================================
-       INITIAL EMBEDS
+       INITIAL EMBEDS / REACTIONS
     ======================================================== */
 
     requestAnimationFrame(() => {
@@ -3361,14 +2982,10 @@
                                 node.querySelector?.(".message")
                             )
                         ) {
-
                             shouldScan =
                                 true;
-
                         }
-
                     }
-
                 }
 
 
@@ -3377,14 +2994,6 @@
                 }
 
 
-                /*
-                 * Markdown has already been rendered when
-                 * addMessage() creates the message.
-                 *
-                 * This observer is still responsible for
-                 * embeds and reactions.
-                 */
-
                 Embed.scanMessages(
                     ".message"
                 );
@@ -3392,7 +3001,6 @@
                 Reactions.scan(
                     messages
                 );
-
             }
         );
 
@@ -3412,7 +3020,36 @@
 
     updateVoiceControls();
 
+
+    /* ========================================================
+       MARKDOWN TEST MESSAGE
+       
+       Remove this block after confirming Markdown works.
+    ======================================================== */
+
+    addMessage({
+        author: "Krynet",
+        text:
+`# Markdown test
+
+This is **bold**, *italic*, ~~strikethrough~~, and \`inline code\`.
+
+> This is a blockquote.
+
+- Bullet one
+- Bullet two
+- Bullet three
+
+\`\`\`js
+const hello = "Krynet";
+console.log(hello);
+\`\`\`
+
+[Markdown link](https://example.com)`
+    });
+
 </script>
 
 </body>
 </html>
+```
