@@ -2,8 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="color-scheme" content="dark">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <meta
+        name="color-scheme"
+        content="dark"
+    >
 
     <title>Krynet Community</title>
 
@@ -30,7 +38,7 @@
                 sans-serif;
 
             background: #202225;
-            color: #fff;
+            color: #ffffff;
             overflow: hidden;
         }
 
@@ -43,6 +51,10 @@
         button {
             border: 0;
         }
+
+        /* =====================================================
+           APP
+        ===================================================== */
 
         .app {
             width: 100%;
@@ -270,10 +282,6 @@
             font-size: 22px;
         }
 
-        .chat-header-icon.voice {
-            font-size: 17px;
-        }
-
         .chat-header-name {
             font-weight: 700;
         }
@@ -286,7 +294,7 @@
         }
 
         /* =====================================================
-           VOICE CONTROLS
+           VC CONTROLS
         ===================================================== */
 
         .call-controls {
@@ -414,7 +422,7 @@
         }
 
         /* =====================================================
-           FILES
+           FILE COPY
         ===================================================== */
 
         .kr-file-card {
@@ -450,6 +458,9 @@
             background: #404249;
             color: #dbdee1;
             cursor: pointer;
+            transition:
+                background .15s,
+                opacity .15s;
         }
 
         .kr-copy-btn:hover:not(:disabled) {
@@ -459,6 +470,27 @@
 
         .kr-copy-btn:disabled {
             cursor: not-allowed;
+        }
+
+        .kr-toast {
+            position: fixed;
+            left: 50%;
+            bottom: 28px;
+            transform: translateX(-50%);
+            z-index: 10000;
+            padding: 10px 14px;
+            border-radius: 7px;
+            background: #111214;
+            color: #fff;
+            font-size: 13px;
+            box-shadow: 0 8px 25px rgba(0,0,0,.4);
+            opacity: 1;
+            transition: opacity .3s ease;
+            pointer-events: none;
+        }
+
+        .kr-toast.fade {
+            opacity: 0;
         }
 
         /* =====================================================
@@ -492,6 +524,10 @@
             border-radius: 8px;
             background: #000;
         }
+
+        /* =====================================================
+           YOUTUBE
+        ===================================================== */
 
         .youtube-embed {
             display: flex;
@@ -786,6 +822,10 @@
             color: #949ba4;
             font-size: 12px;
         }
+
+        /* =====================================================
+           MOBILE
+        ===================================================== */
 
         @media (max-width: 800px) {
             .channel-sidebar {
@@ -1101,9 +1141,12 @@
 
                 <div class="welcome-description">
                     This is the beginning of this channel.
+                    Select text in a message and right-click it
+                    to search with KrySearch.
                 </div>
 
             </div>
+
 
             <article
                 class="message"
@@ -1250,6 +1293,7 @@
             class="call-close"
             id="callClose"
             type="button"
+            title="Close"
         >
             ×
         </button>
@@ -1275,17 +1319,10 @@
 
 
 <!-- =========================================================
-     EXTERNAL SCRIPTS
+     CLASSIC SCRIPTS
 ========================================================= -->
 
 <script src="./js/anonymous-upload.js"></script>
-<script src="./js/krysearch.js"></script>
-
-<script
-    type="module"
-    src="./js/openInApp.js"
-></script>
-
 <script src="./js/youtubeAdblock.js"></script>
 <script src="./js/webcam.js"></script>
 <script src="./js/screenshare.js"></script>
@@ -1296,15 +1333,26 @@
 
 
 <!-- =========================================================
-     CHAT APPLICATION
+     MODULE APPLICATION
+     
+     krysearch.js MUST be imported here because it exports
+     initKrySearch and KrySearch.
 ========================================================= -->
 
 <script type="module">
 
     import { Embed } from "./js/embed.js";
     import { Reactions } from "./js/reactions.js";
+    import { KrySearch } from "./js/krysearch.js";
 
     "use strict";
+
+
+    /* ========================================================
+       KRYSEARCH
+    ======================================================== */
+
+    KrySearch.init();
 
 
     /* ========================================================
@@ -1392,15 +1440,11 @@
     let screenSession = null;
 
     let voiceChat = null;
-    let currentVoiceChannel = null;
 
+    let currentVoiceChannel = null;
     let voiceJoined = false;
     let microphoneMuted = false;
 
-
-    /* ========================================================
-       VOICE CONFIG
-    ======================================================== */
 
     const VOICE_SERVER_URL =
         window.KRYNET_VOICE_SERVER_URL || "";
@@ -1437,19 +1481,22 @@
     }
 
     function isURLOnly(text) {
-        const value = text.trim();
+        const value =
+            text.trim();
 
         if (!value) {
             return false;
         }
 
         try {
-            const url = new URL(value);
+            const url =
+                new URL(value);
 
             return (
                 url.protocol === "http:" ||
                 url.protocol === "https:"
             );
+
         } catch {
             return false;
         }
@@ -1457,7 +1504,8 @@
 
     function isYouTubeURL(value) {
         try {
-            const url = new URL(value);
+            const url =
+                new URL(value);
 
             const host =
                 url.hostname
@@ -1469,6 +1517,7 @@
                 host === "youtu.be" ||
                 host === "youtube-nocookie.com"
             );
+
         } catch {
             return false;
         }
@@ -1476,7 +1525,8 @@
 
     function getYouTubeVideoId(value) {
         try {
-            const url = new URL(value);
+            const url =
+                new URL(value);
 
             const host =
                 url.hostname
@@ -1500,7 +1550,9 @@
                     return url.searchParams.get("v");
                 }
 
-                if (url.pathname.startsWith("/shorts/")) {
+                if (
+                    url.pathname.startsWith("/shorts/")
+                ) {
                     return (
                         url.pathname
                             .split("/")
@@ -1509,7 +1561,9 @@
                     );
                 }
 
-                if (url.pathname.startsWith("/embed/")) {
+                if (
+                    url.pathname.startsWith("/embed/")
+                ) {
                     return (
                         url.pathname
                             .split("/")
@@ -1520,6 +1574,7 @@
             }
 
             return null;
+
         } catch {
             return null;
         }
@@ -1569,7 +1624,9 @@
         iframe.allowFullscreen =
             true;
 
-        body.appendChild(iframe);
+        body.appendChild(
+            iframe
+        );
 
         wrapper.append(
             bar,
@@ -1603,29 +1660,6 @@
 
 
     /* ========================================================
-       CALL PANEL
-    ======================================================== */
-
-    function showCallPanel(title, status) {
-        callTitle.textContent = title;
-        callStatus.textContent = status;
-
-        callPanel.classList.add(
-            "visible"
-        );
-    }
-
-    function hideCallPanel() {
-        callPanel.classList.remove(
-            "visible"
-        );
-
-        callVideo.pause();
-        callVideo.srcObject = null;
-    }
-
-
-    /* ========================================================
        VOICE UI
     ======================================================== */
 
@@ -1647,7 +1681,8 @@
         );
 
         if (voiceJoined) {
-            channelIcon.textContent = "🔊";
+            channelIcon.textContent =
+                "🔊";
 
             userStatus.textContent =
                 `Connected to ${currentVoiceChannel}`;
@@ -1656,7 +1691,8 @@
                 "in-vc"
             );
         } else {
-            userStatus.textContent = "Online";
+            userStatus.textContent =
+                "Online";
 
             userStatus.classList.remove(
                 "in-vc"
@@ -1750,10 +1786,15 @@
             currentVoiceChannel =
                 channel;
 
-            voiceJoined = true;
-            microphoneMuted = false;
+            voiceJoined =
+                true;
 
-            muteButton.textContent = "🎤";
+            microphoneMuted =
+                false;
+
+            muteButton.textContent =
+                "🎤";
+
             muteButton.classList.remove(
                 "active"
             );
@@ -1780,12 +1821,17 @@
             try {
                 await voiceChat?.stop();
             } catch {
-                // Cleanup only.
+                // Ignore cleanup errors.
             }
 
-            voiceChat = null;
-            currentVoiceChannel = null;
-            voiceJoined = false;
+            voiceChat =
+                null;
+
+            currentVoiceChannel =
+                null;
+
+            voiceJoined =
+                false;
 
             markVoiceChannelConnected(
                 channel,
@@ -1799,7 +1845,8 @@
                 "Could not connect to voice";
 
         } finally {
-            joinVoiceButton.disabled = false;
+            joinVoiceButton.disabled =
+                false;
         }
     }
 
@@ -1807,8 +1854,11 @@
         const previousChannel =
             currentVoiceChannel;
 
-        voiceJoined = false;
-        currentVoiceChannel = null;
+        voiceJoined =
+            false;
+
+        currentVoiceChannel =
+            null;
 
         try {
             await voiceChat?.stop();
@@ -1819,7 +1869,8 @@
             );
         }
 
-        voiceChat = null;
+        voiceChat =
+            null;
 
         if (previousChannel) {
             markVoiceChannelConnected(
@@ -1831,13 +1882,15 @@
         await stopWebcam();
         await stopScreenshare();
 
-        microphoneMuted = false;
+        microphoneMuted =
+            false;
 
         muteButton.classList.remove(
             "active"
         );
 
-        muteButton.textContent = "🎤";
+        muteButton.textContent =
+            "🎤";
 
         updateVoiceControls();
         hideCallPanel();
@@ -1850,62 +1903,45 @@
 
     muteButton.addEventListener(
         "click",
-        async () => {
-            if (!voiceJoined || !voiceChat) {
+        () => {
+            if (!voiceJoined) {
                 return;
             }
 
-            const nextMuted =
+            microphoneMuted =
                 !microphoneMuted;
 
-            try {
-                if (
-                    typeof voiceChat.setMuted ===
-                    "function"
-                ) {
-                    await voiceChat.setMuted(
-                        nextMuted
+            muteButton.classList.toggle(
+                "active",
+                microphoneMuted
+            );
+
+            muteButton.textContent =
+                microphoneMuted
+                    ? "🔇"
+                    : "🎤";
+
+            if (
+                typeof voiceChat?.setMuted ===
+                "function"
+            ) {
+                try {
+                    voiceChat.setMuted(
+                        microphoneMuted
                     );
-                } else if (
-                    typeof voiceChat.toggleMute ===
-                    "function"
-                ) {
-                    await voiceChat.toggleMute();
-                } else if (
-                    voiceChat.microphone &&
-                    typeof voiceChat.microphone.setMuted ===
-                    "function"
-                ) {
-                    await voiceChat.microphone.setMuted(
-                        nextMuted
+                } catch (error) {
+                    console.warn(
+                        "[Krynet] Failed to update microphone:",
+                        error
                     );
                 }
-
-                microphoneMuted =
-                    nextMuted;
-
-                muteButton.classList.toggle(
-                    "active",
-                    microphoneMuted
-                );
-
-                muteButton.textContent =
-                    microphoneMuted
-                        ? "🔇"
-                        : "🎤";
-
-            } catch (error) {
-                console.error(
-                    "[Krynet] Mute failed:",
-                    error
-                );
             }
         }
     );
 
 
     /* ========================================================
-       JOIN VOICE
+       JOIN
     ======================================================== */
 
     joinVoiceButton.addEventListener(
@@ -1914,13 +1950,17 @@
             const channel =
                 channelName.textContent.trim();
 
+            if (!isVoiceChannel(channel)) {
+                return;
+            }
+
             await joinVoiceChannel(channel);
         }
     );
 
 
     /* ========================================================
-       LEAVE VOICE
+       LEAVE
     ======================================================== */
 
     leaveVoiceButton.addEventListener(
@@ -1948,41 +1988,68 @@
         wrapper.className =
             "kr-embed";
 
-        if (file.type.startsWith("image/")) {
+        if (
+            file.type.startsWith("image/")
+        ) {
             const image =
                 document.createElement("img");
 
-            image.src = url;
-            image.alt = file.name;
-            image.loading = "lazy";
+            image.src =
+                url;
 
-            wrapper.appendChild(image);
+            image.alt =
+                file.name;
+
+            image.loading =
+                "lazy";
+
+            wrapper.appendChild(
+                image
+            );
 
             return wrapper;
         }
 
-        if (file.type.startsWith("video/")) {
+        if (
+            file.type.startsWith("video/")
+        ) {
             const video =
                 document.createElement("video");
 
-            video.src = url;
-            video.controls = true;
-            video.preload = "metadata";
+            video.src =
+                url;
 
-            wrapper.appendChild(video);
+            video.controls =
+                true;
+
+            video.preload =
+                "metadata";
+
+            wrapper.appendChild(
+                video
+            );
 
             return wrapper;
         }
 
-        if (file.type.startsWith("audio/")) {
+        if (
+            file.type.startsWith("audio/")
+        ) {
             const audio =
                 document.createElement("audio");
 
-            audio.src = url;
-            audio.controls = true;
-            audio.style.width = "100%";
+            audio.src =
+                url;
 
-            wrapper.appendChild(audio);
+            audio.controls =
+                true;
+
+            audio.style.width =
+                "100%";
+
+            wrapper.appendChild(
+                audio
+            );
 
             return wrapper;
         }
@@ -1999,7 +2066,8 @@
         icon.className =
             "kr-file-icon";
 
-        icon.textContent = "📎";
+        icon.textContent =
+            "📎";
 
         const name =
             document.createElement("span");
@@ -2038,7 +2106,9 @@
             }
         }
 
-        wrapper.appendChild(card);
+        wrapper.appendChild(
+            card
+        );
 
         return wrapper;
     }
@@ -2184,10 +2254,17 @@
         reactButton.className =
             "message-action";
 
-        reactButton.type = "button";
-        reactButton.dataset.action = "react";
-        reactButton.title = "Add Reaction";
-        reactButton.textContent = "😊";
+        reactButton.type =
+            "button";
+
+        reactButton.dataset.action =
+            "react";
+
+        reactButton.title =
+            "Add Reaction";
+
+        reactButton.textContent =
+            "😊";
 
         const replyButton =
             document.createElement("button");
@@ -2195,10 +2272,17 @@
         replyButton.className =
             "message-action";
 
-        replyButton.type = "button";
-        replyButton.dataset.action = "reply";
-        replyButton.title = "Reply";
-        replyButton.textContent = "↩";
+        replyButton.type =
+            "button";
+
+        replyButton.dataset.action =
+            "reply";
+
+        replyButton.title =
+            "Reply";
+
+        replyButton.textContent =
+            "↩";
 
         actions.append(
             reactButton,
@@ -2211,9 +2295,13 @@
             actions
         );
 
-        messages.appendChild(article);
+        messages.appendChild(
+            article
+        );
 
-        new Reactions(reactions);
+        new Reactions(
+            reactions
+        );
 
         messages.scrollTop =
             messages.scrollHeight;
@@ -2223,18 +2311,22 @@
 
 
     /* ========================================================
-       SEND MESSAGE
+       SEND
     ======================================================== */
 
     async function sendMessage() {
         const text =
             messageInput.value.trim();
 
-        if (!text && !selectedFile) {
+        if (
+            !text &&
+            !selectedFile
+        ) {
             return;
         }
 
-        let cleanedText = text;
+        let cleanedText =
+            text;
 
         if (
             window.ClearURLsCleanText
@@ -2252,8 +2344,11 @@
             fileContent: selectedFileContent
         });
 
-        messageInput.value = "";
-        messageInput.style.height = "auto";
+        messageInput.value =
+            "";
+
+        messageInput.style.height =
+            "auto";
 
         clearAttachment();
     }
@@ -2264,8 +2359,11 @@
     ======================================================== */
 
     async function showAttachment(file) {
-        selectedFile = file;
-        selectedFileContent = null;
+        selectedFile =
+            file;
+
+        selectedFileContent =
+            null;
 
         attachmentPreview.classList.add(
             "visible"
@@ -2293,7 +2391,9 @@
             }
         }
 
-        if (file.type.startsWith("image/")) {
+        if (
+            file.type.startsWith("image/")
+        ) {
             const image =
                 document.createElement("img");
 
@@ -2310,14 +2410,17 @@
             return;
         }
 
-        if (file.type.startsWith("video/")) {
+        if (
+            file.type.startsWith("video/")
+        ) {
             const video =
                 document.createElement("video");
 
             video.src =
                 URL.createObjectURL(file);
 
-            video.muted = true;
+            video.muted =
+                true;
 
             attachmentContent.appendChild(
                 video
@@ -2326,17 +2429,54 @@
     }
 
     function clearAttachment() {
-        selectedFile = null;
-        selectedFileContent = null;
+        selectedFile =
+            null;
 
-        fileInput.value = "";
+        selectedFileContent =
+            null;
+
+        fileInput.value =
+            "";
 
         attachmentContent.replaceChildren();
-        attachmentName.textContent = "";
+
+        attachmentName.textContent =
+            "";
 
         attachmentPreview.classList.remove(
             "visible"
         );
+    }
+
+
+    /* ========================================================
+       CALL PANEL
+    ======================================================== */
+
+    function showCallPanel(
+        title,
+        status
+    ) {
+        callTitle.textContent =
+            title;
+
+        callStatus.textContent =
+            status;
+
+        callPanel.classList.add(
+            "visible"
+        );
+    }
+
+    function hideCallPanel() {
+        callPanel.classList.remove(
+            "visible"
+        );
+
+        callVideo.pause();
+
+        callVideo.srcObject =
+            null;
     }
 
 
@@ -2352,10 +2492,11 @@
         try {
             webcamSession.stop();
         } catch {
-            // Cleanup only.
+            // Ignore shutdown errors.
         }
 
-        webcamSession = null;
+        webcamSession =
+            null;
 
         cameraButton.classList.remove(
             "active"
@@ -2398,7 +2539,9 @@
             webcamSession =
                 await window.startWebcamStream();
 
-            if (webcamSession?.stream) {
+            if (
+                webcamSession?.stream
+            ) {
                 callVideo.srcObject =
                     webcamSession.stream;
 
@@ -2415,7 +2558,8 @@
                 "Camera active";
 
         } catch (error) {
-            webcamSession = null;
+            webcamSession =
+                null;
 
             callStatus.textContent =
                 error?.message ||
@@ -2446,10 +2590,11 @@
         try {
             screenSession.stop();
         } catch {
-            // Cleanup only.
+            // Ignore shutdown errors.
         }
 
-        screenSession = null;
+        screenSession =
+            null;
 
         screenButton.classList.remove(
             "active"
@@ -2509,7 +2654,9 @@
                     }
                 );
 
-            if (screenSession?.stream) {
+            if (
+                screenSession?.stream
+            ) {
                 callVideo.srcObject =
                     screenSession.stream;
 
@@ -2526,7 +2673,8 @@
                 "Screen sharing active";
 
         } catch (error) {
-            screenSession = null;
+            screenSession =
+                null;
 
             callStatus.textContent =
                 error?.message ||
@@ -2682,7 +2830,7 @@
 
                     messageInput.placeholder =
                         type === "voice"
-                            ? `Voice: ${name}`
+                            ? `Message #${name}`
                             : `Message #${name}`;
 
                     updateVoiceControls();
@@ -2701,15 +2849,21 @@
 
             try {
                 voiceChat?.stop();
-            } catch {}
+            } catch {
+                // Ignore unload cleanup errors.
+            }
 
             try {
                 webcamSession?.stop();
-            } catch {}
+            } catch {
+                // Ignore unload cleanup errors.
+            }
 
             try {
                 screenSession?.stop();
-            } catch {}
+            } catch {
+                // Ignore unload cleanup errors.
+            }
         }
     );
 
@@ -2739,7 +2893,8 @@
         new MutationObserver(
             mutations => {
 
-                let shouldScan = false;
+                let shouldScan =
+                    false;
 
                 for (
                     const mutation of mutations
@@ -2756,7 +2911,8 @@
                                 node.querySelector?.(".message")
                             )
                         ) {
-                            shouldScan = true;
+                            shouldScan =
+                                true;
                         }
                     }
                 }
@@ -2772,6 +2928,7 @@
                 Reactions.scan(
                     messages
                 );
+
             }
         );
 
