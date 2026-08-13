@@ -5,7 +5,7 @@ class KrynetBlurNSFW {
     static BLUR_CLASS = "kr-nsfw-blur";
 
     static MODEL_URL =
-        "https://unpkg.com/nsfwjs@4.2.1/dist/nsfwjs.min.js";
+        "https://unpkg.com/nsfwjs@4.2.1/dist/browser/nsfwjs.min.js";
 
     static MODEL_PATH =
         "https://unpkg.com/nsfwjs@4.2.1/example/nsfw_model/";
