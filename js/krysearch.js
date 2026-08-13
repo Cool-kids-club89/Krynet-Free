@@ -1,35 +1,43 @@
 (() => {
-    const BASE: string =
+    const BASE =
         "https://krynet-community.github.io/KrySearch/UI/index.html";
 
-    const DEFAULT_ENGINE: string = "default";
+    const DEFAULT_ENGINE = "default";
 
-    const params: URLSearchParams = new URLSearchParams(
+    const params = new URLSearchParams(
         window.location.search
     );
 
-    const url: string | null = params.get("url");
-    const q: string | null = params.get("q");
-    const engine: string =
+    const url = params.get("url");
+    const q = params.get("q");
+    const engine =
         params.get("engine") || DEFAULT_ENGINE;
 
     // Build redirect URL
-    let redirectUrl: string | null = null;
+    let redirectUrl = null;
 
     if (url) {
-        redirectUrl = `${BASE}?url=${encodeURIComponent(
-            url
-        )}&engine=${encodeURIComponent(engine)}`;
+        redirectUrl =
+            `${BASE}?url=${encodeURIComponent(
+                url
+            )}&engine=${encodeURIComponent(
+                engine
+            )}`;
     } else if (q) {
-        const isUrl = /^https?:\/\//i.test(q);
+        const isUrl =
+            /^https?:\/\//i.test(q);
 
         redirectUrl = isUrl
             ? `${BASE}?url=${encodeURIComponent(
                   q
-              )}&engine=${encodeURIComponent(engine)}`
+              )}&engine=${encodeURIComponent(
+                  engine
+              )}`
             : `${BASE}?q=${encodeURIComponent(
                   q
-              )}&engine=${encodeURIComponent(engine)}`;
+              )}&engine=${encodeURIComponent(
+                  engine
+              )}`;
     }
 
     // Only redirect if needed
@@ -37,6 +45,8 @@
         redirectUrl &&
         window.location.href !== redirectUrl
     ) {
-        window.location.replace(redirectUrl);
+        window.location.replace(
+            redirectUrl
+        );
     }
 })();
