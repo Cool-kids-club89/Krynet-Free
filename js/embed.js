@@ -5,26 +5,15 @@ import { Reactions } from "./reactions.js";
 --------------------------------------------------------- */
 
 function style(element, styles) {
-    Object.assign(
-        element.style,
-        styles
-    );
+    Object.assign(element.style, styles);
 }
 
 function createElement(tag) {
     return document.createElement(tag);
 }
 
-/*
- * Matches URLs while avoiding common trailing
- * punctuation from normal sentences.
- */
 const URL_REGEX =
     /https?:\/\/[^\s<>"']+?(?=[\s<>"']|$)/gi;
-
-/* ---------------------------------------------------------
-   CONSTANTS
---------------------------------------------------------- */
 
 const NOEMBED_API =
     "https://noembed.com/embed";
@@ -35,14 +24,16 @@ const MAX_MEDIA_WIDTH =
 const META_CACHE =
     new Map();
 
+const processedMessages =
+    new WeakSet();
+
 /* ---------------------------------------------------------
    URL HELPERS
 --------------------------------------------------------- */
 
 function normalizeURL(value) {
     try {
-        const url =
-            new URL(value);
+        const url = new URL(value);
 
         if (
             url.protocol !== "http:" &&
@@ -50,6 +41,15 @@ function normalizeURL(value) {
         ) {
             return null;
         }
+
+        /*
+         * Strip punctuation that commonly follows
+         * URLs in normal chat messages.
+         */
+        url.href = url.href.replace(
+            /[),.!?;:'"]+$/,
+            ""
+        );
 
         return url.href;
     } catch {
@@ -59,8 +59,7 @@ function normalizeURL(value) {
 
 function getFilename(url) {
     try {
-        const parsed =
-            new URL(url);
+        const parsed = new URL(url);
 
         const pathname =
             decodeURIComponent(
@@ -83,13 +82,133 @@ function getFilename(url) {
 }
 
 /* ---------------------------------------------------------
+   YOUTUBE
+--------------------------------------------------------- */
+
+function getYouTubeId(value) {
+    try {
+        const url =
+            new URL(value);
+
+        const host =
+            url.hostname.toLowerCase();
+
+        /*
+         * youtube.com/watch?v=...
+         */
+        if (
+            host === "youtube.com" ||
+            host === "www.youtube.com" ||
+            host.endsWith(".youtube.com")
+        ) {
+            const videoId =
+                url.searchParams.get("v");
+
+            if (videoId) {
+                return videoId;
+            }
+
+            /*
+             * /shorts/VIDEO_ID
+             */
+            if (
+                url.pathname.startsWith("/shorts/")
+            ) {
+                return url.pathname
+                    .split("/")[2]
+                    ?.split(/[?#]/)[0] || null;
+            }
+
+            /*
+             * /embed/VIDEO_ID
+             */
+            if (
+                url.pathname.startsWith("/embed/")
+            ) {
+                return url.pathname
+                    .split("/")[2]
+                    ?.split(/[?#]/)[0] || null;
+            }
+        }
+
+        /*
+         * youtu.be/VIDEO_ID
+         */
+        if (host === "youtu.be") {
+            return url.pathname
+                .split("/")
+                .filter(Boolean)[0] || null;
+        }
+
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+function createYouTubePlayer(url) {
+    const videoId =
+        getYouTubeId(url);
+
+    if (!videoId) {
+        return null;
+    }
+
+    const wrapper =
+        createElement("div");
+
+    style(wrapper, {
+        position: "relative",
+        width: "100%",
+        maxWidth: MAX_MEDIA_WIDTH,
+        aspectRatio: "16 / 9",
+        marginTop: "8px",
+        overflow: "hidden",
+        borderRadius: "6px",
+        background: "#000"
+    });
+
+    const iframe =
+        createElement("iframe");
+
+    iframe.src =
+        `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?rel=0`;
+
+    iframe.title =
+        "YouTube video";
+
+    iframe.loading =
+        "lazy";
+
+    iframe.allow =
+        "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+
+    iframe.allowFullscreen =
+        true;
+
+    iframe.referrerPolicy =
+        "strict-origin-when-cross-origin";
+
+    style(iframe, {
+        position: "absolute",
+        inset: "0",
+        width: "100%",
+        height: "100%",
+        border: "0"
+    });
+
+    wrapper.appendChild(
+        iframe
+    );
+
+    return wrapper;
+}
+
+/* ---------------------------------------------------------
    NETWORK
 --------------------------------------------------------- */
 
 async function getMime(url) {
-    /*
-     * GET with a Range request instead of HEAD.
-     */
     try {
         const response =
             await fetch(url, {
@@ -103,7 +222,7 @@ async function getMime(url) {
             response.headers.get(
                 "content-type"
             ) || ""
-        );
+        ).toLowerCase();
     } catch {
         return "";
     }
@@ -112,9 +231,7 @@ async function getMime(url) {
 async function getMeta(url) {
     try {
         const endpoint =
-            `${NOEMBED_API}?url=${encodeURIComponent(
-                url
-            )}`;
+            `${NOEMBED_API}?url=${encodeURIComponent(url)}`;
 
         const response =
             await fetch(endpoint);
@@ -172,14 +289,84 @@ async function getEmbedData(url) {
 
 function applyMediaStyle(element) {
     style(element, {
-        maxWidth:
-            MAX_MEDIA_WIDTH,
+        maxWidth: MAX_MEDIA_WIDTH,
         width: "100%",
         borderRadius: "6px",
-        marginTop: "6px",
+        marginTop: "8px",
         display: "block"
     });
 }
+
+function createImage(url, alt) {
+    const image =
+        createElement("img");
+
+    image.src = url;
+    image.alt = alt || "Embedded image";
+    image.loading = "lazy";
+    image.referrerPolicy = "no-referrer";
+
+    applyMediaStyle(
+        image
+    );
+
+    return image;
+}
+
+function createVideo(url) {
+    const video =
+        createElement("video");
+
+    video.src = url;
+    video.controls = true;
+    video.preload = "metadata";
+
+    applyMediaStyle(
+        video
+    );
+
+    return video;
+}
+
+function createAudio(url) {
+    const audio =
+        createElement("audio");
+
+    audio.src = url;
+    audio.controls = true;
+    audio.preload = "metadata";
+
+    style(audio, {
+        width: "100%",
+        marginTop: "8px"
+    });
+
+    return audio;
+}
+
+function createPDF(url) {
+    const frame =
+        createElement("iframe");
+
+    frame.src = url;
+    frame.loading = "lazy";
+    frame.title = "PDF document";
+    frame.referrerPolicy = "no-referrer";
+
+    style(frame, {
+        width: "100%",
+        height: "400px",
+        border: "0",
+        borderRadius: "6px",
+        marginTop: "8px"
+    });
+
+    return frame;
+}
+
+/* ---------------------------------------------------------
+   GENERIC MEDIA
+--------------------------------------------------------- */
 
 function createMedia(
     url,
@@ -187,116 +374,52 @@ function createMedia(
     meta
 ) {
     /*
-     * Never inject meta.html directly.
+     * YouTube gets a real player instead of
+     * just a thumbnail.
      */
+    const youtube =
+        createYouTubePlayer(url);
 
+    if (youtube) {
+        return youtube;
+    }
+
+    /*
+     * Prefer a thumbnail for websites that
+     * provide one through noembed.
+     */
     if (meta.thumbnail_url) {
-        const image =
-            createElement("img");
-
-        image.src =
-            meta.thumbnail_url;
-
-        image.alt =
-            meta.title ||
-            "Embedded media";
-
-        image.loading =
-            "lazy";
-
-        image.referrerPolicy =
-            "no-referrer";
-
-        applyMediaStyle(
-            image
+        return createImage(
+            meta.thumbnail_url,
+            meta.title || "Embedded media"
         );
-
-        return image;
     }
 
     if (
         mime.startsWith("image/")
     ) {
-        const image =
-            createElement("img");
-
-        image.src = url;
-
-        image.alt =
-            getFilename(url);
-
-        image.loading =
-            "lazy";
-
-        applyMediaStyle(
-            image
+        return createImage(
+            url,
+            getFilename(url)
         );
-
-        return image;
     }
 
     if (
         mime.startsWith("video/")
     ) {
-        const video =
-            createElement("video");
-
-        video.src = url;
-        video.controls = true;
-        video.preload =
-            "metadata";
-
-        applyMediaStyle(
-            video
-        );
-
-        return video;
+        return createVideo(url);
     }
 
     if (
         mime.startsWith("audio/")
     ) {
-        const audio =
-            createElement("audio");
-
-        audio.src = url;
-        audio.controls = true;
-        audio.preload =
-            "metadata";
-
-        style(audio, {
-            width: "100%",
-            marginTop: "6px"
-        });
-
-        return audio;
+        return createAudio(url);
     }
 
     if (
         mime === "application/pdf"
     ) {
-        const frame =
-            createElement("iframe");
-
-        frame.src = url;
-        frame.loading =
-            "lazy";
-
-        frame.title =
-            "PDF document";
-
-        frame.referrerPolicy =
-            "no-referrer";
-
-        style(frame, {
-            width: "100%",
-            height: "400px",
-            border: "none",
-            borderRadius: "6px",
-            marginTop: "6px"
-        });
-
-        return frame;
+        return createPDF(url);
     }
 
     /*
@@ -306,17 +429,42 @@ function createMedia(
         createElement("div");
 
     file.textContent =
-        getFilename(url);
+        `📎 ${getFilename(url)}`;
 
     style(file, {
-        background: "#3a3b3c",
-        padding: "8px",
+        background: "#202225",
+        padding: "10px",
         borderRadius: "6px",
-        marginTop: "6px",
-        fontSize: "13px"
+        marginTop: "8px",
+        fontSize: "13px",
+        color: "#dcddde"
     });
 
     return file;
+}
+
+/* ---------------------------------------------------------
+   WEBSITE EMBED
+--------------------------------------------------------- */
+
+function createWebsiteBody(
+    body,
+    url,
+    meta,
+    mime
+) {
+    const media =
+        createMedia(
+            url,
+            mime,
+            meta
+        );
+
+    if (media) {
+        body.appendChild(
+            media
+        );
+    }
 }
 
 /* ---------------------------------------------------------
@@ -337,38 +485,39 @@ async function buildEmbed(url) {
 
     style(card, {
         display: "flex",
-        background: "#2f3136",
-        borderRadius: "8px",
+        width: "100%",
         maxWidth: "480px",
-        marginTop: "6px",
+        boxSizing: "border-box",
+        background: "#2b2d31",
+        borderRadius: "8px",
+        marginTop: "8px",
         overflow: "hidden",
         fontFamily:
-            "gg sans, Arial, sans-serif"
+            "Inter, Arial, sans-serif"
     });
 
-    /* Accent bar */
-
+    /*
+     * Discord-style accent.
+     */
     const bar =
         createElement("div");
 
     style(bar, {
         width: "4px",
         flexShrink: "0",
-        background: "#5865F2"
+        background: "#5865f2"
     });
-
-    /* Body */
 
     const body =
         createElement("div");
 
     style(body, {
-        padding: "10px",
+        padding: "10px 12px",
         flex: "1",
         minWidth: "0",
+        boxSizing: "border-box",
         display: "flex",
-        flexDirection: "column",
-        gap: "4px"
+        flexDirection: "column"
     });
 
     card.append(
@@ -376,73 +525,9 @@ async function buildEmbed(url) {
         body
     );
 
-    /* Title */
-
-    const title =
-        createElement("a");
-
-    title.href = url;
-    title.target =
-        "_blank";
-
-    title.rel =
-        "noopener noreferrer";
-
-    title.textContent =
-        meta.title ||
-        url;
-
-    style(title, {
-        color: "#00aff4",
-        fontWeight: "600",
-        fontSize: "14px",
-        textDecoration: "none",
-        overflowWrap:
-            "anywhere"
-    });
-
-    body.appendChild(
-        title
-    );
-
-    /* Description */
-
-    if (meta.description) {
-        const description =
-            createElement("div");
-
-        description.textContent =
-            meta.description;
-
-        style(description, {
-            fontSize: "12px",
-            color: "#b9bbbe",
-            overflowWrap:
-                "anywhere"
-        });
-
-        body.appendChild(
-            description
-        );
-    }
-
-    /* Media */
-
-    const media =
-        createMedia(
-            url,
-            mime,
-            meta
-        );
-
-    if (media) {
-        body.appendChild(
-            media
-        );
-    }
-
-    /* Provider */
-
+    /*
+     * Provider.
+     */
     if (meta.provider_name) {
         const provider =
             createElement("div");
@@ -452,8 +537,8 @@ async function buildEmbed(url) {
 
         style(provider, {
             fontSize: "11px",
-            color: "#72767d",
-            marginTop: "4px"
+            color: "#b5bac1",
+            marginBottom: "3px"
         });
 
         body.appendChild(
@@ -461,8 +546,73 @@ async function buildEmbed(url) {
         );
     }
 
-    /* Reactions */
+    /*
+     * Title.
+     */
+    const title =
+        createElement("a");
 
+    title.href = url;
+    title.target = "_blank";
+    title.rel =
+        "noopener noreferrer";
+
+    title.textContent =
+        meta.title ||
+        new URL(url).hostname;
+
+    style(title, {
+        color: "#00a8fc",
+        fontWeight: "600",
+        fontSize: "14px",
+        lineHeight: "1.3",
+        textDecoration: "none",
+        overflowWrap: "anywhere"
+    });
+
+    body.appendChild(
+        title
+    );
+
+    /*
+     * Description.
+     */
+    if (
+        meta.description &&
+        !getYouTubeId(url)
+    ) {
+        const description =
+            createElement("div");
+
+        description.textContent =
+            meta.description;
+
+        style(description, {
+            fontSize: "12px",
+            color: "#dbdee1",
+            lineHeight: "1.4",
+            marginTop: "4px",
+            overflowWrap: "anywhere"
+        });
+
+        body.appendChild(
+            description
+        );
+    }
+
+    /*
+     * Actual media/player.
+     */
+    createWebsiteBody(
+        body,
+        url,
+        meta,
+        mime
+    );
+
+    /*
+     * Reactions belong to the embed.
+     */
     const reactions =
         createElement("div");
 
@@ -470,16 +620,26 @@ async function buildEmbed(url) {
         "kr-embed-reactions";
 
     style(reactions, {
-        marginTop: "6px"
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "4px",
+        marginTop: "8px"
     });
 
-    card.appendChild(
+    body.appendChild(
         reactions
     );
 
-    new Reactions(
-        reactions
-    );
+    /*
+     * Your reactions.js handles the UI.
+     */
+    if (
+        typeof Reactions === "function"
+    ) {
+        new Reactions(
+            reactions
+        );
+    }
 
     return card;
 }
@@ -499,8 +659,8 @@ function lazyEmbed(
         "kr-embed-placeholder";
 
     style(placeholder, {
-        minHeight: "20px",
-        marginTop: "6px"
+        minHeight: "8px",
+        width: "100%"
     });
 
     container.appendChild(
@@ -539,8 +699,7 @@ function lazyEmbed(
                 );
             },
             {
-                rootMargin:
-                    "200px"
+                rootMargin: "300px"
             }
         );
 
@@ -568,7 +727,7 @@ async function loadEmbed(
         );
     } catch (error) {
         console.warn(
-            "[Embed] Failed to build embed:",
+            "[Krynet Embed] Failed:",
             url,
             error
         );
@@ -582,7 +741,7 @@ async function loadEmbed(
 }
 
 /* ---------------------------------------------------------
-   MESSAGE SCANNING
+   URL EXTRACTION
 --------------------------------------------------------- */
 
 function extractURLs(text) {
@@ -610,8 +769,9 @@ function extractURLs(text) {
     return Array.from(unique);
 }
 
-const processedMessages =
-    new WeakSet();
+/* ---------------------------------------------------------
+   MESSAGE PROCESSING
+--------------------------------------------------------- */
 
 function processMessage(message) {
     if (
@@ -625,7 +785,9 @@ function processMessage(message) {
     );
 
     const text =
-        message.innerText;
+        message.innerText ||
+        message.textContent ||
+        "";
 
     const urls =
         extractURLs(text);
@@ -634,9 +796,29 @@ function processMessage(message) {
         return;
     }
 
+    /*
+     * Prevent the same URL from being embedded
+     * repeatedly if the message gets scanned again.
+     */
+    const existing =
+        new Set(
+            Array.from(
+                message.querySelectorAll(
+                    ".kr-embed[data-url]"
+                )
+            ).map(
+                element =>
+                    element.dataset.url
+            )
+        );
+
     for (
         const url of urls
     ) {
+        if (existing.has(url)) {
+            continue;
+        }
+
         lazyEmbed(
             message,
             url
@@ -645,13 +827,82 @@ function processMessage(message) {
 }
 
 /* ---------------------------------------------------------
+   MESSAGE OBSERVER
+--------------------------------------------------------- */
+
+function scanMessages(selector) {
+    document
+        .querySelectorAll(selector)
+        .forEach(
+            processMessage
+        );
+}
+
+let observer = null;
+
+function observeMessages(selector) {
+    scanMessages(selector);
+
+    if (observer) {
+        observer.disconnect();
+    }
+
+    observer =
+        new MutationObserver(
+            mutations => {
+                for (
+                    const mutation
+                    of mutations
+                ) {
+                    for (
+                        const node
+                        of mutation.addedNodes
+                    ) {
+                        if (
+                            !(node instanceof Element)
+                        ) {
+                            continue;
+                        }
+
+                        if (
+                            node.matches?.(selector)
+                        ) {
+                            processMessage(
+                                node
+                            );
+                        }
+
+                        node
+                            .querySelectorAll?.(
+                                selector
+                            )
+                            .forEach(
+                                processMessage
+                            );
+                    }
+                }
+            }
+        );
+
+    if (!document.body) {
+        return;
+    }
+
+    observer.observe(
+        document.body,
+        {
+            childList: true,
+            subtree: true
+        }
+    );
+}
+
+/* ---------------------------------------------------------
    PUBLIC API
 --------------------------------------------------------- */
 
 export const Embed = {
-    scanMessages(selector) {
-        document
-            .querySelectorAll(selector)
-            .forEach(processMessage);
-    }
+    scanMessages,
+
+    observeMessages
 };
