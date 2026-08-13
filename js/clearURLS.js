@@ -1,57 +1,45 @@
 (() => {
     "use strict";
 
-    /* ---------------------------------------------------------
-       CONFIG
-    --------------------------------------------------------- */
+    /* =========================================================
+       KRYNET CLEAR URLS
+       Cleans tracking parameters from URLs in:
+       - Message text
+       - #messageInput
+       - Pasted text
+       - Messages added dynamically
+    ========================================================= */
 
     const RULES_URL =
         "https://raw.githubusercontent.com/ClearURLs/Rules/master/data.min.json";
 
-    const MESSAGE_SELECTOR =
-        ".message";
-
-    const MESSAGE_TEXT_SELECTOR =
-        ".message-text";
-
-    const EDITABLE_SELECTOR =
-        "textarea, [contenteditable='true']";
+    const MESSAGE_SELECTOR = ".message";
+    const MESSAGE_TEXT_SELECTOR = ".message-text";
+    const COMPOSER_SELECTOR = "#messageInput";
+    const SEND_BUTTON_SELECTOR = "#sendButton";
 
     const URL_RE =
         /https?:\/\/[^\s<]+[^<.,:;"'>)\]\s]/gi;
-
-
-    /* ---------------------------------------------------------
-       STATE
-    --------------------------------------------------------- */
 
     let rules = [];
     let rulesLoaded = false;
     let rulesLoading = null;
     let scanTimer = null;
 
-
-    /* ---------------------------------------------------------
+    /* =========================================================
        REGEX HELPERS
-    --------------------------------------------------------- */
+    ========================================================= */
 
     function createRegex(pattern) {
-
         if (!pattern) {
             return null;
         }
 
         try {
-
-            return new RegExp(
-                pattern,
-                "i"
-            );
-
+            return new RegExp(pattern, "i");
         } catch (error) {
-
             console.warn(
-                "[ClearURLs] Invalid rule:",
+                "[Krynet ClearURLs] Invalid rule:",
                 pattern,
                 error
             );
@@ -60,52 +48,26 @@
         }
     }
 
-
     function createRegexList(patterns) {
-
         if (!Array.isArray(patterns)) {
             return [];
         }
 
-        const result = [];
-
-        for (const pattern of patterns) {
-
-            const regex =
-                createRegex(pattern);
-
-            if (regex) {
-                result.push(regex);
-            }
-        }
-
-        return result;
+        return patterns
+            .map(createRegex)
+            .filter(Boolean);
     }
 
-
-    function resetRegex(regex) {
-
+    function regexTest(regex, value) {
         regex.lastIndex = 0;
-    }
-
-
-    function regexTest(
-        regex,
-        value
-    ) {
-
-        resetRegex(regex);
-
         return regex.test(value);
     }
 
-
-    /* ---------------------------------------------------------
-       LOAD RULES
-    --------------------------------------------------------- */
+    /* =========================================================
+       LOAD CLEARURLS RULES
+    ========================================================= */
 
     async function loadRules() {
-
         if (rulesLoaded) {
             return;
         }
@@ -114,70 +76,50 @@
             return rulesLoading;
         }
 
-
         rulesLoading = (async () => {
-
             try {
-
-                const response =
-                    await fetch(
-                        RULES_URL,
-                        {
-                            cache: "no-cache"
-                        }
-                    );
-
+                const response = await fetch(
+                    RULES_URL,
+                    {
+                        cache: "no-cache"
+                    }
+                );
 
                 if (!response.ok) {
-
                     throw new Error(
                         `HTTP ${response.status}`
                     );
                 }
 
-
                 const data =
                     await response.json();
 
-
                 if (
-                    !data?.providers ||
-                    typeof data.providers !==
-                        "object"
+                    !data ||
+                    !data.providers ||
+                    typeof data.providers !== "object"
                 ) {
-
                     throw new Error(
                         "Invalid ClearURLs rules format"
                     );
                 }
 
-
                 const loadedRules = [];
 
-
                 for (
-                    const [
-                        name,
-                        provider
-                    ]
-                    of Object.entries(
-                        data.providers
-                    )
+                    const [name, provider]
+                    of Object.entries(data.providers)
                 ) {
-
                     const urlPattern =
                         createRegex(
                             provider.urlPattern
                         );
 
-
                     if (!urlPattern) {
                         continue;
                     }
 
-
                     loadedRules.push({
-
                         name,
 
                         urlPattern,
@@ -199,70 +141,45 @@
                     });
                 }
 
-
-                rules =
-                    loadedRules;
-
-                rulesLoaded =
-                    true;
-
+                rules = loadedRules;
+                rulesLoaded = true;
 
                 console.log(
-                    `[ClearURLs] Loaded ${rules.length} providers.`
+                    `[Krynet ClearURLs] Loaded ${rules.length} providers.`
                 );
-
-
             } catch (error) {
-
                 console.error(
-                    "[ClearURLs] Failed to load rules:",
+                    "[Krynet ClearURLs] Failed to load rules:",
                     error
                 );
-
-
             } finally {
-
-                rulesLoading =
-                    null;
+                rulesLoading = null;
             }
-
         })();
-
 
         return rulesLoading;
     }
 
-
-    /* ---------------------------------------------------------
+    /* =========================================================
        CLEAN URL
-    --------------------------------------------------------- */
+    ========================================================= */
 
     function cleanUrl(href) {
-
         let url;
 
         try {
-
-            url =
-                new URL(href);
-
+            url = new URL(href);
         } catch {
-
             return href;
         }
-
 
         if (!url.search) {
             return href;
         }
 
-
-        let changed =
-            false;
-
+        let changed = false;
 
         for (const rule of rules) {
-
             if (
                 !regexTest(
                     rule.urlPattern,
@@ -272,8 +189,7 @@
                 continue;
             }
 
-
-            const hasException =
+            const excepted =
                 rule.exceptions.some(
                     exception =>
                         regexTest(
@@ -282,110 +198,79 @@
                         )
                 );
 
-
-            if (hasException) {
+            if (excepted) {
                 continue;
             }
 
-
             /* -------------------------------------------------
-               Parameter rules
+               Query parameters
             ------------------------------------------------- */
 
-            if (rule.rules.length) {
-
-                for (
-                    const key
-                    of Array.from(
-                        url.searchParams.keys()
-                    )
-                ) {
-
-                    const shouldRemove =
-                        rule.rules.some(
-                            regex =>
-                                regexTest(
-                                    regex,
-                                    key
-                                )
-                        );
-
-
-                    if (!shouldRemove) {
-                        continue;
-                    }
-
-
-                    url.searchParams.delete(
-                        key
+            for (
+                const key
+                of Array.from(
+                    url.searchParams.keys()
+                )
+            ) {
+                const remove =
+                    rule.rules.some(
+                        regex =>
+                            regexTest(
+                                regex,
+                                key
+                            )
                     );
 
-                    changed =
-                        true;
+                if (!remove) {
+                    continue;
                 }
-            }
 
+                url.searchParams.delete(key);
+                changed = true;
+            }
 
             /* -------------------------------------------------
                Raw URL rules
             ------------------------------------------------- */
 
             if (rule.rawRules.length) {
-
                 let value =
                     url.toString();
-
 
                 for (
                     const regex
                     of rule.rawRules
                 ) {
-
                     const next =
                         value.replace(
                             regex,
                             ""
                         );
 
-
-                    if (
-                        next !== value
-                    ) {
-
-                        changed =
-                            true;
-
-                        value =
-                            next;
+                    if (next !== value) {
+                        value = next;
+                        changed = true;
                     }
                 }
 
-
                 try {
-
-                    url =
-                        new URL(value);
-
+                    url = new URL(value);
                 } catch {
-
                     // Keep the last valid URL.
                 }
             }
         }
-
 
         return changed
             ? url.toString()
             : href;
     }
 
-
-    /* ---------------------------------------------------------
+    /* =========================================================
        CLEAN TEXT
-    --------------------------------------------------------- */
+    ========================================================= */
 
     function cleanText(text) {
-
         if (
             !text ||
             !rules.length
@@ -393,116 +278,20 @@
             return text;
         }
 
-
         return text.replace(
             URL_RE,
-            match =>
-                cleanUrl(match)
+            match => cleanUrl(match)
         );
     }
 
+    /* =========================================================
+       TEXT NODE CLEANING
+    ========================================================= */
 
-    /* ---------------------------------------------------------
-       EDITABLE ELEMENTS
-    --------------------------------------------------------- */
-
-    function isEditable(element) {
-
+    function cleanTextNodes(element) {
         if (!element) {
-            return false;
-        }
-
-
-        if (
-            element instanceof
-            HTMLTextAreaElement
-        ) {
-            return true;
-        }
-
-
-        return (
-            element instanceof
-                HTMLElement &&
-            element.isContentEditable
-        );
-    }
-
-
-    function cleanEditable(element) {
-
-        if (
-            element instanceof
-            HTMLTextAreaElement
-        ) {
-
-            const original =
-                element.value;
-
-
-            const cleaned =
-                cleanText(
-                    original
-                );
-
-
-            if (
-                cleaned !==
-                original
-            ) {
-
-                const start =
-                    element.selectionStart;
-
-                const end =
-                    element.selectionEnd;
-
-
-                element.value =
-                    cleaned;
-
-
-                /*
-                 * Keep the cursor approximately
-                 * where the user was typing.
-                 */
-                try {
-
-                    element.setSelectionRange(
-                        Math.min(
-                            start,
-                            cleaned.length
-                        ),
-                        Math.min(
-                            end,
-                            cleaned.length
-                        )
-                    );
-
-                } catch {
-                    // Some browsers may reject
-                    // selection changes here.
-                }
-            }
-
-
             return;
         }
-
-
-        cleanContentEditable(
-            element
-        );
-    }
-
-
-    /* ---------------------------------------------------------
-       CONTENTEDITABLE
-    --------------------------------------------------------- */
-
-    function cleanContentEditable(
-        element
-    ) {
 
         const walker =
             document.createTreeWalker(
@@ -510,440 +299,303 @@
                 NodeFilter.SHOW_TEXT
             );
 
-
         const nodes = [];
 
         let node;
 
-
         while (
-            (node =
-                walker.nextNode())
+            (node = walker.nextNode())
         ) {
-
             if (
                 node instanceof Text &&
                 node.nodeValue
             ) {
-
                 nodes.push(node);
             }
         }
 
-
-        for (
-            const textNode
-            of nodes
-        ) {
-
+        for (const textNode of nodes) {
             const original =
-                textNode.nodeValue ||
-                "";
-
+                textNode.nodeValue || "";
 
             const cleaned =
-                cleanText(
-                    original
-                );
-
+                cleanText(original);
 
             if (
-                cleaned !==
-                original
+                cleaned !== original
             ) {
-
                 textNode.nodeValue =
                     cleaned;
             }
         }
     }
 
+    /* =========================================================
+       COMPOSER
+    ========================================================= */
 
-    /* ---------------------------------------------------------
-       MESSAGE TEXT
-    --------------------------------------------------------- */
+    function getComposer() {
+        return document.querySelector(
+            COMPOSER_SELECTOR
+        );
+    }
 
-    function cleanMessageText(
-        message
-    ) {
+    function cleanComposer() {
+        const composer =
+            getComposer();
+
+        if (!composer) {
+            return;
+        }
+
+        if (
+            composer instanceof
+            HTMLTextAreaElement
+        ) {
+            const original =
+                composer.value;
+
+            const cleaned =
+                cleanText(original);
+
+            if (
+                cleaned === original
+            ) {
+                return;
+            }
+
+            const start =
+                composer.selectionStart;
+
+            const end =
+                composer.selectionEnd;
+
+            composer.value =
+                cleaned;
+
+            try {
+                composer.setSelectionRange(
+                    Math.min(
+                        start,
+                        cleaned.length
+                    ),
+                    Math.min(
+                        end,
+                        cleaned.length
+                    )
+                );
+            } catch {
+                // Ignore selection errors.
+            }
+
+            return;
+        }
+
+        if (
+            composer instanceof HTMLElement &&
+            composer.isContentEditable
+        ) {
+            cleanTextNodes(composer);
+        }
+    }
+
+    /* =========================================================
+       MESSAGE CLEANING
+    ========================================================= */
+
+    function cleanMessage(message) {
+        if (!(message instanceof Element)) {
+            return;
+        }
+
+        /*
+         * Only clean .message-text.
+         *
+         * This deliberately avoids:
+         * - reactions
+         * - buttons
+         * - usernames
+         * - embeds
+         * - attachments
+         * - generated Markdown UI
+         */
 
         const textElements =
             message.querySelectorAll(
                 MESSAGE_TEXT_SELECTOR
             );
 
-
         for (
             const element
             of textElements
         ) {
-
-            /*
-             * Only modify actual text nodes.
-             *
-             * This means generated embeds,
-             * reaction buttons, titles, etc.
-             * are left alone.
-             */
-            cleanTextNodes(
-                element
-            );
+            cleanTextNodes(element);
         }
     }
 
-
-    function cleanTextNodes(
-        element
-    ) {
-
-        const walker =
-            document.createTreeWalker(
-                element,
-                NodeFilter.SHOW_TEXT
-            );
-
-
-        const nodes = [];
-
-        let node;
-
-
-        while (
-            (node =
-                walker.nextNode())
+    function cleanMessages(root = document) {
+        if (
+            root instanceof Element &&
+            root.matches(MESSAGE_SELECTOR)
         ) {
-
-            if (
-                node instanceof Text &&
-                node.nodeValue
-            ) {
-
-                nodes.push(node);
-            }
+            cleanMessage(root);
         }
-
-
-        for (
-            const textNode
-            of nodes
-        ) {
-
-            const original =
-                textNode.nodeValue;
-
-
-            const cleaned =
-                cleanText(
-                    original
-                );
-
-
-            if (
-                cleaned !==
-                original
-            ) {
-
-                textNode.nodeValue =
-                    cleaned;
-            }
-        }
-    }
-
-
-    /* ---------------------------------------------------------
-       SUBMIT
-       ---------------------------------------------------------
-
-       Your current Krynet composer uses a button
-       instead of a <form>, so this is mostly a
-       compatibility hook for future forms.
-    --------------------------------------------------------- */
-
-    function hookSubmit() {
-
-        document.addEventListener(
-            "submit",
-            event => {
-
-                const form =
-                    event.target;
-
-
-                if (
-                    !(form instanceof
-                        HTMLFormElement)
-                ) {
-                    return;
-                }
-
-
-                const editable =
-                    form.querySelector(
-                        EDITABLE_SELECTOR
-                    );
-
-
-                if (!editable) {
-                    return;
-                }
-
-
-                cleanEditable(
-                    editable
-                );
-            },
-            true
-        );
-    }
-
-
-    /* ---------------------------------------------------------
-       COMPOSER
-    --------------------------------------------------------- */
-
-    function hookComposer() {
-
-        const textarea =
-            document.getElementById(
-                "messageInput"
-            );
-
-
-        if (!textarea) {
-            return;
-        }
-
-
-        /*
-         * Clean immediately before the
-         * Krynet send handler runs.
-         */
-        textarea.addEventListener(
-            "keydown",
-            event => {
-
-                if (
-                    event.key !==
-                    "Enter" ||
-                    event.shiftKey
-                ) {
-                    return;
-                }
-
-
-                cleanEditable(
-                    textarea
-                );
-
-            },
-            true
-        );
-
-
-        /*
-         * Also handle the actual Send
-         * button directly.
-         */
-        const sendButton =
-            document.getElementById(
-                "sendButton"
-            );
-
-
-        sendButton?.addEventListener(
-            "click",
-            () => {
-
-                cleanEditable(
-                    textarea
-                );
-
-            },
-            true
-        );
-    }
-
-
-    /* ---------------------------------------------------------
-       PASTE
-    --------------------------------------------------------- */
-
-    function hookPaste() {
-
-        document.addEventListener(
-            "paste",
-            event => {
-
-                const target =
-                    event.target;
-
-
-                if (
-                    !(target instanceof
-                        Element)
-                ) {
-                    return;
-                }
-
-
-                if (
-                    !isEditable(target)
-                ) {
-                    return;
-                }
-
-
-                /*
-                 * Let the browser insert
-                 * the paste first.
-                 */
-                queueMicrotask(
-                    () => {
-                        cleanEditable(
-                            target
-                        );
-                    }
-                );
-            }
-        );
-    }
-
-
-    /* ---------------------------------------------------------
-       RENDERED MESSAGES
-    --------------------------------------------------------- */
-
-    function cleanMessage(
-        message
-    ) {
-
-        /*
-         * Do not mark a message permanently
-         * processed. Embed.js may change the
-         * message later, and the observer should
-         * still be able to clean newly-added
-         * text nodes.
-         */
-        cleanMessageText(
-            message
-        );
-    }
-
-
-    function cleanRendered(
-        root = document
-    ) {
 
         if (
-            root instanceof
-                HTMLElement &&
-            root.matches(
-                MESSAGE_SELECTOR
-            )
+            typeof root.querySelectorAll !==
+            "function"
         ) {
-
-            cleanMessage(
-                root
-            );
+            return;
         }
-
 
         root
             .querySelectorAll(
                 MESSAGE_SELECTOR
             )
-            .forEach(
-                message => {
-                    cleanMessage(
-                        message
-                    );
-                }
-            );
+            .forEach(cleanMessage);
     }
 
+    /* =========================================================
+       PASTE
+    ========================================================= */
 
-    /* ---------------------------------------------------------
-       DYNAMIC MESSAGE HANDLING
-    --------------------------------------------------------- */
+    function hookPaste() {
+        document.addEventListener(
+            "paste",
+            event => {
+                const target =
+                    event.target;
 
-    function scheduleScan() {
+                if (
+                    !(target instanceof Element)
+                ) {
+                    return;
+                }
 
-        if (
-            scanTimer !== null
-        ) {
+                if (
+                    target.id !==
+                    "messageInput"
+                ) {
+                    return;
+                }
+
+                /*
+                 * Let the browser insert
+                 * the clipboard contents first.
+                 */
+                queueMicrotask(() => {
+                    cleanComposer();
+                });
+            }
+        );
+    }
+
+    /* =========================================================
+       SEND
+    ========================================================= */
+
+    function hookSend() {
+        const sendButton =
+            document.querySelector(
+                SEND_BUTTON_SELECTOR
+            );
+
+        if (!sendButton) {
             return;
         }
 
-
-        scanTimer =
-            setTimeout(
-                () => {
-
-                    scanTimer =
-                        null;
-
-                    cleanRendered();
-
-                },
-                50
-            );
+        sendButton.addEventListener(
+            "click",
+            () => {
+                cleanComposer();
+            },
+            true
+        );
     }
 
+    /* =========================================================
+       ENTER TO SEND
+    ========================================================= */
+
+    function hookComposerKeyboard() {
+        const composer =
+            getComposer();
+
+        if (!composer) {
+            return;
+        }
+
+        composer.addEventListener(
+            "keydown",
+            event => {
+                if (
+                    event.key !== "Enter" ||
+                    event.shiftKey
+                ) {
+                    return;
+                }
+
+                cleanComposer();
+            },
+            true
+        );
+    }
+
+    /* =========================================================
+       DYNAMIC ELEMENTS
+    ========================================================= */
+
+    function scheduleScan() {
+        if (scanTimer !== null) {
+            return;
+        }
+
+        scanTimer =
+            setTimeout(() => {
+                scanTimer = null;
+                cleanMessages();
+            }, 50);
+    }
 
     const observer =
         new MutationObserver(
             mutations => {
-
                 for (
                     const mutation
                     of mutations
                 ) {
-
                     if (
-                        mutation.addedNodes
-                            .length
+                        mutation.addedNodes.length
                     ) {
-
                         scheduleScan();
-
                         return;
                     }
                 }
             }
         );
 
-
-    /* ---------------------------------------------------------
+    /* =========================================================
        INITIALIZE
-    --------------------------------------------------------- */
+    ========================================================= */
 
     async function init() {
-
         await loadRules();
 
-
         if (!rulesLoaded) {
-
             console.warn(
-                "[ClearURLs] Running without rules."
+                "[Krynet ClearURLs] Running without rules."
             );
         }
 
-
-        hookSubmit();
-
-        hookComposer();
-
         hookPaste();
+        hookSend();
+        hookComposerKeyboard();
 
-
-        cleanRendered();
-
+        cleanMessages();
 
         if (!document.body) {
             return;
         }
-
 
         observer.observe(
             document.body,
@@ -953,22 +605,19 @@
             }
         );
 
-
         console.log(
-            "[ClearURLs] URL cleaning active."
+            "[Krynet ClearURLs] URL cleaning active."
         );
     }
 
-
-    /* ---------------------------------------------------------
+    /* =========================================================
        START
-    --------------------------------------------------------- */
+    ========================================================= */
 
     if (
         document.readyState ===
         "loading"
     ) {
-
         document.addEventListener(
             "DOMContentLoaded",
             () => {
@@ -978,10 +627,18 @@
                 once: true
             }
         );
-
     } else {
-
         void init();
     }
 
+    /* =========================================================
+       PUBLIC API
+    ========================================================= */
+
+    window.KrynetClearURLs = {
+        cleanUrl,
+        cleanText,
+        cleanComposer,
+        scan: cleanMessages
+    };
 })();
