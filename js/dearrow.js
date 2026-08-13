@@ -9,10 +9,23 @@
     const THUMBNAIL_API =
         "https://dearrow-thumb.ajay.app/api/v1/getThumbnail";
 
+    const EMBED_SELECTOR = ".youtube-embed";
 
     /* =========================================================
        YOUTUBE ID
     ========================================================= */
+
+    function normalizeID(value) {
+        if (!value) {
+            return null;
+        }
+
+        const id = String(value).trim();
+
+        return /^[a-zA-Z0-9_-]{11}$/.test(id)
+            ? id
+            : null;
+    }
 
     function extractYouTubeID(value) {
         if (!value) {
@@ -28,7 +41,9 @@
 
             if (host === "youtu.be") {
                 return normalizeID(
-                    url.pathname.slice(1)
+                    url.pathname
+                        .split("/")
+                        .filter(Boolean)[0]
                 );
             }
 
@@ -36,11 +51,12 @@
                 host === "youtube.com" ||
                 host === "youtube-nocookie.com"
             ) {
-                const parts = url.pathname
-                    .split("/")
-                    .filter(Boolean);
+                const parts =
+                    url.pathname
+                        .split("/")
+                        .filter(Boolean);
 
-                if (parts[0] === "watch") {
+                if (url.pathname === "/watch") {
                     return normalizeID(
                         url.searchParams.get("v")
                     );
@@ -54,56 +70,42 @@
                 }
             }
 
-            const videoID =
-                url.searchParams.get("v");
-
-            if (videoID) {
-                return normalizeID(videoID);
-            }
+            return normalizeID(
+                url.searchParams.get("v")
+            );
 
         } catch {
-            // Not a valid URL.
+            const match =
+                String(value).match(
+                    /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:embed\/|watch\?v=|shorts\/))([a-zA-Z0-9_-]{11})/
+                );
+
+            return match
+                ? normalizeID(match[1])
+                : null;
         }
-
-        const match = String(value).match(
-            /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:embed\/|watch\?v=|shorts\/))([a-zA-Z0-9_-]{11})/
-        );
-
-        return match
-            ? match[1]
-            : null;
     }
-
-
-    function normalizeID(value) {
-        if (!value) {
-            return null;
-        }
-
-        return /^[a-zA-Z0-9_-]{11}$/.test(value)
-            ? value
-            : null;
-    }
-
 
     /* =========================================================
        API
     ========================================================= */
 
-    async function fetchBranding(id) {
-        const params = new URLSearchParams({
-            videoID: id,
-            license: LICENSE
-        });
+    async function fetchBranding(videoID) {
+        const params =
+            new URLSearchParams({
+                videoID,
+                license: LICENSE
+            });
 
         try {
-            const response = await fetch(
-                `${BRANDING_API}?${params}`,
-                {
-                    method: "GET",
-                    cache: "force-cache"
-                }
-            );
+            const response =
+                await fetch(
+                    `${BRANDING_API}?${params}`,
+                    {
+                        method: "GET",
+                        cache: "force-cache"
+                    }
+                );
 
             if (!response.ok) {
                 return null;
@@ -131,53 +133,20 @@
         }
     }
 
-
     /* =========================================================
-       EMBED HELPERS
-    ========================================================= */
-
-    function findYouTubeEmbed(media) {
-        return media.closest(
-            ".youtube-embed"
-        );
-    }
-
-
-    function findIframe(container) {
-        return container.querySelector(
-            "iframe"
-        );
-    }
-
-
-    function getVideoIDFromEmbed(container) {
-        const iframe =
-            findIframe(container);
-
-        if (!iframe) {
-            return null;
-        }
-
-        return extractYouTubeID(
-            iframe.src
-        );
-    }
-
-
-    /* =========================================================
-       DATA SELECTION
+       DATA
     ========================================================= */
 
     function selectTitle(data) {
-        if (!Array.isArray(data.titles)) {
+        if (!Array.isArray(data?.titles)) {
             return null;
         }
 
         const candidates =
             data.titles
                 .filter(item =>
-                    typeof item.title === "string" &&
-                    item.title.trim().length > 0
+                    typeof item?.title === "string" &&
+                    item.title.trim()
                 )
                 .sort(
                     (a, b) =>
@@ -197,9 +166,8 @@
             .trim();
     }
 
-
     function selectThumbnail(data) {
-        if (!Array.isArray(data.thumbnails)) {
+        if (!Array.isArray(data?.thumbnails)) {
             return null;
         }
 
@@ -207,11 +175,11 @@
             data.thumbnails
                 .filter(item =>
                     Number.isFinite(
-                        item.timestamp
+                        Number(item?.timestamp)
                     ) &&
-                    item.timestamp >= 0 &&
+                    Number(item.timestamp) >= 0 &&
                     Number.isFinite(
-                        item.votes
+                        Number(item?.votes)
                     ) &&
                     !item.original
                 )
@@ -224,14 +192,13 @@
         return candidates[0] || null;
     }
 
-
     function buildThumbnailURL(
-        id,
+        videoID,
         thumbnail
     ) {
         const params =
             new URLSearchParams({
-                videoID: id,
+                videoID,
                 time: String(
                     thumbnail.timestamp
                 ),
@@ -243,120 +210,207 @@
         );
     }
 
+    /* =========================================================
+       EMBED HELPERS
+    ========================================================= */
+
+    function getIframe(container) {
+        return container.querySelector(
+            "iframe"
+        );
+    }
+
+    function getVideoID(container) {
+        const iframe =
+            getIframe(container);
+
+        if (!iframe) {
+            return null;
+        }
+
+        return extractYouTubeID(
+            iframe.src ||
+            iframe.getAttribute("src")
+        );
+    }
+
+    function getBody(container) {
+        return container.querySelector(
+            ".youtube-embed-body"
+        );
+    }
 
     /* =========================================================
-       CREATE TITLE
+       STYLES
+    ========================================================= */
+
+    function installStyles() {
+        if (
+            document.getElementById(
+                "krynet-dearrow-style"
+            )
+        ) {
+            return;
+        }
+
+        const style =
+            document.createElement("style");
+
+        style.id =
+            "krynet-dearrow-style";
+
+        style.textContent = `
+            .youtube-embed {
+                position: relative;
+            }
+
+            .youtube-embed-body {
+                min-width: 0;
+            }
+
+            .youtube-embed-title {
+                margin-bottom: 8px;
+                color: #ffffff;
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 1.35;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .youtube-embed-thumbnail {
+                width: 100%;
+                aspect-ratio: 16 / 9;
+                display: block;
+                margin-bottom: 8px;
+                border-radius: 6px;
+                object-fit: cover;
+                background: #18191c;
+            }
+
+            .kr-dearrow-toggle {
+                position: absolute;
+                top: 6px;
+                right: 6px;
+                z-index: 20;
+                padding: 4px 8px;
+                border: 1px solid rgba(255,255,255,.12);
+                border-radius: 6px;
+                background: #2f3136;
+                color: #fff;
+                font-size: 11px;
+                line-height: normal;
+                cursor: pointer;
+            }
+
+            .kr-dearrow-toggle:hover {
+                background: #5865f2;
+            }
+
+            .kr-dearrow-toggle.original {
+                background: #404249;
+            }
+        `;
+
+        document.head.appendChild(style);
+    }
+
+    /* =========================================================
+       ELEMENT CREATION
     ========================================================= */
 
     function createTitle(container) {
-        let title =
+        let element =
             container.querySelector(
                 ".youtube-embed-title"
             );
 
-        if (title) {
-            return title;
+        if (element) {
+            return element;
         }
 
-        title =
+        element =
             document.createElement("div");
 
-        title.className =
+        element.className =
             "youtube-embed-title";
 
-        Object.assign(title.style, {
-            marginBottom: "8px",
-            color: "#ffffff",
-            fontSize: "14px",
-            fontWeight: "600",
-            lineHeight: "1.35",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap"
-        });
+        element.textContent =
+            "YouTube video";
 
         const body =
-            container.querySelector(
-                ".youtube-embed-body"
-            );
+            getBody(container);
 
         if (body) {
-            body.prepend(title);
+            body.prepend(element);
         }
 
-        return title;
+        return element;
     }
-
-
-    /* =========================================================
-       CREATE THUMBNAIL
-    ========================================================= */
 
     function createThumbnail(
         container,
-        id
+        videoID
     ) {
-        let thumbnail =
+        let image =
             container.querySelector(
                 ".youtube-embed-thumbnail"
             );
 
-        if (thumbnail) {
-            return thumbnail;
+        if (image) {
+            return image;
         }
 
-        thumbnail =
+        image =
             document.createElement("img");
 
-        thumbnail.className =
+        image.className =
             "youtube-embed-thumbnail";
 
-        thumbnail.alt =
+        image.alt =
             "YouTube thumbnail";
 
-        thumbnail.loading =
+        image.loading =
             "lazy";
 
-        thumbnail.src =
-            `https://i.ytimg.com/vi/${encodeURIComponent(id)}/hqdefault.jpg`;
-
-        Object.assign(thumbnail.style, {
-            width: "100%",
-            aspectRatio: "16 / 9",
-            display: "block",
-            marginBottom: "8px",
-            borderRadius: "6px",
-            objectFit: "cover"
-        });
+        image.src =
+            `https://i.ytimg.com/vi/${encodeURIComponent(
+                videoID
+            )}/hqdefault.jpg`;
 
         const body =
-            container.querySelector(
-                ".youtube-embed-body"
-            );
+            getBody(container);
 
         if (body) {
-            body.prepend(thumbnail);
+            body.prepend(image);
         }
 
-        return thumbnail;
+        return image;
     }
 
-
     /* =========================================================
-       TOGGLE BUTTON
+       TOGGLE
     ========================================================= */
 
-    function createToggleButton(
+    function createToggle(
         container,
         original,
         deArrow,
-        titleEl,
-        thumbEl
+        titleElement,
+        thumbnailElement
     ) {
         if (
             container.querySelector(
                 ".kr-dearrow-toggle"
             )
+        ) {
+            return;
+        }
+
+        if (
+            !deArrow.title &&
+            !deArrow.thumbnail
         ) {
             return;
         }
@@ -379,205 +433,154 @@
         );
 
         button.title =
-            "Toggle DeArrow title and thumbnail";
-
-        Object.assign(button.style, {
-            position: "absolute",
-            top: "6px",
-            right: "6px",
-            zIndex: "20",
-            padding: "4px 8px",
-            border: "1px solid rgba(255,255,255,.12)",
-            borderRadius: "6px",
-            background: "#2f3136",
-            color: "#fff",
-            fontSize: "11px",
-            lineHeight: "normal",
-            cursor: "pointer"
-        });
+            "Toggle DeArrow metadata";
 
         let usingDeArrow = true;
 
         button.addEventListener(
             "click",
-            () => {
+            event => {
+                event.preventDefault();
+                event.stopPropagation();
 
                 usingDeArrow =
                     !usingDeArrow;
 
                 if (usingDeArrow) {
-
                     if (
-                        titleEl &&
                         deArrow.title
                     ) {
-                        titleEl.textContent =
+                        titleElement.textContent =
                             deArrow.title;
                     }
 
                     if (
-                        thumbEl &&
                         deArrow.thumbnail
                     ) {
-                        thumbEl.src =
+                        thumbnailElement.src =
                             deArrow.thumbnail;
                     }
 
                     button.textContent =
                         "DeArrow";
 
+                    button.classList.remove(
+                        "original"
+                    );
+
                     button.setAttribute(
                         "aria-pressed",
                         "true"
                     );
 
-                } else {
-
-                    if (
-                        titleEl &&
-                        original.title
-                    ) {
-                        titleEl.textContent =
-                            original.title;
-                    }
-
-                    if (
-                        thumbEl &&
-                        original.thumbnail
-                    ) {
-                        thumbEl.src =
-                            original.thumbnail;
-                    }
-
-                    button.textContent =
-                        "Original";
-
-                    button.setAttribute(
-                        "aria-pressed",
-                        "false"
-                    );
+                    return;
                 }
+
+                titleElement.textContent =
+                    original.title;
+
+                thumbnailElement.src =
+                    original.thumbnail;
+
+                button.textContent =
+                    "Original";
+
+                button.classList.add(
+                    "original"
+                );
+
+                button.setAttribute(
+                    "aria-pressed",
+                    "false"
+                );
             }
         );
-
-        if (
-            getComputedStyle(container)
-                .position === "static"
-        ) {
-            container.style.position =
-                "relative";
-        }
 
         container.appendChild(button);
     }
 
-
     /* =========================================================
-       PROCESS KRYNET YOUTUBE EMBED
+       PROCESS EMBED
     ========================================================= */
 
     async function processEmbed(container) {
         if (
-            container.__dearrowDone ||
-            container.__dearrowProcessing
+            !(container instanceof Element)
         ) {
             return;
         }
 
-        const id =
-            getVideoIDFromEmbed(container);
-
-        if (!id) {
+        if (
+            container.__krynetDeArrowDone ||
+            container.__krynetDeArrowLoading
+        ) {
             return;
         }
 
-        container.__dearrowProcessing =
+        const iframe =
+            getIframe(container);
+
+        if (!iframe) {
+            return;
+        }
+
+        const videoID =
+            getVideoID(container);
+
+        if (!videoID) {
+            return;
+        }
+
+        container.__krynetDeArrowLoading =
             true;
 
         try {
+            const titleElement =
+                createTitle(container);
+
+            const thumbnailElement =
+                createThumbnail(
+                    container,
+                    videoID
+                );
+
+            const original = {
+                title:
+                    titleElement.textContent ||
+                    `YouTube video ${videoID}`,
+
+                thumbnail:
+                    thumbnailElement.src ||
+                    `https://i.ytimg.com/vi/${videoID}/hqdefault.jpg`
+            };
 
             const data =
-                await fetchBranding(id);
+                await fetchBranding(
+                    videoID
+                );
 
             if (!data) {
                 return;
             }
 
-
-            const iframe =
-                findIframe(container);
-
-            if (!iframe) {
-                return;
-            }
-
-
-            const body =
-                container.querySelector(
-                    ".youtube-embed-body"
-                );
-
-            if (!body) {
-                return;
-            }
-
-
-            /*
-             * The Krynet embed originally has only
-             * the player. We create the metadata
-             * elements around it.
-             */
-
-            const titleEl =
-                createTitle(container);
-
-            const thumbEl =
-                createThumbnail(
-                    container,
-                    id
-                );
-
-
-            /*
-             * Original YouTube data.
-             */
-
-            const original = {
-                title:
-                    titleEl.textContent ||
-                    `YouTube video ${id}`,
-
-                thumbnail:
-                    thumbEl.currentSrc ||
-                    thumbEl.src ||
-                    `https://i.ytimg.com/vi/${id}/hqdefault.jpg`
-            };
-
-
-            /*
-             * DeArrow data.
-             */
-
-            const selectedTitle =
+            const deArrowTitle =
                 selectTitle(data);
 
-            const selectedThumbnail =
+            const deArrowThumbnail =
                 selectThumbnail(data);
-
 
             const deArrow = {
                 title:
-                    selectedTitle,
+                    deArrowTitle,
 
                 thumbnail:
-                    selectedThumbnail
+                    deArrowThumbnail
                         ? buildThumbnailURL(
-                            id,
-                            selectedThumbnail
+                            videoID,
+                            deArrowThumbnail
                         )
                         : null
             };
-
 
             if (
                 !deArrow.title &&
@@ -586,55 +589,41 @@
                 return;
             }
 
-
-            /*
-             * Apply DeArrow.
-             */
-
-            if (
-                deArrow.title
-            ) {
-                titleEl.textContent =
+            if (deArrow.title) {
+                titleElement.textContent =
                     deArrow.title;
             }
 
-            if (
-                deArrow.thumbnail
-            ) {
-                thumbEl.src =
+            if (deArrow.thumbnail) {
+                thumbnailElement.src =
                     deArrow.thumbnail;
             }
 
-
-            createToggleButton(
+            createToggle(
                 container,
                 original,
                 deArrow,
-                titleEl,
-                thumbEl
+                titleElement,
+                thumbnailElement
             );
 
-
-            container.__dearrowDone =
+            container.__krynetDeArrowDone =
                 true;
 
         } catch (error) {
-
             console.warn(
-                "[DeArrow] Embed processing failed:",
+                "[DeArrow] Processing failed:",
                 error
             );
 
         } finally {
-
-            container.__dearrowProcessing =
+            container.__krynetDeArrowLoading =
                 false;
         }
     }
 
-
     /* =========================================================
-       FIND KRYNET EMBEDS
+       SCANNING
     ========================================================= */
 
     function processNode(node) {
@@ -642,44 +631,40 @@
             return;
         }
 
-
         if (
             node.matches(
-                ".youtube-embed"
+                EMBED_SELECTOR
             )
         ) {
             void processEmbed(node);
         }
 
-
         node
             .querySelectorAll(
-                ".youtube-embed"
+                EMBED_SELECTOR
             )
             .forEach(
-                container => {
+                embed => {
                     void processEmbed(
-                        container
+                        embed
                     );
                 }
             );
     }
-
 
     function scan() {
         document
             .querySelectorAll(
-                ".youtube-embed"
+                EMBED_SELECTOR
             )
             .forEach(
-                container => {
+                embed => {
                     void processEmbed(
-                        container
+                        embed
                     );
                 }
             );
     }
-
 
     /* =========================================================
        OBSERVER
@@ -688,12 +673,10 @@
     const observer =
         new MutationObserver(
             mutations => {
-
                 for (
                     const mutation
                     of mutations
                 ) {
-
                     for (
                         const node
                         of mutation.addedNodes
@@ -704,16 +687,16 @@
             }
         );
 
-
     /* =========================================================
-       START
+       INIT
     ========================================================= */
 
     function init() {
-
         if (!document.body) {
             return;
         }
+
+        installStyles();
 
         observer.observe(
             document.body,
@@ -726,16 +709,14 @@
         scan();
 
         console.log(
-            "[DeArrow] Krynet YouTube integration initialized."
+            "[DeArrow] Krynet integration ready."
         );
     }
-
 
     if (
         document.readyState ===
         "loading"
     ) {
-
         document.addEventListener(
             "DOMContentLoaded",
             init,
@@ -743,10 +724,16 @@
                 once: true
             }
         );
-
     } else {
-
         init();
     }
 
+    /* =========================================================
+       PUBLIC API
+    ========================================================= */
+
+    window.KrynetDeArrow = {
+        scan,
+        processEmbed
+    };
 })();
