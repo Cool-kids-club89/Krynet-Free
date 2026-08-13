@@ -2,27 +2,10 @@ import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
 import { getHighlighter } from "https://cdn.jsdelivr.net/npm/shiki@0.12.0/dist/index.js";
 
 /* ---------------------------------------------------------
-   TYPES
---------------------------------------------------------- */
-
-type CacheMap = Map<string, string>;
-
-type KrynetCaches = {
-    mentions: CacheMap;
-    roles: CacheMap;
-    channels: CacheMap;
-    emojis: CacheMap;
-    general: CacheMap;
-};
-
-type Highlighter =
-    Awaited<ReturnType<typeof getHighlighter>>;
-
-/* ---------------------------------------------------------
    HELPERS
 --------------------------------------------------------- */
 
-function escapeHtml(value: string): string {
+function escapeHtml(value) {
     return value.replace(
         /[&<>"']/g,
         character => {
@@ -44,16 +27,11 @@ function escapeHtml(value: string): string {
     );
 }
 
-function escapeAttribute(
-    value: string
-): string {
+function escapeAttribute(value) {
     return escapeHtml(value);
 }
 
-function createTimeElement(
-    timestamp: string,
-    format?: string
-): string {
+function createTimeElement(timestamp, format) {
     const milliseconds =
         Number(timestamp) * 1000;
 
@@ -86,51 +64,37 @@ function createTimeElement(
 --------------------------------------------------------- */
 
 export const KrynetMarkdown = {
-    highlighter:
-        null as Highlighter | null,
+    highlighter: null,
 
-    renderer:
-        null as marked.Renderer | null,
+    renderer: null,
 
     cssInjected: false,
 
     initialized: false,
 
-    initPromise:
-        null as Promise<void> | null,
+    initPromise: null,
 
     cacheTTL: 5000,
 
     caches: {
-        mentions:
-            new Map<string, string>(),
-
-        roles:
-            new Map<string, string>(),
-
-        channels:
-            new Map<string, string>(),
-
-        emojis:
-            new Map<string, string>(),
-
-        general:
-            new Map<string, string>()
-    } as KrynetCaches,
+        mentions: new Map(),
+        roles: new Map(),
+        channels: new Map(),
+        emojis: new Map(),
+        general: new Map()
+    },
 
     /* -----------------------------------------------------
        CSS
     ----------------------------------------------------- */
 
-    injectCSS(): void {
+    injectCSS() {
         if (this.cssInjected) {
             return;
         }
 
         const style =
-            document.createElement(
-                "style"
-            );
+            document.createElement("style");
 
         style.dataset.krynetMarkdown =
             "true";
@@ -244,9 +208,7 @@ export const KrynetMarkdown = {
             }
         `;
 
-        document.head.appendChild(
-            style
-        );
+        document.head.appendChild(style);
 
         this.cssInjected = true;
     },
@@ -255,9 +217,7 @@ export const KrynetMarkdown = {
        INITIALIZATION
     ----------------------------------------------------- */
 
-    async init(
-        theme = "nord"
-    ): Promise<void> {
+    async init(theme = "nord") {
         if (this.initialized) {
             return;
         }
@@ -276,9 +236,7 @@ export const KrynetMarkdown = {
         }
     },
 
-    async initialize(
-        theme: string
-    ): Promise<void> {
+    async initialize(theme) {
         this.injectCSS();
 
         if (!this.highlighter) {
@@ -291,25 +249,23 @@ export const KrynetMarkdown = {
         const renderer =
             new marked.Renderer();
 
-        /*
-         * Code blocks
-         */
+        /* Code blocks */
+
         renderer.code = (
-            code: string,
-            language?: string
-        ): string => {
+            code,
+            language
+        ) => {
             try {
                 const lang =
                     language?.trim() ||
                     "text";
 
-                return this.highlighter!
-                    .codeToHtml(
-                        code,
-                        {
-                            lang
-                        }
-                    );
+                return this.highlighter.codeToHtml(
+                    code,
+                    {
+                        lang
+                    }
+                );
             } catch {
                 return (
                     `<pre class="kr-codeblock">` +
@@ -321,12 +277,9 @@ export const KrynetMarkdown = {
             }
         };
 
-        /*
-         * Inline code
-         */
-        renderer.codespan = (
-            code: string
-        ): string => {
+        /* Inline code */
+
+        renderer.codespan = code => {
             return (
                 `<code class="kr-inline">` +
                 `${escapeHtml(code)}` +
@@ -334,31 +287,27 @@ export const KrynetMarkdown = {
             );
         };
 
-        /*
-         * Links
-         */
+        /* Links */
+
         renderer.link = (
-            href: string | null,
-            title: string | null,
-            text: string
-        ): string => {
+            href,
+            title,
+            text
+        ) => {
             if (!href) {
                 return text;
             }
 
-            let safeURL: string;
+            let safeURL;
 
             try {
                 const url =
                     new URL(href);
 
                 if (
-                    url.protocol !==
-                        "http:" &&
-                    url.protocol !==
-                        "https:" &&
-                    url.protocol !==
-                        "mailto:"
+                    url.protocol !== "http:" &&
+                    url.protocol !== "https:" &&
+                    url.protocol !== "mailto:"
                 ) {
                     return text;
                 }
@@ -388,23 +337,20 @@ export const KrynetMarkdown = {
             );
         };
 
-        /*
-         * Images
-         */
+        /* Images */
+
         renderer.image = (
-            href: string,
-            title: string | null,
-            text: string
-        ): string => {
+            href,
+            title,
+            text
+        ) => {
             try {
                 const url =
                     new URL(href);
 
                 if (
-                    url.protocol !==
-                        "http:" &&
-                    url.protocol !==
-                        "https:"
+                    url.protocol !== "http:" &&
+                    url.protocol !== "https:"
                 ) {
                     return "";
                 }
@@ -434,11 +380,6 @@ export const KrynetMarkdown = {
 
         this.renderer = renderer;
 
-        /*
-         * Do not rely on global marked state more
-         * than necessary, but configure the parser
-         * once for Krynet.
-         */
         marked.setOptions({
             renderer,
             gfm: true,
@@ -453,10 +394,10 @@ export const KrynetMarkdown = {
     ----------------------------------------------------- */
 
     ephemeralSet(
-        cache: CacheMap,
-        key: string,
-        value: string
-    ): void {
+        cache,
+        key,
+        value
+    ) {
         cache.set(
             key,
             value
@@ -479,32 +420,25 @@ export const KrynetMarkdown = {
        ENTITY TRANSFORMS
     ----------------------------------------------------- */
 
-    transformEntities(
-        input: string
-    ): string {
+    transformEntities(input) {
         let output =
             escapeHtml(input);
 
-        /*
-         * Spoilers
-         */
+        /* Spoilers */
+
         output =
             output.replace(
                 /\|\|(.+?)\|\|/g,
-                (_, content: string) =>
+                (_, content) =>
                     `<span class="kr-spoiler" tabindex="0" role="button">${content}</span>`
             );
 
-        /*
-         * User mentions
-         */
+        /* User mentions */
+
         output =
             output.replace(
                 /&lt;@!?(\d+)&gt;/g,
-                (
-                    _,
-                    id: string
-                ) => {
+                (_, id) => {
                     const cached =
                         this.caches
                             .mentions
@@ -523,8 +457,7 @@ export const KrynetMarkdown = {
                         `>@user</span>`;
 
                     this.ephemeralSet(
-                        this.caches
-                            .mentions,
+                        this.caches.mentions,
                         id,
                         value
                     );
@@ -533,16 +466,12 @@ export const KrynetMarkdown = {
                 }
             );
 
-        /*
-         * Channel mentions
-         */
+        /* Channel mentions */
+
         output =
             output.replace(
                 /&lt;#(\d+)&gt;/g,
-                (
-                    _,
-                    id: string
-                ) => {
+                (_, id) => {
                     const cached =
                         this.caches
                             .channels
@@ -561,8 +490,7 @@ export const KrynetMarkdown = {
                         `>#channel</span>`;
 
                     this.ephemeralSet(
-                        this.caches
-                            .channels,
+                        this.caches.channels,
                         id,
                         value
                     );
@@ -571,16 +499,12 @@ export const KrynetMarkdown = {
                 }
             );
 
-        /*
-         * Role mentions
-         */
+        /* Role mentions */
+
         output =
             output.replace(
                 /&lt;@&amp;(\d+)&gt;/g,
-                (
-                    _,
-                    id: string
-                ) => {
+                (_, id) => {
                     const cached =
                         this.caches
                             .roles
@@ -599,8 +523,7 @@ export const KrynetMarkdown = {
                         `>@role</span>`;
 
                     this.ephemeralSet(
-                        this.caches
-                            .roles,
+                        this.caches.roles,
                         id,
                         value
                     );
@@ -609,17 +532,12 @@ export const KrynetMarkdown = {
                 }
             );
 
-        /*
-         * Custom emoji
-         */
+        /* Custom emoji */
+
         output =
             output.replace(
                 /&lt;a?:([a-zA-Z0-9_]+):(\d+)&gt;/g,
-                (
-                    _,
-                    name: string,
-                    id: string
-                ) => {
+                (_, name, id) => {
                     const cached =
                         this.caches
                             .emojis
@@ -647,8 +565,7 @@ export const KrynetMarkdown = {
                         `referrerpolicy="no-referrer">`;
 
                     this.ephemeralSet(
-                        this.caches
-                            .emojis,
+                        this.caches.emojis,
                         id,
                         value
                     );
@@ -657,17 +574,12 @@ export const KrynetMarkdown = {
                 }
             );
 
-        /*
-         * Timestamp
-         */
+        /* Timestamp */
+
         output =
             output.replace(
                 /&lt;t:(\d+)(?::([a-zA-Z]))?&gt;/g,
-                (
-                    _,
-                    timestamp: string,
-                    format?: string
-                ) =>
+                (_, timestamp, format) =>
                     createTimeElement(
                         timestamp,
                         format
@@ -681,86 +593,68 @@ export const KrynetMarkdown = {
        SPOILER EVENTS
     ----------------------------------------------------- */
 
-    bindSpoilers(
-        root: HTMLElement
-    ): void {
+    bindSpoilers(root) {
         root
-            .querySelectorAll<HTMLElement>(
+            .querySelectorAll(
                 ".kr-spoiler"
             )
-            .forEach(
-                spoiler => {
-                    if (
-                        spoiler.dataset
-                            .bound ===
-                        "true"
-                    ) {
-                        return;
-                    }
-
-                    spoiler.dataset.bound =
-                        "true";
-
-                    const reveal =
-                        () => {
-                            spoiler.classList.toggle(
-                                "kr-revealed"
-                            );
-                        };
-
-                    spoiler.addEventListener(
-                        "click",
-                        reveal
-                    );
-
-                    spoiler.addEventListener(
-                        "keydown",
-                        event => {
-                            if (
-                                event.key ===
-                                    "Enter" ||
-                                event.key ===
-                                    " "
-                            ) {
-                                event.preventDefault();
-                                reveal();
-                            }
-                        }
-                    );
+            .forEach(spoiler => {
+                if (
+                    spoiler.dataset.bound ===
+                    "true"
+                ) {
+                    return;
                 }
-            );
+
+                spoiler.dataset.bound =
+                    "true";
+
+                const reveal = () => {
+                    spoiler.classList.toggle(
+                        "kr-revealed"
+                    );
+                };
+
+                spoiler.addEventListener(
+                    "click",
+                    reveal
+                );
+
+                spoiler.addEventListener(
+                    "keydown",
+                    event => {
+                        if (
+                            event.key === "Enter" ||
+                            event.key === " "
+                        ) {
+                            event.preventDefault();
+                            reveal();
+                        }
+                    }
+                );
+            });
     },
 
     /* -----------------------------------------------------
        STREAM PARSER
     ----------------------------------------------------- */
 
-    async *streamParse(
-        markdown: string
-    ): AsyncGenerator<string> {
+    async *streamParse(markdown) {
         await this.init();
 
         const lines =
-            markdown.split(
-                /\r?\n/
-            );
+            markdown.split(/\r?\n/);
 
         let inQuote = false;
 
-        const quoteBuffer: string[] =
-            [];
+        const quoteBuffer = [];
 
-        for (
-            const line
-            of lines
-        ) {
+        for (const line of lines) {
             /*
              * Discord-style multiline quote.
              */
             if (
-                line.startsWith(
-                    ">>>"
-                )
+                line.startsWith(">>>")
             ) {
                 inQuote = true;
 
@@ -775,39 +669,28 @@ export const KrynetMarkdown = {
 
             if (inQuote) {
                 if (
-                    line.trim() ===
-                    ""
+                    line.trim() === ""
                 ) {
                     yield (
                         `<blockquote class="kr-multiline-quote">` +
                         `${quoteBuffer
-                            .map(
-                                escapeHtml
-                            )
-                            .join(
-                                "<br>"
-                            )}` +
+                            .map(escapeHtml)
+                            .join("<br>")}` +
                         `</blockquote>`
                     );
 
-                    quoteBuffer.length =
-                        0;
-
+                    quoteBuffer.length = 0;
                     inQuote = false;
 
                     continue;
                 }
 
-                quoteBuffer.push(
-                    line
-                );
+                quoteBuffer.push(line);
 
                 continue;
             }
 
-            if (
-                line.length === 0
-            ) {
+            if (line.length === 0) {
                 yield "";
                 continue;
             }
@@ -817,18 +700,12 @@ export const KrynetMarkdown = {
             );
         }
 
-        if (
-            quoteBuffer.length
-        ) {
+        if (quoteBuffer.length) {
             yield (
                 `<blockquote class="kr-multiline-quote">` +
                 `${quoteBuffer
-                    .map(
-                        escapeHtml
-                    )
-                    .join(
-                        "<br>"
-                    )}` +
+                    .map(escapeHtml)
+                    .join("<br>")}` +
                 `</blockquote>`
             );
         }
@@ -838,17 +715,13 @@ export const KrynetMarkdown = {
        FINAL RENDER
     ----------------------------------------------------- */
 
-    async render(
-        markdown: string
-    ): Promise<string> {
+    async render(markdown) {
         await this.init();
 
-        let transformed =
-            "";
+        let transformed = "";
 
         for await (
-            const chunk
-            of this.streamParse(
+            const chunk of this.streamParse(
                 markdown
             )
         ) {
@@ -859,12 +732,8 @@ export const KrynetMarkdown = {
         const html =
             marked.parse(
                 transformed
-            ) as string;
+            );
 
-        /*
-         * marked output gets wrapped so downstream
-         * CSS can stay scoped.
-         */
         return (
             `<div class="kr-markdown">` +
             html +
@@ -877,9 +746,9 @@ export const KrynetMarkdown = {
     ----------------------------------------------------- */
 
     async renderInto(
-        element: HTMLElement,
-        markdown: string
-    ): Promise<void> {
+        element,
+        markdown
+    ) {
         const html =
             await this.render(
                 markdown
