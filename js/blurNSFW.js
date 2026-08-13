@@ -3,37 +3,27 @@
 class KrynetBlurNSFW {
     static CSS_VAR = "--kr-nsfw-blur";
     static BLUR_CLASS = "kr-nsfw-blur";
-
     static IMAGE_SELECTOR = "img";
     static MESSAGE_SELECTOR = ".message";
-
-    static DEFAULT_THRESHOLD = 0.60;
 
     constructor(initialBlur = 10) {
         this.settings = {
             blurAmount: initialBlur,
             enabled: true,
-            threshold: KrynetBlurNSFW.DEFAULT_THRESHOLD
+            threshold: 0.60
         };
 
         this.observer = null;
-
-        this.scannedImages = new WeakSet();
-        this.pendingImages = new WeakSet();
+        this.pending = new WeakSet();
+        this.results = new WeakMap();
 
         this.setBlur(initialBlur);
         this.start();
     }
 
-    /* =========================================================
-       BLUR
-    ========================================================= */
-
     setBlur(px) {
         if (!Number.isFinite(px) || px < 0) {
-            throw new Error(
-                "Blur amount must be a non-negative number."
-            );
+            throw new Error("Blur amount must be non-negative.");
         }
 
         this.settings.blurAmount = px;
@@ -48,45 +38,9 @@ class KrynetBlurNSFW {
         return this.settings.blurAmount;
     }
 
-    /* =========================================================
-       ENABLE / DISABLE
-    ========================================================= */
-
-    toggle(enabled) {
-        this.settings.enabled = Boolean(enabled);
-
-        if (this.settings.enabled) {
-            this.rescan();
-        } else {
-            this.clearAllBlurs();
-        }
-    }
-
-    enable() {
-        this.toggle(true);
-    }
-
-    disable() {
-        this.toggle(false);
-    }
-
-    isEnabled() {
-        return this.settings.enabled;
-    }
-
-    /* =========================================================
-       THRESHOLD
-    ========================================================= */
-
     setThreshold(value) {
-        if (
-            !Number.isFinite(value) ||
-            value < 0 ||
-            value > 1
-        ) {
-            throw new Error(
-                "NSFW threshold must be between 0 and 1."
-            );
+        if (!Number.isFinite(value) || value < 0 || value > 1) {
+            throw new Error("Threshold must be between 0 and 1.");
         }
 
         this.settings.threshold = value;
@@ -96,73 +50,72 @@ class KrynetBlurNSFW {
         return this.settings.threshold;
     }
 
-    /* =========================================================
-       SETTINGS
-    ========================================================= */
+    enable() {
+        this.settings.enabled = true;
+        this.scan();
+    }
+
+    disable() {
+        this.settings.enabled = false;
+        this.clearAllBlurs();
+    }
+
+    isEnabled() {
+        return this.settings.enabled;
+    }
 
     getSettings() {
-        return {
-            ...this.settings
-        };
+        return { ...this.settings };
     }
 
-    /* =========================================================
-       START
-    ========================================================= */
+    /*
+     * Plug your approved image detector into this function.
+     *
+     * It must return:
+     * {
+     *     sensitive: boolean,
+     *     score: number
+     * }
+     */
+    async detectImage(image) {
+        throw new Error(
+            "KrynetNSFW.detectImage() requires an image detector."
+        );
+    }
 
     start() {
-        const startScanning = () => {
+        const begin = () => {
             this.scan();
 
-            if (this.observer) {
-                this.observer.disconnect();
-            }
+            this.observer?.disconnect();
 
-            this.observer =
-                new MutationObserver(
-                    mutations => {
-                        for (const mutation of mutations) {
-                            if (
-                                mutation.addedNodes &&
-                                mutation.addedNodes.length
-                            ) {
-                                this.scan();
-                                return;
-                            }
-                        }
+            this.observer = new MutationObserver(mutations => {
+                for (const mutation of mutations) {
+                    if (mutation.addedNodes.length) {
+                        this.scan();
+                        break;
                     }
-                );
+                }
+            });
 
             if (document.body) {
-                this.observer.observe(
-                    document.body,
-                    {
-                        childList: true,
-                        subtree: true
-                    }
-                );
+                this.observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
             }
         };
 
-        if (
-            document.readyState ===
-            "loading"
-        ) {
+        if (document.readyState === "loading") {
             document.addEventListener(
                 "DOMContentLoaded",
-                startScanning,
-                {
-                    once: true
-                }
+                begin,
+                { once: true }
             );
         } else {
-            startScanning();
+            begin();
         }
     }
-
-    /* =========================================================
-       SCAN
-    ========================================================= */
 
     scan(root = document) {
         if (!this.settings.enabled) {
@@ -171,46 +124,25 @@ class KrynetBlurNSFW {
 
         const images = [];
 
-        if (
-            root instanceof
-            HTMLImageElement
-        ) {
+        if (root instanceof HTMLImageElement) {
             images.push(root);
         }
 
-        if (
-            root.querySelectorAll
-        ) {
-            root
-                .querySelectorAll(
-                    KrynetBlurNSFW.IMAGE_SELECTOR
-                )
-                .forEach(image => {
-                    images.push(image);
-                });
-        }
+        root.querySelectorAll?.("img").forEach(image => {
+            images.push(image);
+        });
 
         for (const image of images) {
             this.queueImage(image);
         }
     }
 
-    /* =========================================================
-       QUEUE IMAGE
-    ========================================================= */
-
     queueImage(image) {
-        if (
-            !(image instanceof
-                HTMLImageElement)
-        ) {
+        if (!(image instanceof HTMLImageElement)) {
             return;
         }
 
-        if (
-            this.scannedImages.has(image) ||
-            this.pendingImages.has(image)
-        ) {
+        if (this.pending.has(image)) {
             return;
         }
 
@@ -221,80 +153,55 @@ class KrynetBlurNSFW {
             return;
         }
 
-        this.pendingImages.add(image);
+        this.pending.add(image);
+
+        const analyze = () => {
+            void this.analyzeImage(image);
+        };
 
         if (
             image.complete &&
             image.naturalWidth > 0
         ) {
-            void this.analyzeImage(image);
-            return;
+            analyze();
+        } else {
+            image.addEventListener(
+                "load",
+                analyze,
+                { once: true }
+            );
         }
-
-        image.addEventListener(
-            "load",
-            () => {
-                void this.analyzeImage(image);
-            },
-            {
-                once: true
-            }
-        );
     }
-
-    /* =========================================================
-       ANALYZE IMAGE
-    ========================================================= */
 
     async analyzeImage(image) {
         try {
             if (
-                !image ||
+                !this.settings.enabled ||
                 !image.isConnected
             ) {
                 return;
             }
 
-            if (!this.settings.enabled) {
-                return;
-            }
-
-            if (
-                !image.complete ||
-                !image.naturalWidth ||
-                !image.naturalHeight
-            ) {
-                return;
-            }
-
-            const message =
-                image.closest(
-                    KrynetBlurNSFW.MESSAGE_SELECTOR
-                );
+            const message = image.closest(
+                KrynetBlurNSFW.MESSAGE_SELECTOR
+            );
 
             if (!message) {
                 return;
             }
 
-            const result =
-                await this.detectImage(image);
+            const result = await this.detectImage(image);
 
-            image.dataset.krNsfwChecked =
-                "true";
+            if (!image.isConnected) {
+                return;
+            }
 
-            image.dataset.krNsfwScore =
-                String(result.score);
+            this.results.set(image, {
+                sensitive: Boolean(result?.sensitive),
+                score: Number(result?.score) || 0
+            });
 
-            image.dataset.krNsfwClass =
-                result.className;
-
-            this.updateMessageBlur(
-                message
-            );
-
-            this.scannedImages.add(
-                image
-            );
+            this.updateMessage(message);
 
         } catch (error) {
             console.warn(
@@ -302,384 +209,58 @@ class KrynetBlurNSFW {
                 error
             );
         } finally {
-            this.pendingImages.delete(
-                image
-            );
+            this.pending.delete(image);
         }
     }
 
-    /* =========================================================
-       LOCAL IMAGE DETECTOR
-    ========================================================= */
+    updateMessage(message) {
+        const images = [
+            ...message.querySelectorAll(
+                KrynetBlurNSFW.IMAGE_SELECTOR
+            )
+        ];
 
-    async detectImage(image) {
-        const maxSize = 160;
+        const shouldBlur = images.some(image => {
+            const result = this.results.get(image);
 
-        const width =
-            Math.min(
-                image.naturalWidth,
-                maxSize
+            return (
+                result &&
+                result.sensitive === true &&
+                result.score >= this.settings.threshold
             );
+        });
 
-        const height =
-            Math.min(
-                image.naturalHeight,
-                maxSize
-            );
-
-        const canvas =
-            document.createElement(
-                "canvas"
-            );
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const context =
-            canvas.getContext(
-                "2d",
-                {
-                    willReadFrequently: true
-                }
-            );
-
-        if (!context) {
-            return {
-                nsfw: false,
-                score: 0,
-                className: "Unknown"
-            };
-        }
-
-        /*
-         * Draw the image into a local canvas.
-         *
-         * No upload.
-         * No network request.
-         * No external library.
-         */
-
-        try {
-            context.drawImage(
-                image,
-                0,
-                0,
-                width,
-                height
-            );
-        } catch {
-            return {
-                nsfw: false,
-                score: 0,
-                className: "Unreadable"
-            };
-        }
-
-        let pixels;
-
-        try {
-            pixels =
-                context.getImageData(
-                    0,
-                    0,
-                    width,
-                    height
-                ).data;
-        } catch {
-            /*
-             * Cross-origin images without
-             * CORS permission cannot be read
-             * from canvas.
-             */
-
-            return {
-                nsfw: false,
-                score: 0,
-                className: "CrossOrigin"
-            };
-        }
-
-        let skinPixels = 0;
-        let saturatedPixels = 0;
-        let brightPixels = 0;
-        let totalPixels = 0;
-
-        /*
-         * Sample pixels rather than processing
-         * every pixel.
-         */
-
-        const step = 4;
-
-        for (
-            let y = 0;
-            y < height;
-            y += step
-        ) {
-            for (
-                let x = 0;
-                x < width;
-                x += step
-            ) {
-                const index =
-                    (y * width + x) * 4;
-
-                const r =
-                    pixels[index];
-
-                const g =
-                    pixels[index + 1];
-
-                const b =
-                    pixels[index + 2];
-
-                const max =
-                    Math.max(r, g, b);
-
-                const min =
-                    Math.min(r, g, b);
-
-                const saturation =
-                    max === 0
-                        ? 0
-                        : (max - min) /
-                          max;
-
-                /*
-                 * Broad skin-tone heuristic.
-                 *
-                 * This deliberately uses a
-                 * broad range rather than trying
-                 * to identify individual people.
-                 */
-
-                const looksSkinLike =
-                    r > 70 &&
-                    g > 35 &&
-                    b > 20 &&
-                    r > g &&
-                    g > b &&
-                    r - g > 10 &&
-                    r - b > 20 &&
-                    saturation > 0.15;
-
-                if (looksSkinLike) {
-                    skinPixels++;
-                }
-
-                if (
-                    saturation >
-                    0.55
-                ) {
-                    saturatedPixels++;
-                }
-
-                if (
-                    r > 200 &&
-                    g > 180 &&
-                    b > 160
-                ) {
-                    brightPixels++;
-                }
-
-                totalPixels++;
-            }
-        }
-
-        if (!totalPixels) {
-            return {
-                nsfw: false,
-                score: 0,
-                className: "Unknown"
-            };
-        }
-
-        const skinRatio =
-            skinPixels /
-            totalPixels;
-
-        const saturationRatio =
-            saturatedPixels /
-            totalPixels;
-
-        const brightRatio =
-            brightPixels /
-            totalPixels;
-
-        /*
-         * Combine signals.
-         *
-         * Skin alone is NOT enough.
-         * Large areas of skin-like pixels
-         * are required before the score rises.
-         */
-
-        let score = 0;
-
-        if (skinRatio > 0.20) {
-            score += 0.25;
-        }
-
-        if (skinRatio > 0.35) {
-            score += 0.20;
-        }
-
-        if (skinRatio > 0.50) {
-            score += 0.20;
-        }
-
-        if (skinRatio > 0.65) {
-            score += 0.15;
-        }
-
-        /*
-         * Images dominated by skin-like
-         * pixels receive additional weight
-         * when their color distribution
-         * isn't extremely saturated.
-         */
-
-        if (
-            skinRatio > 0.40 &&
-            saturationRatio < 0.50
-        ) {
-            score += 0.10;
-        }
-
-        /*
-         * Extremely bright images receive
-         * a small reduction to avoid making
-         * white backgrounds look suspicious.
-         */
-
-        if (
-            brightRatio > 0.70
-        ) {
-            score -= 0.10;
-        }
-
-        score =
-            Math.max(
-                0,
-                Math.min(
-                    1,
-                    score
-                )
-            );
-
-        let className =
-            "Neutral";
-
-        if (
-            score >=
-            this.settings.threshold
-        ) {
-            className =
-                "Likely NSFW";
-        } else if (
-            score >= 0.35
-        ) {
-            className =
-                "Possibly NSFW";
-        }
-
-        return {
-            nsfw:
-                score >=
-                this.settings.threshold,
-
-            score,
-
-            className
-        };
+        this.apply(message, shouldBlur);
     }
 
-    /* =========================================================
-       UPDATE MESSAGE
-    ========================================================= */
-
-    updateMessageBlur(message) {
+    apply(message, shouldBlur) {
         if (!message) {
             return;
         }
 
-        const images =
-            Array.from(
-                message.querySelectorAll(
-                    KrynetBlurNSFW.IMAGE_SELECTOR
-                )
-            );
+        const blur =
+            this.settings.enabled &&
+            shouldBlur;
 
-        /*
-         * ONLY a checked image can trigger
-         * the blur.
-         */
-
-        const nsfwImage =
-            images.some(image => {
-                if (
-                    image.dataset
-                        .krNsfwChecked !==
-                    "true"
-                ) {
-                    return false;
-                }
-
-                return (
-                    Number(
-                        image.dataset
-                            .krNsfwScore
-                    ) >=
-                    this.settings.threshold
-                );
-            });
-
-        this.apply(
-            message,
-            {
-                nsfw: nsfwImage
-            }
-        );
-    }
-
-    /* =========================================================
-       APPLY
-    ========================================================= */
-
-    apply(messageEl, result) {
-        if (!messageEl) {
-            return;
-        }
-
-        const shouldBlur =
-            this.settings.enabled === true &&
-            result?.nsfw === true;
-
-        messageEl.classList.toggle(
+        message.classList.toggle(
             KrynetBlurNSFW.BLUR_CLASS,
-            shouldBlur
+            blur
         );
 
-        messageEl.dataset.krNsfw =
-            shouldBlur
-                ? "true"
-                : "false";
+        message.dataset.krNsfw =
+            blur ? "true" : "false";
 
-        if (shouldBlur) {
-            messageEl.style.setProperty(
+        if (blur) {
+            message.style.setProperty(
                 KrynetBlurNSFW.CSS_VAR,
                 `${this.settings.blurAmount}px`
             );
         } else {
-            messageEl.style.removeProperty(
+            message.style.removeProperty(
                 KrynetBlurNSFW.CSS_VAR
             );
         }
     }
-
-    /* =========================================================
-       CLEAR
-    ========================================================= */
 
     clearAllBlurs() {
         document
@@ -687,59 +268,23 @@ class KrynetBlurNSFW {
                 `.${KrynetBlurNSFW.BLUR_CLASS}`
             )
             .forEach(message => {
-                message.classList.remove(
-                    KrynetBlurNSFW.BLUR_CLASS
-                );
-
-                message.dataset.krNsfw =
-                    "false";
-
-                message.style.removeProperty(
-                    KrynetBlurNSFW.CSS_VAR
-                );
+                this.apply(message, false);
             });
     }
 
-    /* =========================================================
-       RESCAN
-    ========================================================= */
-
     rescan() {
-        this.scannedImages =
-            new WeakSet();
-
-        this.pendingImages =
-            new WeakSet();
-
+        this.pending = new WeakSet();
+        this.results = new WeakMap();
         this.clearAllBlurs();
-
         this.scan();
     }
 
-    /* =========================================================
-       STOP
-    ========================================================= */
-
     stop() {
-        if (this.observer) {
-            this.observer.disconnect();
-            this.observer = null;
-        }
+        this.observer?.disconnect();
+        this.observer = null;
     }
 }
 
+const instance = new KrynetBlurNSFW(10);
 
-/* =============================================================
-   GLOBAL INSTANCE
-============================================================= */
-
-const instance =
-    new KrynetBlurNSFW(10);
-
-
-/* =============================================================
-   GLOBAL EXPORT
-============================================================= */
-
-window.KrynetNSFW =
-    instance;
+window.KrynetNSFW = instance;
