@@ -8,8 +8,7 @@
     const RULES_URL =
         "https://raw.githubusercontent.com/ClearURLs/Rules/master/data.min.json";
 
-    const MESSAGE_SELECTOR =
-        ".message";
+    const MESSAGE_SELECTOR = ".message";
 
     const EDITABLE_SELECTOR =
         "textarea, [contenteditable='true']";
@@ -18,64 +17,21 @@
         /https?:\/\/[^\s<]+[^<.,:;"'>)\]\s]/gi;
 
     /* ---------------------------------------------------------
-       TYPES
-    --------------------------------------------------------- */
-
-    type ProviderData = {
-        urlPattern: string;
-        rules?: string[];
-        rawRules?: string[];
-        exceptions?: string[];
-    };
-
-    type ClearURLsData = {
-        providers: Record<
-            string,
-            ProviderData
-        >;
-    };
-
-    type RuleSet = {
-        name: string;
-        urlPattern: RegExp;
-        rules: RegExp[];
-        rawRules: RegExp[];
-        exceptions: RegExp[];
-    };
-
-    type MessageElement = HTMLElement & {
-        __clearURLsProcessed?: boolean;
-    };
-
-    type EditableElement =
-        | HTMLTextAreaElement
-        | HTMLElement;
-
-    /* ---------------------------------------------------------
        STATE
     --------------------------------------------------------- */
 
-    let rules: RuleSet[] = [];
-
+    let rules = [];
     let rulesLoaded = false;
-
-    let rulesLoading: Promise<void> | null = null;
-
-    let scanTimer:
-        ReturnType<typeof setTimeout> | null = null;
+    let rulesLoading = null;
+    let scanTimer = null;
 
     /* ---------------------------------------------------------
        REGEX HELPERS
     --------------------------------------------------------- */
 
-    function createRegex(
-        pattern: string
-    ): RegExp | null {
+    function createRegex(pattern) {
         try {
-            return new RegExp(
-                pattern,
-                "i"
-            );
+            return new RegExp(pattern, "i");
         } catch (error) {
             console.warn(
                 "[ClearURLs] Invalid rule:",
@@ -87,18 +43,15 @@
         }
     }
 
-    function createRegexList(
-        patterns?: string[]
-    ): RegExp[] {
+    function createRegexList(patterns) {
         if (!patterns) {
             return [];
         }
 
-        const result: RegExp[] = [];
+        const result = [];
 
         for (const pattern of patterns) {
-            const regex =
-                createRegex(pattern);
+            const regex = createRegex(pattern);
 
             if (regex) {
                 result.push(regex);
@@ -112,7 +65,7 @@
        LOAD RULES
     --------------------------------------------------------- */
 
-    async function loadRules(): Promise<void> {
+    async function loadRules() {
         if (rulesLoaded) {
             return;
         }
@@ -123,10 +76,12 @@
 
         rulesLoading = (async () => {
             try {
-                const response =
-                    await fetch(RULES_URL, {
+                const response = await fetch(
+                    RULES_URL,
+                    {
                         cache: "no-cache"
-                    });
+                    }
+                );
 
                 if (!response.ok) {
                     throw new Error(
@@ -134,8 +89,7 @@
                     );
                 }
 
-                const data =
-                    await response.json() as ClearURLsData;
+                const data = await response.json();
 
                 if (
                     !data?.providers ||
@@ -146,7 +100,7 @@
                     );
                 }
 
-                const loadedRules: RuleSet[] = [];
+                const loadedRules = [];
 
                 for (
                     const [name, provider]
@@ -164,12 +118,17 @@
                     loadedRules.push({
                         name,
                         urlPattern,
-                        rules: createRegexList(
-                            provider.rules
-                        ),
-                        rawRules: createRegexList(
-                            provider.rawRules
-                        ),
+
+                        rules:
+                            createRegexList(
+                                provider.rules
+                            ),
+
+                        rawRules:
+                            createRegexList(
+                                provider.rawRules
+                            ),
+
                         exceptions:
                             createRegexList(
                                 provider.exceptions
@@ -200,16 +159,11 @@
        RESET REGEX
     --------------------------------------------------------- */
 
-    function resetRegex(
-        regex: RegExp
-    ): void {
+    function resetRegex(regex) {
         regex.lastIndex = 0;
     }
 
-    function regexTest(
-        regex: RegExp,
-        value: string
-    ): boolean {
+    function regexTest(regex, value) {
         resetRegex(regex);
         return regex.test(value);
     }
@@ -218,10 +172,8 @@
        CLEAN URL
     --------------------------------------------------------- */
 
-    function cleanUrl(
-        href: string
-    ): string {
-        let url: URL;
+    function cleanUrl(href) {
+        let url;
 
         try {
             url = new URL(href);
@@ -292,8 +244,7 @@
             ------------------------------------------------- */
 
             if (rule.rawRules.length) {
-                let value =
-                    url.toString();
+                let value = url.toString();
 
                 for (
                     const regex
@@ -328,9 +279,7 @@
        CLEAN TEXT
     --------------------------------------------------------- */
 
-    function cleanText(
-        text: string
-    ): string {
+    function cleanText(text) {
         if (
             !text ||
             !rules.length
@@ -348,16 +297,13 @@
        EDITABLE ELEMENTS
     --------------------------------------------------------- */
 
-    function isEditable(
-        element: Element | null
-    ): element is EditableElement {
+    function isEditable(element) {
         if (!element) {
             return false;
         }
 
         if (
-            element instanceof
-            HTMLTextAreaElement
+            element instanceof HTMLTextAreaElement
         ) {
             return true;
         }
@@ -368,12 +314,9 @@
         );
     }
 
-    function cleanEditable(
-        element: EditableElement
-    ): void {
+    function cleanEditable(element) {
         if (
-            element instanceof
-            HTMLTextAreaElement
+            element instanceof HTMLTextAreaElement
         ) {
             const cleaned =
                 cleanText(element.value);
@@ -392,20 +335,16 @@
        CONTENTEDITABLE
     --------------------------------------------------------- */
 
-    function cleanContentEditable(
-        element: HTMLElement
-    ): void {
+    function cleanContentEditable(element) {
         const walker =
             document.createTreeWalker(
                 element,
                 NodeFilter.SHOW_TEXT
             );
 
-        const nodes: Text[] = [];
+        const nodes = [];
 
-        let node:
-            | Node
-            | null;
+        let node;
 
         while (
             (node = walker.nextNode())
@@ -426,8 +365,7 @@
                 cleanText(original);
 
             if (cleaned !== original) {
-                textNode.nodeValue =
-                    cleaned;
+                textNode.nodeValue = cleaned;
             }
         }
     }
@@ -436,22 +374,20 @@
        SUBMIT
     --------------------------------------------------------- */
 
-    function hookSubmit(): void {
+    function hookSubmit() {
         document.addEventListener(
             "submit",
             event => {
-                const form =
-                    event.target;
+                const form = event.target;
 
                 if (
-                    !(form instanceof
-                    HTMLFormElement)
+                    !(form instanceof HTMLFormElement)
                 ) {
                     return;
                 }
 
                 const editable =
-                    form.querySelector<EditableElement>(
+                    form.querySelector(
                         EDITABLE_SELECTOR
                     );
 
@@ -469,17 +405,13 @@
        PASTE
     --------------------------------------------------------- */
 
-    function hookPaste(): void {
+    function hookPaste() {
         document.addEventListener(
             "paste",
             event => {
-                const target =
-                    event.target;
+                const target = event.target;
 
-                if (
-                    !(target instanceof
-                    Element)
-                ) {
+                if (!(target instanceof Element)) {
                     return;
                 }
 
@@ -499,41 +431,30 @@
        RENDERED MESSAGES
     --------------------------------------------------------- */
 
-    function cleanMessage(
-        message: MessageElement
-    ): void {
-        if (
-            message.__clearURLsProcessed
-        ) {
+    function cleanMessage(message) {
+        if (message.__clearURLsProcessed) {
             return;
         }
 
         cleanContentEditable(message);
 
-        message.__clearURLsProcessed =
-            true;
+        message.__clearURLsProcessed = true;
     }
 
-    function cleanRendered(
-        root: ParentNode = document
-    ): void {
+    function cleanRendered(root = document) {
         if (
             root instanceof HTMLElement &&
             root.matches(MESSAGE_SELECTOR)
         ) {
-            cleanMessage(
-                root as MessageElement
-            );
+            cleanMessage(root);
         }
 
         root
-            .querySelectorAll<HTMLElement>(
+            .querySelectorAll(
                 MESSAGE_SELECTOR
             )
             .forEach(message => {
-                cleanMessage(
-                    message as MessageElement
-                );
+                cleanMessage(message);
             });
     }
 
@@ -541,7 +462,7 @@
        DYNAMIC MESSAGE HANDLING
     --------------------------------------------------------- */
 
-    function scheduleScan(): void {
+    function scheduleScan() {
         if (scanTimer !== null) {
             return;
         }
@@ -570,7 +491,7 @@
        INITIALIZE
     --------------------------------------------------------- */
 
-    async function init(): Promise<void> {
+    async function init() {
         await loadRules();
 
         if (!rulesLoaded) {
@@ -606,8 +527,7 @@
     --------------------------------------------------------- */
 
     if (
-        document.readyState ===
-        "loading"
+        document.readyState === "loading"
     ) {
         document.addEventListener(
             "DOMContentLoaded",
