@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
@@ -9,52 +8,70 @@
   <title>KrynetAI.free – Chat</title>
 
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
-    rel="stylesheet"
+    rel="icon"
+    href="favicon.ico"
+    type="image/x-icon"
   >
 
-  <script
-    async
-    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3940256099942544"
-    crossorigin="anonymous"
-  ></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
 
   <style>
     * {
       box-sizing: border-box;
     }
 
+    html,
     body {
       margin: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
       font-family: Inter, system-ui, sans-serif;
-      background: #0a0a0a;
-      color: #fff;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
+      background: #313338;
+      color: #f2f3f5;
       overflow: hidden;
     }
 
-    /* -------------------------------------------------------
-       AD
-    ------------------------------------------------------- */
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
 
-    .ad-banner {
-      background: #111;
-      border-bottom: 1px solid #400000;
-      text-align: center;
-      padding: 8px;
-      min-height: 60px;
+    button {
+      cursor: pointer;
     }
 
     /* -------------------------------------------------------
-       LAYOUT
+       APP
     ------------------------------------------------------- */
 
-    .main-content {
+    .app {
+      width: 100%;
+      height: 100vh;
       display: flex;
+      flex-direction: column;
+    }
+
+    .top-ad {
+      min-height: 0;
+      background: #1e1f22;
+      border-bottom: 1px solid #202225;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .main {
       flex: 1;
       min-height: 0;
+      display: flex;
     }
 
     /* -------------------------------------------------------
@@ -64,193 +81,283 @@
     .sidebar {
       width: 240px;
       flex-shrink: 0;
-      background: #1a0000;
-      border-right: 1px solid #400000;
+      background: #2b2d31;
+      border-right: 1px solid #1f2023;
       display: flex;
       flex-direction: column;
-      padding: 16px 0;
+    }
+
+    .server-header {
+      height: 52px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      font-weight: 700;
+      border-bottom: 1px solid #1f2023;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+    }
+
+    .server-header span {
+      color: #ff4d4d;
     }
 
     .channel-list {
-      flex: 1;
+      padding: 12px 8px;
       overflow-y: auto;
     }
 
+    .channel-category {
+      padding: 8px 8px 5px;
+      color: #949ba4;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
     .channel {
-      padding: 9px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-      color: #fff;
-      font-size: 15px;
+      width: 100%;
+      padding: 7px 10px;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: #b5bac1;
+      text-align: left;
+      font-size: 14px;
     }
 
     .channel:hover {
-      background: #330000;
+      background: #35373c;
+      color: #dbdee1;
     }
 
     .channel.active {
-      background: #400000;
-      font-weight: 600;
+      background: #404249;
+      color: #fff;
+    }
+
+    .channel-icon {
+      color: #949ba4;
+      margin-right: 5px;
     }
 
     /* -------------------------------------------------------
        CHAT
     ------------------------------------------------------- */
 
-    .chat-container {
+    .chat {
       flex: 1;
       min-width: 0;
       display: flex;
       flex-direction: column;
+      background: #313338;
     }
 
     .chat-header {
-      padding: 16px;
-      background: #1a0000;
-      border-bottom: 1px solid #400000;
-      font-weight: 600;
+      height: 52px;
       flex-shrink: 0;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #1f2023;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+      font-weight: 600;
     }
 
-    .chat-main {
-      display: flex;
-      flex: 1;
-      min-height: 0;
+    .chat-header .hash {
+      color: #949ba4;
+      font-size: 22px;
+    }
+
+    .chat-header-name {
+      font-size: 15px;
     }
 
     .chat-messages {
       flex: 1;
-      min-width: 0;
-      padding: 18px;
+      min-height: 0;
+      padding: 16px 0;
       overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      scroll-behavior: smooth;
     }
 
     /* -------------------------------------------------------
-       MESSAGES
+       MESSAGE
     ------------------------------------------------------- */
 
     .message {
-      display: flex;
-      gap: 10px;
-      max-width: min(760px, 80%);
-      align-items: flex-start;
       position: relative;
-      padding: 4px 0;
+      display: flex;
+      gap: 12px;
+      padding: 4px 16px;
+      margin-top: 8px;
     }
 
-    .message.self {
-      align-self: flex-end;
-      flex-direction: row-reverse;
+    .message:hover {
+      background: rgba(0, 0, 0, .04);
     }
 
-    .message-content-wrapper {
-      min-width: 0;
-    }
-
-    .message-content {
-      background: #1a1a1a;
-      padding: 10px 13px;
-      border-radius: 9px;
-      overflow-wrap: anywhere;
-    }
-
-    .message.self .message-content {
-      background: #330000;
-    }
-
-    .message-meta {
-      font-size: 12px;
-      color: #888;
-      margin-bottom: 4px;
+    .message:hover .message-actions {
+      opacity: 1;
+      pointer-events: auto;
     }
 
     .avatar {
-      width: 36px;
-      height: 36px;
-      flex: 0 0 36px;
+      width: 40px;
+      height: 40px;
+      flex: 0 0 40px;
       border-radius: 50%;
       object-fit: cover;
+      background: #202225;
     }
 
-    /* -------------------------------------------------------
-       USER LIST
-    ------------------------------------------------------- */
-
-    .user-list {
-      width: 210px;
-      flex-shrink: 0;
-      background: #1a0000;
-      border-left: 1px solid #400000;
-      padding: 16px 12px;
-      overflow-y: auto;
-    }
-
-    .user {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
-      font-size: 14px;
-    }
-
-    .user .avatar {
-      width: 30px;
-      height: 30px;
-      flex-basis: 30px;
-    }
-
-    .status-dot {
-      width: 9px;
-      height: 9px;
-      flex-shrink: 0;
-      border-radius: 50%;
-      background: #43b581;
-    }
-
-    /* -------------------------------------------------------
-       INPUT
-    ------------------------------------------------------- */
-
-    .chat-input {
-      display: flex;
-      gap: 10px;
-      padding: 14px;
-      border-top: 1px solid #400000;
-      background: #1a0000;
-      flex-shrink: 0;
-    }
-
-    .chat-input input {
-      flex: 1;
+    .message-main {
       min-width: 0;
-      padding: 11px 13px;
-      border: 1px solid #444;
-      border-radius: 8px;
-      outline: none;
-      background: #222;
+      max-width: min(760px, calc(100% - 52px));
+    }
+
+    .message-meta {
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+      margin-bottom: 2px;
+      line-height: 20px;
+    }
+
+    .message-author {
       color: #fff;
-      font: inherit;
-    }
-
-    .chat-input input:focus {
-      border-color: #ff4d4d;
-    }
-
-    .chat-input button {
-      background: #ff4d4d;
-      border: 0;
-      padding: 10px 18px;
-      border-radius: 8px;
-      color: white;
-      cursor: pointer;
+      font-size: 14px;
       font-weight: 600;
     }
 
-    .chat-input button:hover {
-      background: #cc0000;
+    .message-time {
+      color: #949ba4;
+      font-size: 11px;
+    }
+
+    .message-content {
+      color: #dbdee1;
+      font-size: 14px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    /* -------------------------------------------------------
+       MESSAGE ACTIONS
+    ------------------------------------------------------- */
+
+    .message-actions {
+      position: absolute;
+      right: 18px;
+      top: -16px;
+      z-index: 10;
+
+      display: flex;
+      align-items: center;
+
+      opacity: 0;
+      pointer-events: none;
+
+      background: #313338;
+      border: 1px solid #1f2023;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
+
+      overflow: hidden;
+    }
+
+    .message-action {
+      width: 34px;
+      height: 32px;
+      border: 0;
+      background: transparent;
+      color: #b5bac1;
+      font-size: 17px;
+    }
+
+    .message-action:hover {
+      background: #404249;
+      color: #fff;
+    }
+
+    /* -------------------------------------------------------
+       REACTIONS
+    ------------------------------------------------------- */
+
+    .message-reactions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    /*
+     * reactions.js can also populate these containers.
+     * These defaults make them look correct even before JS
+     * adds anything.
+     */
+
+    .kr-reactions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .kr-reaction {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 24px;
+      padding: 2px 7px;
+
+      border: 1px solid #4e5058;
+      border-radius: 5px;
+
+      background: #2b2d31;
+      color: #dbdee1;
+
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .kr-reaction:hover {
+      border-color: #5865f2;
+      background: #35373c;
+    }
+
+    .kr-reaction.active {
+      border-color: #5865f2;
+      background: rgba(88, 101, 242, .2);
+    }
+
+    .kr-reaction-count {
+      color: #b5bac1;
+      font-size: 12px;
+    }
+
+    .kr-add-reaction {
+      width: 27px;
+      height: 24px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      border: 1px solid #4e5058;
+      border-radius: 5px;
+
+      background: #2b2d31;
+      color: #b5bac1;
+
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .kr-add-reaction:hover {
+      background: #35373c;
+      color: #fff;
+      border-color: #5865f2;
     }
 
     /* -------------------------------------------------------
@@ -258,64 +365,317 @@
     ------------------------------------------------------- */
 
     .kr-embed {
+      width: 100%;
       max-width: 480px;
+      margin-top: 8px;
+    }
+
+    .kr-embed a {
+      transition: opacity .15s ease;
+    }
+
+    .kr-embed a:hover {
+      opacity: .85;
+    }
+
+    .kr-embed iframe {
+      display: block;
+    }
+
+    .kr-embed-reactions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .kr-embed-placeholder {
+      min-height: 8px;
     }
 
     /* -------------------------------------------------------
-       FILE EMBEDS
+       ATTACHMENTS
     ------------------------------------------------------- */
 
-    .file-embed {
+    .attachments {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
       margin-top: 8px;
-      padding: 10px;
-      border-radius: 8px;
-      background: #111;
-      border: 1px solid #333;
     }
 
-    .file-embed img,
-    .file-embed video {
-      display: block;
-      max-width: 100%;
-      border-radius: 7px;
+    .attachment {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      max-width: 360px;
+      padding: 8px 10px;
+
+      background: #2b2d31;
+      border: 1px solid #1f2023;
+      border-radius: 6px;
     }
 
-    .file-embed audio {
-      width: 100%;
+    .attachment-icon {
+      font-size: 22px;
     }
 
-    .file-name {
+    .attachment-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      color: #00a8fc;
+      font-size: 13px;
+    }
+
+    .attachment-size {
+      color: #949ba4;
+      font-size: 11px;
+    }
+
+    /* -------------------------------------------------------
+       USER LIST
+    ------------------------------------------------------- */
+
+    .user-list {
+      width: 220px;
+      flex-shrink: 0;
+      padding: 18px 12px;
+      background: #2b2d31;
+      overflow-y: auto;
+    }
+
+    .user-list-title {
+      padding: 0 8px 10px;
+      color: #949ba4;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .user {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 6px 8px;
+      border-radius: 4px;
+      color: #b5bac1;
+      font-size: 13px;
+    }
+
+    .user:hover {
+      background: #35373c;
+    }
+
+    .user .avatar {
+      width: 32px;
+      height: 32px;
+      flex-basis: 32px;
+    }
+
+    .user-status {
+      position: relative;
+    }
+
+    .status-dot {
+      position: absolute;
+      right: -1px;
+      bottom: -1px;
+
+      width: 10px;
+      height: 10px;
+
+      border: 2px solid #2b2d31;
+      border-radius: 50%;
+      background: #23a559;
+    }
+
+    .status-dot.idle {
+      background: #f0b232;
+    }
+
+    /* -------------------------------------------------------
+       COMPOSER
+    ------------------------------------------------------- */
+
+    .composer-area {
+      flex-shrink: 0;
+      padding: 0 16px 18px;
+      background: #313338;
+    }
+
+    .selected-files {
+      display: none;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 0 8px;
+    }
+
+    .selected-files.has-files {
+      display: flex;
+    }
+
+    .selected-file {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      padding: 6px 9px;
+
+      border-radius: 6px;
+      background: #2b2d31;
+      border: 1px solid #1f2023;
+
       font-size: 12px;
-      color: #aaa;
-      margin-bottom: 8px;
-      overflow-wrap: anywhere;
+      color: #dbdee1;
+    }
+
+    .remove-file {
+      width: 20px;
+      height: 20px;
+      padding: 0;
+
+      border: 0;
+      border-radius: 50%;
+
+      background: transparent;
+      color: #949ba4;
+    }
+
+    .remove-file:hover {
+      color: #fff;
+      background: #404249;
+    }
+
+    .composer {
+      min-height: 44px;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+
+      padding: 8px 10px;
+
+      background: #383a40;
+      border-radius: 8px;
+    }
+
+    .composer-button {
+      width: 30px;
+      height: 30px;
+      flex: 0 0 30px;
+
+      padding: 0;
+
+      border: 0;
+      border-radius: 50%;
+
+      background: transparent;
+      color: #b5bac1;
+
+      font-size: 20px;
+    }
+
+    .composer-button:hover {
+      color: #fff;
+      background: #404249;
+    }
+
+    #chatInput {
+      flex: 1;
+      min-width: 0;
+
+      min-height: 28px;
+      max-height: 160px;
+
+      padding: 4px 2px;
+
+      border: 0;
+      outline: 0;
+
+      background: transparent;
+      color: #dbdee1;
+
+      resize: none;
+      line-height: 20px;
+    }
+
+    #chatInput::placeholder {
+      color: #949ba4;
+    }
+
+    #sendBtn {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+
+      border: 0;
+      border-radius: 6px;
+
+      background: #5865f2;
+      color: #fff;
+
+      font-size: 16px;
+    }
+
+    #sendBtn:hover {
+      background: #4752c4;
+    }
+
+    #sendBtn:disabled {
+      opacity: .5;
+      cursor: default;
+    }
+
+    #fileInput {
+      display: none;
     }
 
     /* -------------------------------------------------------
        MOBILE
     ------------------------------------------------------- */
 
-    @media (max-width: 850px) {
-      .sidebar {
-        width: 190px;
-      }
-
+    @media (max-width: 900px) {
       .user-list {
         display: none;
       }
-
-      .message {
-        max-width: 90%;
-      }
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 650px) {
       .sidebar {
+        width: 68px;
+      }
+
+      .server-header {
+        justify-content: center;
+        padding: 0;
+      }
+
+      .server-header .server-name,
+      .channel-category,
+      .channel-name {
         display: none;
       }
 
-      .chat-messages {
-        padding: 12px;
+      .channel {
+        text-align: center;
+        padding: 10px 0;
+      }
+
+      .channel-icon {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .message {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      .composer-area {
+        padding-left: 8px;
+        padding-right: 8px;
       }
     }
   </style>
@@ -323,434 +683,1054 @@
 
 <body>
 
-  <!-- =======================================================
-       AD
-  ======================================================== -->
+<div class="app">
 
-  <div class="ad-banner">
+  <!-- =====================================================
+       TOP AD
+  ====================================================== -->
+
+  <div class="top-ad">
     <ins
       class="adsbygoogle"
       style="display:block"
       data-ad-client="ca-pub-3940256099942544"
       data-ad-slot="6300978111"
       data-ad-format="auto"
-      data-full-width-responsive="true"
-    ></ins>
-
-    <script>
-      (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
+      data-full-width-responsive="true">
+    </ins>
   </div>
 
-  <!-- =======================================================
+  <!-- =====================================================
        MAIN
-  ======================================================== -->
+  ====================================================== -->
 
-  <div class="main-content">
+  <div class="main">
 
-    <!-- =====================================================
-         CHANNEL SIDEBAR
-    ====================================================== -->
+    <!-- ===================================================
+         SIDEBAR
+    ==================================================== -->
 
     <aside class="sidebar">
+
+      <div class="server-header">
+        <span>◆</span>
+        <span class="server-name">&nbsp; KrynetAI.free</span>
+      </div>
+
       <div class="channel-list">
 
-        <div class="channel active">
-          # general
+        <div class="channel-category">
+          Text Channels
         </div>
 
-        <div class="channel">
-          # support
-        </div>
-
-        <div class="channel">
-          # random
-        </div>
-
-      </div>
-    </aside>
-
-    <!-- =====================================================
-         CHAT
-    ====================================================== -->
-
-    <main class="chat-container">
-
-      <header class="chat-header">
-        # general
-      </header>
-
-      <div class="chat-main">
-
-        <!-- ===============================================
-             MESSAGES
-        ================================================ -->
-
-        <section
-          class="chat-messages"
-          id="chatMessages"
+        <button
+          class="channel active"
+          type="button"
         >
+          <span class="channel-icon">#</span>
+          <span class="channel-name">general</span>
+        </button>
 
-          <div class="message other">
-
-            <img
-              class="avatar"
-              src="https://cdn.krynet.com/avatars/default1.png"
-              alt="UserA"
-            >
-
-            <div class="message-content-wrapper">
-
-              <div class="message-meta">
-                <strong>UserA</strong>
-                • 12:34 PM
-              </div>
-
-              <div class="message-content">
-                Welcome to KrynetAI.free
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
-
-        <!-- ===============================================
-             ONLINE USERS
-        ================================================ -->
-
-        <aside class="user-list">
-
-          <div class="user">
-            <div class="status-dot"></div>
-
-            <img
-              class="avatar"
-              src="https://cdn.krynet.com/avatars/default1.png"
-              alt="UserA"
-            >
-
-            <span>UserA</span>
-          </div>
-
-          <div class="user">
-            <div
-              class="status-dot"
-              style="background-color:#faa61a"
-            ></div>
-
-            <img
-              class="avatar"
-              src="https://cdn.krynet.com/avatars/default2.png"
-              alt="UserB"
-            >
-
-            <span>UserB</span>
-          </div>
-
-        </aside>
-
-      </div>
-
-      <!-- =================================================
-           MESSAGE INPUT
-      ================================================== -->
-
-      <div class="chat-input">
-
-        <input
-          type="text"
-          id="chatInput"
-          placeholder="Type your message..."
-          autocomplete="off"
+        <button
+          class="channel"
+          type="button"
         >
+          <span class="channel-icon">#</span>
+          <span class="channel-name">support</span>
+        </button>
 
-        <button id="sendBtn">
-          Send
+        <button
+          class="channel"
+          type="button"
+        >
+          <span class="channel-icon">#</span>
+          <span class="channel-name">random</span>
+        </button>
+
+        <div class="channel-category">
+          Voice
+        </div>
+
+        <button
+          class="channel"
+          type="button"
+        >
+          <span class="channel-icon">♬</span>
+          <span class="channel-name">General Voice</span>
         </button>
 
       </div>
 
-    </main>
+    </aside>
+
+    <!-- ===================================================
+         CHAT
+    ==================================================== -->
+
+    <section class="chat">
+
+      <header class="chat-header">
+        <span class="hash">#</span>
+        <span class="chat-header-name">general</span>
+      </header>
+
+      <div
+        class="chat-messages"
+        id="chatMessages"
+      >
+
+        <!-- =================================================
+             INITIAL MESSAGE
+        ================================================== -->
+
+        <article
+          class="message"
+          data-message-id="welcome"
+        >
+
+          <img
+            class="avatar"
+            src="https://cdn.krynet.com/avatars/default1.png"
+            alt="UserA"
+          >
+
+          <div class="message-main">
+
+            <div class="message-meta">
+              <span class="message-author">
+                UserA
+              </span>
+
+              <span class="message-time">
+                Today at 12:34 PM
+              </span>
+            </div>
+
+            <div class="message-content">
+              Welcome to KrynetAI.free 👋
+            </div>
+
+            <div class="message-reactions">
+              <!-- reactions.js initializes here -->
+            </div>
+
+          </div>
+
+          <!-- Discord-like hover actions -->
+          <div class="message-actions">
+
+            <button
+              class="message-action add-message-reaction"
+              type="button"
+              title="Add Reaction"
+            >
+              😊
+            </button>
+
+          </div>
+
+        </article>
+
+      </div>
+
+      <!-- =================================================
+           COMPOSER
+      ================================================== -->
+
+      <div class="composer-area">
+
+        <div
+          id="selectedFiles"
+          class="selected-files"
+        ></div>
+
+        <div class="composer">
+
+          <button
+            id="attachButton"
+            class="composer-button"
+            type="button"
+            title="Attach a file"
+          >
+            +
+          </button>
+
+          <input
+            id="fileInput"
+            type="file"
+            multiple
+            accept="image/*,video/*,audio/*,.avif,.heif,.heic,.aac,.m4a,.mp4,.pdf"
+          >
+
+          <textarea
+            id="chatInput"
+            rows="1"
+            placeholder="Message #general"
+            autocomplete="off"
+          ></textarea>
+
+          <button
+            id="sendBtn"
+            type="button"
+            title="Send message"
+          >
+            ➤
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ===================================================
+         USERS
+    ==================================================== -->
+
+    <aside class="user-list">
+
+      <div class="user-list-title">
+        Online — 2
+      </div>
+
+      <div class="user">
+
+        <div class="user-status">
+
+          <img
+            class="avatar"
+            src="https://cdn.krynet.com/avatars/default1.png"
+            alt="UserA"
+          >
+
+          <span class="status-dot"></span>
+
+        </div>
+
+        <span>UserA</span>
+
+      </div>
+
+      <div class="user">
+
+        <div class="user-status">
+
+          <img
+            class="avatar"
+            src="https://cdn.krynet.com/avatars/default2.png"
+            alt="UserB"
+          >
+
+          <span class="status-dot idle"></span>
+
+        </div>
+
+        <span>UserB</span>
+
+      </div>
+
+    </aside>
 
   </div>
 
-  <!-- =====================================================
-       CHAT LOGIC
-  ====================================================== -->
+</div>
 
-  <script>
-    "use strict";
+<!-- =======================================================
+     GOOGLE ADS
+======================================================= -->
 
-    const input =
-      document.getElementById("chatInput");
+<script>
+  window.adsbygoogle = window.adsbygoogle || [];
 
+  try {
+    window.adsbygoogle.push({});
+  } catch {}
+</script>
+
+<!-- =======================================================
+     FILE INPUT / ANONYMOUS UPLOAD
+======================================================= -->
+
+<script
+  src="./js/anonymous-upload.js"
+></script>
+
+<!-- =======================================================
+     MAIN APPLICATION
+======================================================= -->
+
+<script type="module">
+
+  import {
+    Embed
+  } from "./js/embed.js";
+
+  /*
+   * Reactions is intentionally loaded separately.
+   * embed.js also imports it for embed reactions.
+   */
+  import {
+    Reactions
+  } from "./js/reactions.js";
+
+
+  /* -------------------------------------------------------
+     ELEMENTS
+  ------------------------------------------------------- */
+
+  const input =
+    document.getElementById(
+      "chatInput"
+    );
+
+  const sendButton =
+    document.getElementById(
+      "sendBtn"
+    );
+
+  const chat =
+    document.getElementById(
+      "chatMessages"
+    );
+
+  const fileInput =
+    document.getElementById(
+      "fileInput"
+    );
+
+  const attachButton =
+    document.getElementById(
+      "attachButton"
+    );
+
+  const selectedFiles =
+    document.getElementById(
+      "selectedFiles"
+    );
+
+
+  /* -------------------------------------------------------
+     STATE
+  ------------------------------------------------------- */
+
+  let messageCount = 0;
+
+  let pendingFiles = [];
+
+
+  /* -------------------------------------------------------
+     TIME
+  ------------------------------------------------------- */
+
+  function getMessageTime() {
+    return new Date()
+      .toLocaleTimeString(
+        [],
+        {
+          hour: "2-digit",
+          minute: "2-digit"
+        }
+      );
+  }
+
+
+  /* -------------------------------------------------------
+     MESSAGE REACTIONS
+  ------------------------------------------------------- */
+
+  function initializeMessageReactions(
+    message
+  ) {
+    const container =
+      message.querySelector(
+        ".message-reactions"
+      );
+
+    if (!container) {
+      return;
+    }
+
+    /*
+     * Don't initialize the same container twice.
+     */
+    if (
+      container.dataset.reactionsInitialized ===
+      "true"
+    ) {
+      return;
+    }
+
+    container.dataset.reactionsInitialized =
+      "true";
+
+    try {
+      new Reactions(
+        container
+      );
+    } catch (error) {
+      console.warn(
+        "[Krynet] Could not initialize reactions:",
+        error
+      );
+    }
+  }
+
+
+  /* -------------------------------------------------------
+     MESSAGE ACTIONS
+  ------------------------------------------------------- */
+
+  function initializeMessageActions(
+    message
+  ) {
     const button =
-      document.getElementById("sendBtn");
-
-    const chat =
-      document.getElementById("chatMessages");
-
-    let msgCount = 0;
-
-    function createMessage(text) {
-      const container =
-        document.createElement("div");
-
-      container.className =
-        "message self";
-
-      const avatar =
-        document.createElement("img");
-
-      avatar.className =
-        "avatar";
-
-      avatar.src =
-        "https://cdn.krynet.com/avatars/default2.png";
-
-      avatar.alt =
-        "You";
-
-      const wrapper =
-        document.createElement("div");
-
-      wrapper.className =
-        "message-content-wrapper";
-
-      const meta =
-        document.createElement("div");
-
-      meta.className =
-        "message-meta";
-
-      const name =
-        document.createElement("strong");
-
-      name.textContent =
-        "You";
-
-      const separator =
-        document.createTextNode(
-          " • " +
-          new Date().toLocaleTimeString(
-            [],
-            {
-              hour: "2-digit",
-              minute: "2-digit"
-            }
-          )
-        );
-
-      meta.append(
-        name,
-        separator
+      message.querySelector(
+        ".add-message-reaction"
       );
 
-      const bubble =
-        document.createElement("div");
-
-      bubble.className =
-        "message-content";
-
-      bubble.textContent =
-        text;
-
-      wrapper.append(
-        meta,
-        bubble
-      );
-
-      container.append(
-        avatar,
-        wrapper
-      );
-
-      return container;
+    if (!button) {
+      return;
     }
 
-    function addAd() {
-      const adContainer =
-        document.createElement("div");
-
-      adContainer.className =
-        "message";
-
-      const ad =
-        document.createElement("ins");
-
-      ad.className =
-        "adsbygoogle";
-
-      ad.style.display =
-        "block";
-
-      ad.style.width =
-        "100%";
-
-      ad.dataset.adClient =
-        "ca-pub-3940256099942544";
-
-      ad.dataset.adSlot =
-        "6300978111";
-
-      ad.dataset.adFormat =
-        "auto";
-
-      ad.dataset.fullWidthResponsive =
-        "true";
-
-      adContainer.appendChild(ad);
-
-      chat.appendChild(
-        adContainer
-      );
-
-      try {
-        (
-          window.adsbygoogle =
-          window.adsbygoogle || []
-        ).push({});
-      } catch {
-        // AdSense may not be ready yet.
-      }
+    if (
+      button.dataset.initialized ===
+      "true"
+    ) {
+      return;
     }
 
-    function sendMessage() {
-      const text =
-        input.value.trim();
-
-      if (!text) {
-        return;
-      }
-
-      const message =
-        createMessage(text);
-
-      chat.appendChild(
-        message
-      );
-
-      msgCount++;
-
-      if (msgCount % 5 === 0) {
-        addAd();
-      }
-
-      input.value = "";
-
-      chat.scrollTop =
-        chat.scrollHeight;
-    }
+    button.dataset.initialized =
+      "true";
 
     button.addEventListener(
       "click",
-      sendMessage
+      event => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        initializeMessageReactions(
+          message
+        );
+
+        /*
+         * Ask reactions.js for its add UI
+         * if the implementation exposes one.
+         */
+        const reactionAddButton =
+          message.querySelector(
+            ".kr-add-reaction"
+          );
+
+        if (reactionAddButton) {
+          reactionAddButton.click();
+        }
+      }
+    );
+  }
+
+
+  /* -------------------------------------------------------
+     MESSAGE SETUP
+  ------------------------------------------------------- */
+
+  function initializeMessage(
+    message
+  ) {
+    if (
+      !(message instanceof HTMLElement)
+    ) {
+      return;
+    }
+
+    initializeMessageReactions(
+      message
     );
 
-    input.addEventListener(
-      "keydown",
-      event => {
-        if (event.key !== "Enter") {
-          return;
-        }
+    initializeMessageActions(
+      message
+    );
+  }
 
+
+  /* -------------------------------------------------------
+     FILE SIZE
+  ------------------------------------------------------- */
+
+  function formatFileSize(
+    bytes
+  ) {
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
+
+    if (bytes < 1024 * 1024) {
+      return `${(
+        bytes / 1024
+      ).toFixed(1)} KB`;
+    }
+
+    if (bytes < 1024 * 1024 * 1024) {
+      return `${(
+        bytes /
+        1024 /
+        1024
+      ).toFixed(1)} MB`;
+    }
+
+    return `${(
+      bytes /
+      1024 /
+      1024 /
+      1024
+    ).toFixed(1)} GB`;
+  }
+
+
+  /* -------------------------------------------------------
+     FILE PREVIEW LIST
+  ------------------------------------------------------- */
+
+  function renderSelectedFiles() {
+    selectedFiles.replaceChildren();
+
+    if (!pendingFiles.length) {
+      selectedFiles.classList.remove(
+        "has-files"
+      );
+
+      return;
+    }
+
+    selectedFiles.classList.add(
+      "has-files"
+    );
+
+    pendingFiles.forEach(
+      (file, index) => {
+        const item =
+          document.createElement(
+            "div"
+          );
+
+        item.className =
+          "selected-file";
+
+        const icon =
+          document.createElement(
+            "span"
+          );
+
+        icon.textContent =
+          file.type.startsWith("image/")
+            ? "🖼️"
+            : file.type.startsWith("video/")
+              ? "🎬"
+              : file.type.startsWith("audio/")
+                ? "🎵"
+                : "📎";
+
+        const name =
+          document.createElement(
+            "span"
+          );
+
+        name.textContent =
+          `${file.name} (${formatFileSize(file.size)})`;
+
+        const remove =
+          document.createElement(
+            "button"
+          );
+
+        remove.className =
+          "remove-file";
+
+        remove.type =
+          "button";
+
+        remove.textContent =
+          "×";
+
+        remove.title =
+          "Remove file";
+
+        remove.addEventListener(
+          "click",
+          () => {
+            pendingFiles.splice(
+              index,
+              1
+            );
+
+            renderSelectedFiles();
+          }
+        );
+
+        item.append(
+          icon,
+          name,
+          remove
+        );
+
+        selectedFiles.appendChild(
+          item
+        );
+      }
+    );
+  }
+
+
+  /* -------------------------------------------------------
+     FILE INPUT
+  ------------------------------------------------------- */
+
+  attachButton.addEventListener(
+    "click",
+    () => {
+      fileInput.click();
+    }
+  );
+
+  fileInput.addEventListener(
+    "change",
+    () => {
+      pendingFiles =
+        Array.from(
+          fileInput.files || []
+        );
+
+      renderSelectedFiles();
+    }
+  );
+
+
+  /* -------------------------------------------------------
+     CLEAR FILE INPUT
+  ------------------------------------------------------- */
+
+  function clearFiles() {
+    pendingFiles = [];
+
+    fileInput.value = "";
+
+    renderSelectedFiles();
+  }
+
+
+  /* -------------------------------------------------------
+     CREATE ATTACHMENTS
+  ------------------------------------------------------- */
+
+  function createAttachments(
+    files
+  ) {
+    if (!files.length) {
+      return null;
+    }
+
+    const wrapper =
+      document.createElement(
+        "div"
+      );
+
+    wrapper.className =
+      "attachments";
+
+    files.forEach(
+      file => {
+        const attachment =
+          document.createElement(
+            "div"
+          );
+
+        attachment.className =
+          "attachment";
+
+        const icon =
+          document.createElement(
+            "div"
+          );
+
+        icon.className =
+          "attachment-icon";
+
+        icon.textContent =
+          file.type.startsWith("image/")
+            ? "🖼️"
+            : file.type.startsWith("video/")
+              ? "🎬"
+              : file.type.startsWith("audio/")
+                ? "🎵"
+                : "📎";
+
+        const details =
+          document.createElement(
+            "div"
+          );
+
+        const name =
+          document.createElement(
+            "div"
+          );
+
+        name.className =
+          "attachment-name";
+
+        name.textContent =
+          file.name;
+
+        const size =
+          document.createElement(
+            "div"
+          );
+
+        size.className =
+          "attachment-size";
+
+        size.textContent =
+          formatFileSize(
+            file.size
+          );
+
+        details.append(
+          name,
+          size
+        );
+
+        attachment.append(
+          icon,
+          details
+        );
+
+        wrapper.appendChild(
+          attachment
+        );
+      }
+    );
+
+    return wrapper;
+  }
+
+
+  /* -------------------------------------------------------
+     CREATE MESSAGE
+  ------------------------------------------------------- */
+
+  function createMessage(
+    text,
+    files
+  ) {
+    const message =
+      document.createElement(
+        "article"
+      );
+
+    message.className =
+      "message";
+
+    message.dataset.messageId =
+      `message-${Date.now()}-${messageCount}`;
+
+    const avatar =
+      document.createElement(
+        "img"
+      );
+
+    avatar.className =
+      "avatar";
+
+    avatar.src =
+      "https://cdn.krynet.com/avatars/default2.png";
+
+    avatar.alt =
+      "You";
+
+
+    const main =
+      document.createElement(
+        "div"
+      );
+
+    main.className =
+      "message-main";
+
+
+    const meta =
+      document.createElement(
+        "div"
+      );
+
+    meta.className =
+      "message-meta";
+
+
+    const author =
+      document.createElement(
+        "span"
+      );
+
+    author.className =
+      "message-author";
+
+    author.textContent =
+      "You";
+
+
+    const time =
+      document.createElement(
+        "span"
+      );
+
+    time.className =
+      "message-time";
+
+    time.textContent =
+      `Today at ${getMessageTime()}`;
+
+
+    meta.append(
+      author,
+      time
+    );
+
+
+    const content =
+      document.createElement(
+        "div"
+      );
+
+    content.className =
+      "message-content";
+
+    content.textContent =
+      text;
+
+
+    const reactions =
+      document.createElement(
+        "div"
+      );
+
+    reactions.className =
+      "message-reactions";
+
+
+    main.append(
+      meta,
+      content
+    );
+
+
+    if (files.length) {
+      const attachments =
+        createAttachments(
+          files
+        );
+
+      if (attachments) {
+        main.appendChild(
+          attachments
+        );
+      }
+    }
+
+
+    main.appendChild(
+      reactions
+    );
+
+
+    const actions =
+      document.createElement(
+        "div"
+      );
+
+    actions.className =
+      "message-actions";
+
+
+    const reactionButton =
+      document.createElement(
+        "button"
+      );
+
+    reactionButton.type =
+      "button";
+
+    reactionButton.className =
+      "message-action add-message-reaction";
+
+    reactionButton.title =
+      "Add Reaction";
+
+    reactionButton.textContent =
+      "😊";
+
+
+    actions.appendChild(
+      reactionButton
+    );
+
+
+    message.append(
+      avatar,
+      main,
+      actions
+    );
+
+
+    return message;
+  }
+
+
+  /* -------------------------------------------------------
+     SEND
+  ------------------------------------------------------- */
+
+  function sendMessage() {
+    const text =
+      input.value.trim();
+
+    if (
+      !text &&
+      !pendingFiles.length
+    ) {
+      return;
+    }
+
+    const files =
+      [...pendingFiles];
+
+    const message =
+      createMessage(
+        text,
+        files
+      );
+
+    chat.appendChild(
+      message
+    );
+
+    messageCount++;
+
+    initializeMessage(
+      message
+    );
+
+    /*
+     * Scan this new message for URLs.
+     *
+     * This is what makes:
+     *
+     * https://youtube.com/watch?v=...
+     *
+     * turn into an actual embed.
+     */
+    Embed.scanMessages(
+      `.message[data-message-id="${message.dataset.messageId}"]`
+    );
+
+    input.value = "";
+
+    clearFiles();
+
+    input.style.height =
+      "auto";
+
+    chat.scrollTop =
+      chat.scrollHeight;
+  }
+
+
+  /* -------------------------------------------------------
+     SEND BUTTON
+  ------------------------------------------------------- */
+
+  sendButton.addEventListener(
+    "click",
+    sendMessage
+  );
+
+
+  /* -------------------------------------------------------
+     KEYBOARD
+  ------------------------------------------------------- */
+
+  input.addEventListener(
+    "keydown",
+    event => {
+
+      /*
+       * Enter sends.
+       *
+       * Shift+Enter creates a newline.
+       */
+      if (
+        event.key === "Enter" &&
+        !event.shiftKey
+      ) {
         event.preventDefault();
 
         sendMessage();
       }
+    }
+  );
+
+
+  /* -------------------------------------------------------
+     AUTO RESIZE TEXTAREA
+  ------------------------------------------------------- */
+
+  input.addEventListener(
+    "input",
+    () => {
+      input.style.height =
+        "auto";
+
+      input.style.height =
+        `${Math.min(
+          input.scrollHeight,
+          160
+        )}px`;
+    }
+  );
+
+
+  /* -------------------------------------------------------
+     EXISTING MESSAGES
+  ------------------------------------------------------- */
+
+  chat
+    .querySelectorAll(
+      ".message"
+    )
+    .forEach(
+      message => {
+        initializeMessage(
+          message
+        );
+      }
     );
-  </script>
 
-  <!-- =====================================================
-       KRYNET MODULES
-  ====================================================== -->
 
-  <script
-    type="module"
-    src="./js/reactions.js"
-  ></script>
+  /* -------------------------------------------------------
+     EMBED OBSERVER
+  ------------------------------------------------------- */
 
-  <script
-    type="module"
-    src="./js/embed.js"
-  ></script>
+  /*
+   * Watch the chat for messages generated
+   * by anything other than this script.
+   */
+  Embed.observeMessages(
+    ".message"
+  );
 
-  <script
-    type="module"
-    src="./js/openInApp.js"
-  ></script>
 
-  <script
-    type="module"
-    src="./js/anonymous-upload.js"
-  ></script>
+  console.log(
+    "[Krynet] Chat initialized."
+  );
 
-  <script
-    type="module"
-    src="./js/youtubeAdblock.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/clearURLS.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/dearrow.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/blurNSFW.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/Cloudflare.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/country-blocker.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/copyFileContents.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/krysearch.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/markdownRenderer.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/screenshare.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/tpm.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/voicechat.js"
-  ></script>
-
-  <script
-    type="module"
-    src="./js/webcam.js"
-  ></script>
+</script>
 
 </body>
 </html>
