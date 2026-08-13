@@ -13,7 +13,7 @@
         content="dark"
     >
 
-    <title>Krynet Chat</title>
+    <title>Krynet Community</title>
 
     <style>
         * {
@@ -83,13 +83,13 @@
             height: 48px;
             border-radius: 16px;
             background: #313338;
-            color: #ffffff;
+            color: #fff;
             cursor: pointer;
             font-size: 19px;
             transition:
-                border-radius 0.15s,
-                background 0.15s,
-                transform 0.15s;
+                border-radius .15s,
+                background .15s,
+                transform .15s;
         }
 
         .server-button:hover {
@@ -107,7 +107,6 @@
             width: 32px;
             height: 1px;
             background: #35363c;
-            margin: 2px 0;
         }
 
         /* =====================================================
@@ -148,7 +147,7 @@
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: .04em;
         }
 
         .channel {
@@ -173,20 +172,25 @@
 
         .channel.active {
             background: #404249;
-            color: #ffffff;
+            color: #fff;
         }
 
         .channel-icon {
-            font-size: 20px;
+            width: 22px;
             color: #80848e;
+            font-size: 20px;
         }
 
         .channel.active .channel-icon {
-            color: #ffffff;
+            color: #fff;
         }
 
+        /* =====================================================
+           USER PANEL
+        ===================================================== */
+
         .user-panel {
-            height: 52px;
+            min-height: 52px;
             padding: 8px;
             background: #232428;
             display: flex;
@@ -202,7 +206,6 @@
             display: grid;
             place-items: center;
             background: #5865f2;
-            color: #ffffff;
             font-size: 13px;
             font-weight: 700;
         }
@@ -226,7 +229,7 @@
         }
 
         /* =====================================================
-           MAIN CHAT
+           CHAT
         ===================================================== */
 
         .chat {
@@ -245,7 +248,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 1px 2px rgba(0,0,0,.15);
         }
 
         .chat-header-icon {
@@ -262,7 +265,6 @@
             font-size: 13px;
             border-left: 1px solid #4b4d53;
             padding-left: 10px;
-            margin-left: 2px;
         }
 
         /* =====================================================
@@ -274,7 +276,6 @@
             min-height: 0;
             overflow-y: auto;
             padding: 20px 18px 12px;
-            scroll-behavior: smooth;
         }
 
         .message {
@@ -287,7 +288,7 @@
         }
 
         .message:hover {
-            background: rgba(0, 0, 0, 0.04);
+            background: rgba(0,0,0,.04);
         }
 
         .message-avatar {
@@ -305,7 +306,7 @@
 
         .message-content {
             min-width: 0;
-            max-width: min(850px, 100%);
+            max-width: min(850px,100%);
         }
 
         .message-author-row {
@@ -316,9 +317,8 @@
         }
 
         .message-author {
-            font-weight: 600;
             font-size: 15px;
-            color: #ffffff;
+            font-weight: 600;
         }
 
         .message-time {
@@ -334,9 +334,6 @@
             white-space: pre-wrap;
         }
 
-        /* Link-only messages hide the raw URL.
-           The embed remains visible underneath the username. */
-
         .message.link-only .message-text {
             display: none;
         }
@@ -345,83 +342,69 @@
            EMBEDS
         ===================================================== */
 
-        .message .kr-embed {
-            margin-top: 4px !important;
-            max-width: 520px !important;
+        .kr-embed {
+            margin-top: 5px;
+            max-width: 520px;
         }
 
-        .message .kr-embed iframe {
+        .kr-embed iframe {
             width: 100%;
             min-height: 292px;
             border: 0;
             border-radius: 7px;
             background: #18191c;
+            display: block;
         }
 
-        .message .kr-embed img {
-            max-height: 320px;
+        .kr-embed img {
+            max-width: 100%;
+            max-height: 420px;
+            border-radius: 8px;
             object-fit: contain;
         }
 
-        .message .kr-embed video {
-            max-height: 360px;
-            background: #000000;
-        }
-
-        .kr-embed-placeholder {
-            min-height: 8px !important;
-            margin-top: 4px !important;
+        .kr-embed video {
+            max-width: 100%;
+            max-height: 420px;
+            border-radius: 8px;
+            background: #000;
         }
 
         /* =====================================================
-           MESSAGE ACTIONS
+           YOUTUBE
         ===================================================== */
 
-        .message-actions {
-            position: absolute;
-            right: 10px;
-            top: -16px;
-            display: none;
-            align-items: center;
-            gap: 2px;
-            padding: 3px;
-            border: 1px solid #1f2023;
-            border-radius: 6px;
-            background: #2b2d31;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            z-index: 10;
-        }
-
-        .message:hover .message-actions {
+        .youtube-embed {
             display: flex;
+            max-width: 520px;
+            overflow: hidden;
+            border-radius: 8px;
+            background: #2f3136;
         }
 
-        .message-action {
-            width: 30px;
-            height: 28px;
-            border-radius: 4px;
-            background: transparent;
-            color: #b5bac1;
-            cursor: pointer;
+        .youtube-embed-bar {
+            width: 4px;
+            flex-shrink: 0;
+            background: #ff0000;
         }
 
-        .message-action:hover {
-            background: #404249;
-            color: #ffffff;
+        .youtube-embed-body {
+            flex: 1;
+            min-width: 0;
+            padding: 8px;
+        }
+
+        .youtube-embed iframe {
+            min-height: 292px;
+            width: 100%;
         }
 
         /* =====================================================
            REACTIONS
         ===================================================== */
 
+        .kr-message-reactions,
         .message-reactions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin-top: 5px;
-        }
-
-        .kr-message-reactions {
             display: flex;
             flex-wrap: wrap;
             gap: 4px;
@@ -453,78 +436,68 @@
         }
 
         /* =====================================================
+           MESSAGE ACTIONS
+        ===================================================== */
+
+        .message-actions {
+            position: absolute;
+            right: 10px;
+            top: -16px;
+            display: none;
+            align-items: center;
+            gap: 2px;
+            padding: 3px;
+            border: 1px solid #1f2023;
+            border-radius: 6px;
+            background: #2b2d31;
+            box-shadow: 0 4px 12px rgba(0,0,0,.3);
+            z-index: 10;
+        }
+
+        .message:hover .message-actions {
+            display: flex;
+        }
+
+        .message-action {
+            width: 30px;
+            height: 28px;
+            border-radius: 4px;
+            background: transparent;
+            color: #b5bac1;
+            cursor: pointer;
+        }
+
+        .message-action:hover {
+            background: #404249;
+            color: #fff;
+        }
+
+        /* =====================================================
+           WELCOME
+        ===================================================== */
+
+        .welcome {
+            padding: 18px 8px 20px;
+        }
+
+        .welcome-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .welcome-description {
+            color: #949ba4;
+            font-size: 14px;
+        }
+
+        /* =====================================================
            COMPOSER
         ===================================================== */
 
         .composer-wrap {
             padding: 0 16px 18px;
             flex-shrink: 0;
-        }
-
-        .composer {
-            min-height: 48px;
-            border-radius: 8px;
-            background: #383a40;
-            display: flex;
-            align-items: flex-end;
-            padding: 8px;
-            gap: 7px;
-        }
-
-        .composer-button {
-            width: 32px;
-            height: 32px;
-            flex-shrink: 0;
-            border-radius: 50%;
-            background: transparent;
-            color: #b5bac1;
-            cursor: pointer;
-            font-size: 20px;
-        }
-
-        .composer-button:hover {
-            color: #ffffff;
-            background: #404249;
-        }
-
-        .composer-input {
-            flex: 1;
-            min-width: 0;
-            max-height: 160px;
-            padding: 7px 4px;
-            resize: none;
-            border: 0;
-            outline: 0;
-            background: transparent;
-            color: #dbdee1;
-            line-height: 1.4;
-        }
-
-        .composer-input::placeholder {
-            color: #949ba4;
-        }
-
-        .send-button {
-            width: 34px;
-            height: 34px;
-            flex-shrink: 0;
-            border-radius: 7px;
-            background: #5865f2;
-            color: #ffffff;
-            cursor: pointer;
-            font-size: 17px;
-        }
-
-        .send-button:hover {
-            background: #4752c4;
-        }
-
-        /* =====================================================
-           FILE ATTACHMENT
-        ===================================================== */
-
-        #fileInput {
-            display: none;
         }
 
         .attachment-preview {
@@ -568,27 +541,160 @@
 
         .attachment-remove:hover {
             background: #404249;
-            color: #ffffff;
+            color: #fff;
+        }
+
+        .composer {
+            min-height: 48px;
+            border-radius: 8px;
+            background: #383a40;
+            display: flex;
+            align-items: flex-end;
+            padding: 8px;
+            gap: 7px;
+        }
+
+        .composer-button {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: transparent;
+            color: #b5bac1;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .composer-button:hover {
+            color: #fff;
+            background: #404249;
+        }
+
+        .composer-input {
+            flex: 1;
+            min-width: 0;
+            max-height: 160px;
+            padding: 7px 4px;
+            resize: none;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: #dbdee1;
+            line-height: 1.4;
+        }
+
+        .composer-input::placeholder {
+            color: #949ba4;
+        }
+
+        .send-button {
+            width: 34px;
+            height: 34px;
+            flex-shrink: 0;
+            border-radius: 7px;
+            background: #5865f2;
+            color: #fff;
+            cursor: pointer;
+            font-size: 17px;
+        }
+
+        .send-button:hover {
+            background: #4752c4;
+        }
+
+        #fileInput {
+            display: none;
         }
 
         /* =====================================================
-           EMPTY / WELCOME
+           CALL CONTROLS
         ===================================================== */
 
-        .welcome {
-            margin-top: auto;
-            padding: 18px 8px 20px;
+        .call-controls {
+            display: flex;
+            gap: 5px;
+            margin-left: auto;
         }
 
-        .welcome-title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 5px;
+        .call-button {
+            width: 34px;
+            height: 34px;
+            border-radius: 7px;
+            background: transparent;
+            color: #b5bac1;
+            cursor: pointer;
         }
 
-        .welcome-description {
+        .call-button:hover {
+            background: #404249;
+            color: #fff;
+        }
+
+        .call-button.active {
+            background: #5865f2;
+            color: #fff;
+        }
+
+        /* =====================================================
+           CALL PANEL
+        ===================================================== */
+
+        .call-panel {
+            position: fixed;
+            right: 20px;
+            bottom: 85px;
+            width: 360px;
+            display: none;
+            overflow: hidden;
+            border: 1px solid #1f2023;
+            border-radius: 10px;
+            background: #18191c;
+            box-shadow: 0 12px 40px rgba(0,0,0,.5);
+            z-index: 100;
+        }
+
+        .call-panel.visible {
+            display: block;
+        }
+
+        .call-panel-header {
+            height: 42px;
+            padding: 0 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #232428;
+            color: #dbdee1;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .call-close {
+            width: 28px;
+            height: 28px;
+            border-radius: 5px;
+            background: transparent;
+            color: #b5bac1;
+            cursor: pointer;
+        }
+
+        .call-close:hover {
+            background: #404249;
+            color: #fff;
+        }
+
+        .call-video {
+            width: 100%;
+            display: block;
+            background: #000;
+            aspect-ratio: 16 / 9;
+            object-fit: contain;
+        }
+
+        .call-status {
+            padding: 9px 12px;
             color: #949ba4;
-            font-size: 14px;
+            font-size: 12px;
         }
 
         /* =====================================================
@@ -657,6 +763,17 @@
             .message-actions {
                 display: none !important;
             }
+
+            .chat-header-topic {
+                display: none;
+            }
+
+            .call-panel {
+                left: 8px;
+                right: 8px;
+                bottom: 76px;
+                width: auto;
+            }
         }
     </style>
 </head>
@@ -684,7 +801,7 @@
             class="server-button"
             title="Community"
         >
-            +
+            C
         </button>
 
         <button
@@ -717,6 +834,7 @@
             <button
                 class="channel active"
                 data-channel="general"
+                type="button"
             >
                 <span class="channel-icon">#</span>
                 <span>general</span>
@@ -725,6 +843,7 @@
             <button
                 class="channel"
                 data-channel="community"
+                type="button"
             >
                 <span class="channel-icon">#</span>
                 <span>community</span>
@@ -733,11 +852,11 @@
             <button
                 class="channel"
                 data-channel="development"
+                type="button"
             >
                 <span class="channel-icon">#</span>
                 <span>development</span>
             </button>
-
 
             <div class="channel-category">
                 Voice Channels
@@ -746,6 +865,7 @@
             <button
                 class="channel"
                 data-channel="Lounge"
+                type="button"
             >
                 <span class="channel-icon">🔊</span>
                 <span>Lounge</span>
@@ -754,6 +874,7 @@
             <button
                 class="channel"
                 data-channel="Gaming"
+                type="button"
             >
                 <span class="channel-icon">🔊</span>
                 <span>Gaming</span>
@@ -763,18 +884,11 @@
 
         <div class="user-panel">
 
-            <div class="avatar">
-                B
-            </div>
+            <div class="avatar">B</div>
 
             <div class="user-info">
-                <div class="username">
-                    Barney
-                </div>
-
-                <div class="status-text">
-                    Online
-                </div>
+                <div class="username">Barney</div>
+                <div class="status-text">Online</div>
             </div>
 
             <button
@@ -798,9 +912,7 @@
 
         <header class="chat-header">
 
-            <span class="chat-header-icon">
-                #
-            </span>
+            <span class="chat-header-icon">#</span>
 
             <span
                 class="chat-header-name"
@@ -812,6 +924,28 @@
             <span class="chat-header-topic">
                 Krynet Community
             </span>
+
+            <div class="call-controls">
+
+                <button
+                    class="call-button"
+                    id="cameraButton"
+                    type="button"
+                    title="Camera"
+                >
+                    📷
+                </button>
+
+                <button
+                    class="call-button"
+                    id="screenButton"
+                    type="button"
+                    title="Share screen"
+                >
+                    🖥
+                </button>
+
+            </div>
 
         </header>
 
@@ -838,8 +972,6 @@
 
             </div>
 
-
-            <!-- Example normal message -->
 
             <article
                 class="message"
@@ -928,7 +1060,6 @@
 
             </div>
 
-
             <div class="composer">
 
                 <button
@@ -973,20 +1104,64 @@
 
 
 <!-- =========================================================
-     YOUR EXISTING SCRIPTS
+     CALL PANEL
 ========================================================= -->
 
-<!-- Anonymous file-name handling -->
+<div
+    class="call-panel"
+    id="callPanel"
+>
+
+    <div class="call-panel-header">
+
+        <span id="callTitle">
+            Camera
+        </span>
+
+        <button
+            class="call-close"
+            id="callClose"
+            type="button"
+        >
+            ×
+        </button>
+
+    </div>
+
+    <video
+        class="call-video"
+        id="callVideo"
+        autoplay
+        muted
+        playsinline
+    ></video>
+
+    <div
+        class="call-status"
+        id="callStatus"
+    >
+        Ready
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     EXISTING SCRIPTS
+========================================================= -->
+
 <script src="./js/anonymous-upload.js"></script>
 
-<!-- Open Spotify / Steam / Epic / Tidal / Roblox links in their apps -->
 <script
     type="module"
     src="./js/openInApp.js"
 ></script>
 
-<!-- YouTube ad handling -->
 <script src="./js/youtubeAdblock.js"></script>
+
+<script src="./js/webcam.js"></script>
+
+<script src="./js/screenshare.js"></script>
 
 
 <!-- =========================================================
@@ -1021,29 +1196,40 @@
         document.getElementById("uploadButton");
 
     const attachmentPreview =
-        document.getElementById(
-            "attachmentPreview"
-        );
+        document.getElementById("attachmentPreview");
 
     const attachmentContent =
-        document.getElementById(
-            "attachmentContent"
-        );
+        document.getElementById("attachmentContent");
 
     const attachmentName =
-        document.getElementById(
-            "attachmentName"
-        );
+        document.getElementById("attachmentName");
 
     const removeAttachment =
-        document.getElementById(
-            "removeAttachment"
-        );
+        document.getElementById("removeAttachment");
 
     const channelName =
-        document.getElementById(
-            "channelName"
-        );
+        document.getElementById("channelName");
+
+    const cameraButton =
+        document.getElementById("cameraButton");
+
+    const screenButton =
+        document.getElementById("screenButton");
+
+    const callPanel =
+        document.getElementById("callPanel");
+
+    const callVideo =
+        document.getElementById("callVideo");
+
+    const callTitle =
+        document.getElementById("callTitle");
+
+    const callStatus =
+        document.getElementById("callStatus");
+
+    const callClose =
+        document.getElementById("callClose");
 
 
     /* ========================================================
@@ -1051,6 +1237,8 @@
     ======================================================== */
 
     let selectedFile = null;
+    let webcamSession = null;
+    let screenSession = null;
 
 
     /* ========================================================
@@ -1070,16 +1258,14 @@
 
     function getInitial(name) {
         return (
-            name
-                .trim()
-                .charAt(0)
-                .toUpperCase() ||
+            name.trim().charAt(0).toUpperCase() ||
             "?"
         );
     }
 
 
     function isURLOnly(text) {
+
         const value =
             text.trim();
 
@@ -1088,6 +1274,7 @@
         }
 
         try {
+
             const url =
                 new URL(value);
 
@@ -1095,52 +1282,54 @@
                 url.protocol === "http:" ||
                 url.protocol === "https:"
             );
+
         } catch {
+
             return false;
         }
     }
 
 
     function isYouTubeURL(value) {
+
         try {
+
             const url =
                 new URL(value);
 
             const host =
                 url.hostname
                     .toLowerCase()
-                    .replace(
-                        /^www\./,
-                        ""
-                    );
+                    .replace(/^www\./, "");
 
             return (
                 host === "youtube.com" ||
                 host === "youtu.be" ||
                 host === "youtube-nocookie.com"
             );
+
         } catch {
+
             return false;
         }
     }
 
 
     function getYouTubeVideoId(value) {
+
         try {
+
             const url =
                 new URL(value);
 
             const host =
                 url.hostname
                     .toLowerCase()
-                    .replace(
-                        /^www\./,
-                        ""
-                    );
+                    .replace(/^www\./, "");
 
-            if (
-                host === "youtu.be"
-            ) {
+
+            if (host === "youtu.be") {
+
                 return (
                     url.pathname
                         .split("/")
@@ -1149,25 +1338,20 @@
                 );
             }
 
+
             if (
                 host === "youtube.com" ||
                 host === "youtube-nocookie.com"
             ) {
+
                 if (
-                    url.pathname ===
-                    "/watch"
+                    url.pathname === "/watch"
                 ) {
-                    return (
-                        url.searchParams.get(
-                            "v"
-                        )
-                    );
+                    return url.searchParams.get("v");
                 }
 
                 if (
-                    url.pathname.startsWith(
-                        "/shorts/"
-                    )
+                    url.pathname.startsWith("/shorts/")
                 ) {
                     return (
                         url.pathname
@@ -1178,9 +1362,7 @@
                 }
 
                 if (
-                    url.pathname.startsWith(
-                        "/embed/"
-                    )
+                    url.pathname.startsWith("/embed/")
                 ) {
                     return (
                         url.pathname
@@ -1194,18 +1376,17 @@
             return null;
 
         } catch {
+
             return null;
         }
     }
 
 
     function removeWelcome() {
-        const welcome =
-            messages.querySelector(
-                ".welcome"
-            );
 
-        welcome?.remove();
+        messages
+            .querySelector(".welcome")
+            ?.remove();
     }
 
 
@@ -1222,62 +1403,31 @@
             return null;
         }
 
+
         const wrapper =
             document.createElement("div");
 
         wrapper.className =
-            "kr-embed youtube-direct-embed";
-
-        Object.assign(
-            wrapper.style,
-            {
-                display: "flex",
-                background: "#2f3136",
-                borderRadius: "8px",
-                maxWidth: "520px",
-                marginTop: "5px",
-                overflow: "hidden",
-                fontFamily:
-                    "gg sans, Arial, sans-serif"
-            }
-        );
+            "kr-embed youtube-embed";
 
 
         const bar =
             document.createElement("div");
 
-        Object.assign(
-            bar.style,
-            {
-                width: "4px",
-                flexShrink: "0",
-                background: "#ff0000"
-            }
-        );
+        bar.className =
+            "youtube-embed-bar";
 
 
         const body =
             document.createElement("div");
 
-        Object.assign(
-            body.style,
-            {
-                padding: "8px",
-                flex: "1",
-                minWidth: "0"
-            }
-        );
+        body.className =
+            "youtube-embed-body";
 
 
         const iframe =
-            document.createElement(
-                "iframe"
-            );
+            document.createElement("iframe");
 
-        /*
-         * youtube-nocookie avoids unnecessary
-         * YouTube cookies from the embed itself.
-         */
         iframe.src =
             "https://www.youtube-nocookie.com/embed/" +
             encodeURIComponent(videoId) +
@@ -1290,40 +1440,20 @@
             "lazy";
 
         iframe.allow =
-            "accelerometer; autoplay; " +
-            "clipboard-write; encrypted-media; " +
-            "gyroscope; picture-in-picture; web-share";
+            "accelerometer; autoplay; clipboard-write; " +
+            "encrypted-media; gyroscope; picture-in-picture; web-share";
 
         iframe.allowFullscreen =
             true;
 
-        Object.assign(
-            iframe.style,
-            {
-                width: "100%",
-                minHeight: "292px",
-                border: "0",
-                borderRadius: "7px",
-                display: "block",
-                background: "#000"
-            }
-        );
 
-
-        body.appendChild(
-            iframe
-        );
+        body.appendChild(iframe);
 
         wrapper.append(
             bar,
             body
         );
 
-        /*
-         * The adblock script's iframe patcher sees
-         * this iframe and can add its supported
-         * parameters.
-         */
         return wrapper;
     }
 
@@ -1343,14 +1473,6 @@
         wrapper.className =
             "kr-embed";
 
-        Object.assign(
-            wrapper.style,
-            {
-                marginTop: "5px",
-                maxWidth: "520px"
-            }
-        );
-
 
         if (
             file.type.startsWith("image/")
@@ -1363,19 +1485,7 @@
             image.alt = file.name;
             image.loading = "lazy";
 
-            Object.assign(
-                image.style,
-                {
-                    maxWidth: "100%",
-                    maxHeight: "420px",
-                    borderRadius: "8px",
-                    display: "block"
-                }
-            );
-
-            wrapper.appendChild(
-                image
-            );
+            wrapper.appendChild(image);
 
             return wrapper;
         }
@@ -1392,19 +1502,7 @@
             video.controls = true;
             video.preload = "metadata";
 
-            Object.assign(
-                video.style,
-                {
-                    width: "100%",
-                    maxHeight: "420px",
-                    borderRadius: "8px",
-                    background: "#000"
-                }
-            );
-
-            wrapper.appendChild(
-                video
-            );
+            wrapper.appendChild(video);
 
             return wrapper;
         }
@@ -1420,29 +1518,23 @@
             audio.src = url;
             audio.controls = true;
 
-            Object.assign(
-                audio.style,
-                {
-                    width: "100%"
-                }
-            );
+            audio.style.width =
+                "100%";
 
-            wrapper.appendChild(
-                audio
-            );
+            wrapper.appendChild(audio);
 
             return wrapper;
         }
 
 
-        const fileCard =
+        const card =
             document.createElement("div");
 
-        fileCard.textContent =
+        card.textContent =
             "📎 " + file.name;
 
         Object.assign(
-            fileCard.style,
+            card.style,
             {
                 padding: "10px",
                 borderRadius: "7px",
@@ -1452,9 +1544,7 @@
             }
         );
 
-        wrapper.appendChild(
-            fileCard
-        );
+        wrapper.appendChild(card);
 
         return wrapper;
     }
@@ -1472,6 +1562,7 @@
 
         removeWelcome();
 
+
         const article =
             document.createElement("article");
 
@@ -1482,19 +1573,11 @@
             crypto.randomUUID();
 
 
-        /*
-         * Discord-like behavior:
-         *
-         * If the entire message is one URL,
-         * don't render the raw URL.
-         */
         const linkOnly =
             isURLOnly(text);
 
         if (linkOnly) {
-            article.classList.add(
-                "link-only"
-            );
+            article.classList.add("link-only");
         }
 
 
@@ -1564,30 +1647,14 @@
         );
 
 
-        /*
-         * Local uploaded file.
-         */
         if (file) {
 
-            const localEmbed =
-                createLocalFileEmbed(
-                    file
-                );
-
             content.appendChild(
-                localEmbed
+                createLocalFileEmbed(file)
             );
         }
 
 
-        /*
-         * URL embed.
-         *
-         * YouTube gets a direct iframe because
-         * noembed isn't reliable for YouTube.
-         *
-         * Other URLs are passed to embed.js.
-         */
         if (linkOnly) {
 
             if (
@@ -1600,43 +1667,31 @@
                     );
 
                 if (youtube) {
-                    content.appendChild(
-                        youtube
-                    );
+                    content.appendChild(youtube);
                 }
 
             } else {
 
-                /*
-                 * embed.js scans the message and
-                 * creates the Discord-style card.
-                 */
                 requestAnimationFrame(() => {
+
                     Embed.scanMessages(
                         `.message[data-message-id="${CSS.escape(article.dataset.messageId)}"]`
                     );
+
                 });
             }
         }
 
 
-        /*
-         * Reactions container.
-         */
-        const reactionContainer =
+        const reactions =
             document.createElement("div");
 
-        reactionContainer.className =
-            "message-reactions";
+        reactions.className =
+            "kr-message-reactions";
 
 
-        /*
-         * Reactions instance.
-         */
         try {
-            new Reactions(
-                reactionContainer
-            );
+            new Reactions(reactions);
         } catch (error) {
             console.warn(
                 "[Krynet] Reactions failed:",
@@ -1646,13 +1701,10 @@
 
 
         content.appendChild(
-            reactionContainer
+            reactions
         );
 
 
-        /*
-         * Hover toolbar.
-         */
         const actions =
             document.createElement("div");
 
@@ -1711,39 +1763,29 @@
         );
 
 
-        messages.appendChild(
-            article
-        );
+        messages.appendChild(article);
 
 
-        /*
-         * Initialize reactions after the
-         * element is actually in the DOM.
-         */
         try {
+
             if (
                 typeof Reactions.attach ===
                 "function"
             ) {
-                Reactions.attach(
-                    reactionContainer
-                );
+                Reactions.attach(reactions);
             }
+
         } catch {
-            // Existing Reactions implementations
-            // may initialize themselves in constructor.
+            // Constructor-based implementations
+            // initialize themselves.
         }
 
 
-        /*
-         * Handle our toolbar reaction button
-         * even if reactions.js exposes only
-         * DOM-based behavior.
-         */
         reactButton.addEventListener(
             "click",
             () => {
-                reactionContainer.dispatchEvent(
+
+                reactions.dispatchEvent(
                     new CustomEvent(
                         "krynet:add-reaction",
                         {
@@ -1751,6 +1793,7 @@
                         }
                     )
                 );
+
             }
         );
 
@@ -1778,6 +1821,7 @@
             return;
         }
 
+
         addMessage({
             author: "Barney",
             text,
@@ -1796,7 +1840,7 @@
 
 
     /* ========================================================
-       FILE SELECTION
+       ATTACHMENTS
     ======================================================== */
 
     function showAttachment(file) {
@@ -1815,20 +1859,14 @@
 
 
         if (
-            file.type.startsWith(
-                "image/"
-            )
+            file.type.startsWith("image/")
         ) {
 
             const image =
-                document.createElement(
-                    "img"
-                );
+                document.createElement("img");
 
             image.src =
-                URL.createObjectURL(
-                    file
-                );
+                URL.createObjectURL(file);
 
             image.alt =
                 file.name;
@@ -1842,20 +1880,14 @@
 
 
         if (
-            file.type.startsWith(
-                "video/"
-            )
+            file.type.startsWith("video/")
         ) {
 
             const video =
-                document.createElement(
-                    "video"
-                );
+                document.createElement("video");
 
             video.src =
-                URL.createObjectURL(
-                    file
-                );
+                URL.createObjectURL(file);
 
             video.muted =
                 true;
@@ -1887,7 +1919,283 @@
 
 
     /* ========================================================
-       EVENTS
+       CALL PANEL
+    ======================================================== */
+
+    function showCallPanel(title, status) {
+
+        callTitle.textContent =
+            title;
+
+        callStatus.textContent =
+            status;
+
+        callPanel.classList.add(
+            "visible"
+        );
+    }
+
+
+    function hideCallPanel() {
+
+        callPanel.classList.remove(
+            "visible"
+        );
+
+        callVideo.pause();
+
+        callVideo.srcObject =
+            null;
+    }
+
+
+    async function stopWebcam() {
+
+        if (!webcamSession) {
+            return;
+        }
+
+        try {
+            webcamSession.stop();
+        } catch {
+            // Ignore shutdown errors.
+        }
+
+        webcamSession =
+            null;
+
+        cameraButton.classList.remove(
+            "active"
+        );
+
+        hideCallPanel();
+    }
+
+
+    async function stopScreenshare() {
+
+        if (!screenSession) {
+            return;
+        }
+
+        try {
+            screenSession.stop();
+        } catch {
+            // Ignore shutdown errors.
+        }
+
+        screenSession =
+            null;
+
+        screenButton.classList.remove(
+            "active"
+        );
+
+        hideCallPanel();
+    }
+
+
+    /* ========================================================
+       CAMERA
+    ======================================================== */
+
+    cameraButton.addEventListener(
+        "click",
+        async () => {
+
+            if (webcamSession) {
+                await stopWebcam();
+                return;
+            }
+
+
+            if (
+                typeof window.startWebcamStream !==
+                "function"
+            ) {
+
+                callStatus.textContent =
+                    "webcam.js is not loaded";
+
+                showCallPanel(
+                    "Camera",
+                    "Unavailable"
+                );
+
+                return;
+            }
+
+
+            try {
+
+                showCallPanel(
+                    "Camera",
+                    "Starting camera..."
+                );
+
+
+                webcamSession =
+                    await window.startWebcamStream();
+
+
+                if (
+                    webcamSession?.stream
+                ) {
+
+                    callVideo.srcObject =
+                        webcamSession.stream;
+
+                    await callVideo.play()
+                        .catch(() => {});
+                }
+
+
+                cameraButton.classList.add(
+                    "active"
+                );
+
+                callStatus.textContent =
+                    "Camera active";
+
+
+            } catch (error) {
+
+                webcamSession =
+                    null;
+
+                callStatus.textContent =
+                    error?.message ||
+                    "Could not start camera";
+
+                console.error(
+                    "[Krynet] Camera failed:",
+                    error
+                );
+            }
+        }
+    );
+
+
+    /* ========================================================
+       SCREEN SHARE
+    ======================================================== */
+
+    screenButton.addEventListener(
+        "click",
+        async () => {
+
+            if (screenSession) {
+                await stopScreenshare();
+                return;
+            }
+
+
+            if (
+                typeof window.startMonitorAdaptiveScreenshare !==
+                "function"
+            ) {
+
+                callStatus.textContent =
+                    "screenshare.js is not loaded";
+
+                showCallPanel(
+                    "Screen Share",
+                    "Unavailable"
+                );
+
+                return;
+            }
+
+
+            /*
+             * Replace these with your actual
+             * signaling endpoints.
+             */
+            const wsUrl =
+                window.KRYNET_SCREEN_WS_URL ||
+                "wss://localhost:8443/screenshare";
+
+            const wtUrl =
+                window.KRYNET_SCREEN_WT_URL ||
+                "https://localhost:8443/screenshare";
+
+
+            try {
+
+                showCallPanel(
+                    "Screen Share",
+                    "Starting screen capture..."
+                );
+
+
+                screenSession =
+                    await window.startMonitorAdaptiveScreenshare(
+                        wsUrl,
+                        wtUrl,
+                        {
+                            captureAudio: true,
+                            videoQuality: .82,
+                            maxFPS: 60,
+                            useSpatialAudio: false
+                        }
+                    );
+
+
+                if (
+                    screenSession?.stream
+                ) {
+
+                    callVideo.srcObject =
+                        screenSession.stream;
+
+                    await callVideo.play()
+                        .catch(() => {});
+                }
+
+
+                screenButton.classList.add(
+                    "active"
+                );
+
+                callStatus.textContent =
+                    "Screen sharing active";
+
+
+            } catch (error) {
+
+                screenSession =
+                    null;
+
+                callStatus.textContent =
+                    error?.message ||
+                    "Could not start screen share";
+
+                console.error(
+                    "[Krynet] Screen share failed:",
+                    error
+                );
+            }
+        }
+    );
+
+
+    /* ========================================================
+       CALL CLOSE
+    ======================================================== */
+
+    callClose.addEventListener(
+        "click",
+        async () => {
+
+            await stopWebcam();
+            await stopScreenshare();
+
+        }
+    );
+
+
+    /* ========================================================
+       COMPOSER EVENTS
     ======================================================== */
 
     sendButton.addEventListener(
@@ -1898,9 +2206,7 @@
 
     uploadButton.addEventListener(
         "click",
-        () => {
-            fileInput.click();
-        }
+        () => fileInput.click()
     );
 
 
@@ -1934,7 +2240,9 @@
                 event.key === "Enter" &&
                 !event.shiftKey
             ) {
+
                 event.preventDefault();
+
                 sendMessage();
             }
         }
@@ -1970,46 +2278,46 @@
                 () => {
 
                     document
-                        .querySelectorAll(
-                            ".channel"
-                        )
-                        .forEach(
-                            item => {
-                                item.classList.remove(
-                                    "active"
-                                );
-                            }
-                        );
+                        .querySelectorAll(".channel")
+                        .forEach(item => {
+                            item.classList.remove(
+                                "active"
+                            );
+                        });
+
 
                     channel.classList.add(
                         "active"
                     );
 
+
                     const name =
                         channel.dataset.channel ||
                         "general";
 
+
                     channelName.textContent =
                         name;
+
 
                     messageInput.placeholder =
                         `Message #${name}`;
                 }
             );
+
         });
 
 
     /* ========================================================
-       INITIAL EMBED SCAN
+       INITIAL EMBEDS
     ======================================================== */
 
-    /*
-     * Scan any messages already present.
-     */
     requestAnimationFrame(() => {
+
         Embed.scanMessages(
             ".message"
         );
+
     });
 
 
@@ -2017,13 +2325,12 @@
        MESSAGE OBSERVER
     ======================================================== */
 
-    /*
-     * If another part of the app adds messages,
-     * automatically let embed.js inspect them.
-     */
     const messageObserver =
         new MutationObserver(
             mutations => {
+
+                let shouldScan = false;
+
 
                 for (
                     const mutation of mutations
@@ -2034,35 +2341,23 @@
                     ) {
 
                         if (
-                            !(node instanceof Element)
-                        ) {
-                            continue;
-                        }
-
-                        if (
-                            node.matches(
-                                ".message"
+                            node instanceof Element &&
+                            (
+                                node.matches(".message") ||
+                                node.querySelector?.(".message")
                             )
                         ) {
-
-                            Embed.scanMessages(
-                                ".message"
-                            );
-
-                            continue;
-                        }
-
-                        const nested =
-                            node.querySelector?.(
-                                ".message"
-                            );
-
-                        if (nested) {
-                            Embed.scanMessages(
-                                ".message"
-                            );
+                            shouldScan = true;
                         }
                     }
+                }
+
+
+                if (shouldScan) {
+
+                    Embed.scanMessages(
+                        ".message"
+                    );
                 }
             }
         );
@@ -2078,18 +2373,19 @@
 
 
     /* ========================================================
-       STARTUP TEST MESSAGE
+       TEST YOUTUBE MESSAGE
     ======================================================== */
 
     /*
-     * Uncomment this if you want a test YouTube
-     * embed immediately on startup.
+     * Uncomment to test the exact structure:
      *
      * addMessage({
-     *     author: "Krynet",
-     *     text: "https://www.youtube.com/watch?v=K6y-5INWnQo"
+     *     author: "Barney",
+     *     text:
+     *         "https://www.youtube.com/watch?v=K6y-5INWnQo"
      * });
      */
+
 
 </script>
 
