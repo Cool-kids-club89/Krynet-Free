@@ -2,78 +2,16 @@
 // External WASM / global libs
 ///////////////////////////////
 
-declare const OpusEncoderWASM: {
-    create: (options: {
-        sampleRate: number;
-        channels: number;
-        application: string;
-        bitrate: number;
-    }) => Promise<OpusEncoder>;
-};
-
-declare const OpusDecoderWASM: {
-    create: (options: {
-        sampleRate: number;
-        channels: number;
-    }) => Promise<OpusDecoder>;
-};
-
-declare const RNNoiseWASM: {
-    create: () => Promise<RNNoise>;
-};
+const OpusEncoderWASM = globalThis.OpusEncoderWASM;
+const OpusDecoderWASM = globalThis.OpusDecoderWASM;
+const RNNoiseWASM = globalThis.RNNoiseWASM;
 
 ///////////////////////////////
-// External library shapes
+// Types removed
 ///////////////////////////////
 
-type OpusEncoder = {
-    encode(
-        pcm: Float32Array,
-        bitrate: number
-    ): Uint8Array;
-};
-
-type OpusDecoder = {
-    decode(data: Uint8Array): Float32Array;
-};
-
-type RNNoise = {
-    process(
-        pcm: Float32Array
-    ): Promise<Float32Array> | Float32Array;
-};
-
-///////////////////////////////
-// Types
-///////////////////////////////
-
-export type DeviceType =
-    | "airpods"
-    | "samsungbuds"
-    | "generic";
-
-export type VoiceChatOptions = {
-    frameSize?: number;
-    bitrate?: number;
-    sampleRate?: number;
-    inactivityTimeout?: number;
-    heartbeatInterval?: number;
-    serverPublicKey?: string;
-};
-
-type Orientation = {
-    yaw: number;
-    pitch: number;
-    roll: number;
-};
-
-type ListenerHardware = {
-    channels: number;
-    sampleRate: number;
-};
-
-type UploadController =
-    ReadableStreamDefaultController<Uint8Array>;
+// TypeScript type declarations removed.
+// Runtime behavior is unchanged.
 
 ///////////////////////////////
 // Constants
@@ -92,9 +30,7 @@ const AES_IV_SIZE = 12;
 // Helpers
 ///////////////////////////////
 
-function arrayBufferToBase64(
-    buffer: ArrayBuffer
-): string {
+function arrayBufferToBase64(buffer) {
     const bytes = new Uint8Array(buffer);
 
     let output = "";
@@ -106,9 +42,7 @@ function arrayBufferToBase64(
     return btoa(output);
 }
 
-function base64ToBytes(
-    value: string
-): Uint8Array {
+function base64ToBytes(value) {
     const binary = atob(value);
     const bytes = new Uint8Array(binary.length);
 
@@ -124,64 +58,15 @@ function base64ToBytes(
 ///////////////////////////////
 
 export class VoiceChatApex {
-    serverUrl: string;
-    sessionId: string;
-    userId: string;
-
-    frameSize: number;
-    bitrate: number;
-    sampleRate: number;
-
-    inactivityTimeout: number;
-    heartbeatInterval: number;
-
-    audioContext: AudioContext;
-
-    inputStream: MediaStream | null = null;
-    inputNode: MediaStreamAudioSourceNode | null = null;
-    processorNode: AudioWorkletNode | null = null;
-
-    opusEncoder: OpusEncoder | null = null;
-    opusDecoder: OpusDecoder | null = null;
-    ai: RNNoise | null = null;
-
-    sessionKey: CryptoKey | null = null;
-
-    uploadStream: ReadableStream<Uint8Array> | null = null;
-    uploadController: UploadController | null = null;
-
-    reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
-
-    lastActive = Date.now();
-
-    listenerHardware: ListenerHardware = {
-        channels: 2,
-        sampleRate: DEFAULT_SAMPLE_RATE
-    };
-
-    listenerOrientation: Orientation = {
-        yaw: 0,
-        pitch: 0,
-        roll: 0
-    };
-
-    deviceType: DeviceType = "generic";
-
-    private serverPublicKey: string | null = null;
-
-    private inactivityTimer: number | null = null;
-    private heartbeatTimer: number | null = null;
-    private orientationHandler: ((event: DeviceOrientationEvent) => void) | null = null;
-
-    private running = false;
-
     constructor(
-        serverUrl: string,
-        sessionId: string,
-        userId: string,
-        options: VoiceChatOptions = {}
+        serverUrl,
+        sessionId,
+        userId,
+        options = {}
     ) {
-        this.serverUrl = serverUrl.replace(/\/+$/, "");
+        this.serverUrl =
+            serverUrl.replace(/\/+$/, "");
+
         this.sessionId = sessionId;
         this.userId = userId;
 
@@ -214,14 +99,52 @@ export class VoiceChatApex {
                 sampleRate: this.sampleRate,
                 latencyHint: "interactive"
             });
+
+        this.inputStream = null;
+        this.inputNode = null;
+        this.processorNode = null;
+
+        this.opusEncoder = null;
+        this.opusDecoder = null;
+        this.ai = null;
+
+        this.sessionKey = null;
+
+        this.uploadStream = null;
+        this.uploadController = null;
+
+        this.reader = null;
+
+        this.lastActive = Date.now();
+
+        this.listenerHardware = {
+            channels: 2,
+            sampleRate: DEFAULT_SAMPLE_RATE
+        };
+
+        this.listenerOrientation = {
+            yaw: 0,
+            pitch: 0,
+            roll: 0
+        };
+
+        this.deviceType = "generic";
+
+        this.inactivityTimer = null;
+        this.heartbeatTimer = null;
+        this.orientationHandler = null;
+
+        this.running = false;
     }
 
     ///////////////////////////////
     // INIT
     ///////////////////////////////
 
-    async init(): Promise<void> {
-        if (this.running) return;
+    async init() {
+        if (this.running) {
+            return;
+        }
 
         try {
             await this.audioContext.resume();
@@ -239,7 +162,6 @@ export class VoiceChatApex {
             this.running = true;
         } catch (error) {
             await this.stop();
-
             throw error;
         }
     }
@@ -248,10 +170,11 @@ export class VoiceChatApex {
     // HARDWARE
     ///////////////////////////////
 
-    async detectHardware(): Promise<void> {
+    async detectHardware() {
         this.listenerHardware = {
             channels: 2,
-            sampleRate: this.audioContext.sampleRate
+            sampleRate:
+                this.audioContext.sampleRate
         };
 
         if (!navigator.mediaDevices) {
@@ -279,9 +202,7 @@ export class VoiceChatApex {
         }
 
         if (label.includes("samsung")) {
-            this.deviceType =
-                "samsungbuds";
-
+            this.deviceType = "samsungbuds";
             return;
         }
 
@@ -292,7 +213,7 @@ export class VoiceChatApex {
     // CRYPTO
     ///////////////////////////////
 
-    async initKeys(): Promise<void> {
+    async initKeys() {
         if (!this.serverPublicKey) {
             throw new Error(
                 "Missing server ECDH public key"
@@ -344,68 +265,60 @@ export class VoiceChatApex {
                 ]
             );
 
-        /*
-         * The server needs the client's public key
-         * to derive the same ECDH secret.
-         *
-         * This endpoint is intentionally explicit
-         * rather than pretending a locally-generated
-         * ECDH key is shared with the server.
-         */
         const clientPublicKey =
             await crypto.subtle.exportKey(
                 "raw",
                 keyPair.publicKey
             );
 
-        await fetch(
-            `${this.serverUrl}/audio/key`,
-            {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-                body: JSON.stringify({
-                    sessionId:
-                        this.sessionId,
+        const response =
+            await fetch(
+                `${this.serverUrl}/audio/key`,
+                {
+                    method: "POST",
+                    credentials: "include",
 
-                    userId:
-                        this.userId,
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
 
-                    publicKey:
-                        arrayBufferToBase64(
-                            clientPublicKey
-                        )
-                })
-            }
-        ).then(response => {
-            if (!response.ok) {
-                throw new Error(
-                    "Failed to register client ECDH key"
-                );
-            }
-        });
+                    body: JSON.stringify({
+                        sessionId:
+                            this.sessionId,
+
+                        userId:
+                            this.userId,
+
+                        publicKey:
+                            arrayBufferToBase64(
+                                clientPublicKey
+                            )
+                    })
+                }
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "Failed to register client ECDH key"
+            );
+        }
     }
 
     ///////////////////////////////
     // WASM
     ///////////////////////////////
 
-    async loadWASM(): Promise<void> {
+    async loadWASM() {
         this.opusEncoder =
             await OpusEncoderWASM.create({
                 sampleRate:
-                    this.audioContext
-                        .sampleRate,
+                    this.audioContext.sampleRate,
 
                 channels:
-                    this.listenerHardware
-                        .channels,
+                    this.listenerHardware.channels,
 
-                application:
-                    "audio",
+                application: "audio",
 
                 bitrate:
                     this.bitrate
@@ -414,12 +327,10 @@ export class VoiceChatApex {
         this.opusDecoder =
             await OpusDecoderWASM.create({
                 sampleRate:
-                    this.audioContext
-                        .sampleRate,
+                    this.audioContext.sampleRate,
 
                 channels:
-                    this.listenerHardware
-                        .channels
+                    this.listenerHardware.channels
             });
 
         this.ai =
@@ -430,18 +341,16 @@ export class VoiceChatApex {
     // MICROPHONE
     ///////////////////////////////
 
-    async initMicrophone(): Promise<void> {
+    async initMicrophone() {
         this.inputStream =
             await navigator.mediaDevices
                 .getUserMedia({
                     audio: {
                         channelCount:
-                            this.listenerHardware
-                                .channels,
+                            this.listenerHardware.channels,
 
                         sampleRate:
-                            this.audioContext
-                                .sampleRate,
+                            this.audioContext.sampleRate,
 
                         echoCancellation: true,
                         noiseSuppression: true,
@@ -474,9 +383,7 @@ export class VoiceChatApex {
                 .audioWorklet
                 .addModule(workletUrl);
         } finally {
-            URL.revokeObjectURL(
-                workletUrl
-            );
+            URL.revokeObjectURL(workletUrl);
         }
 
         this.processorNode =
@@ -489,8 +396,7 @@ export class VoiceChatApex {
                             this.frameSize,
 
                         channels:
-                            this.listenerHardware
-                                .channels
+                            this.listenerHardware.channels
                     }
                 }
             );
@@ -499,12 +405,8 @@ export class VoiceChatApex {
             this.processorNode
         );
 
-        /*
-         * Don't route microphone audio
-         * back into the speakers.
-         */
         this.processorNode.port.onmessage =
-            async (event: MessageEvent) => {
+            async event => {
                 if (
                     event.data?.type !==
                     "frame"
@@ -513,16 +415,12 @@ export class VoiceChatApex {
                 }
 
                 const frame =
-                    event.data
-                        .frame as Float32Array;
+                    event.data.frame;
 
-                this.lastActive =
-                    Date.now();
+                this.lastActive = Date.now();
 
                 try {
-                    await this.sendFrame(
-                        frame
-                    );
+                    await this.sendFrame(frame);
                 } catch (error) {
                     console.error(
                         "Voice frame failed:",
@@ -536,18 +434,13 @@ export class VoiceChatApex {
     // HEAD TRACKING
     ///////////////////////////////
 
-    async initHeadTracking(): Promise<void> {
+    async initHeadTracking() {
         this.orientationHandler =
-            (event) => {
+            event => {
                 this.listenerOrientation = {
-                    yaw:
-                        event.alpha ?? 0,
-
-                    pitch:
-                        event.beta ?? 0,
-
-                    roll:
-                        event.gamma ?? 0
+                    yaw: event.alpha ?? 0,
+                    pitch: event.beta ?? 0,
+                    roll: event.gamma ?? 0
                 };
             };
 
@@ -561,26 +454,22 @@ export class VoiceChatApex {
     // STREAMING
     ///////////////////////////////
 
-    async startTLSStreaming(): Promise<void> {
+    async startTLSStreaming() {
         if (!this.sessionKey) {
             throw new Error(
                 "Session encryption key is not initialized"
             );
         }
 
-        let resolveUpload:
-            (() => void) | null = null;
+        let resolveUpload = null;
 
         const uploadReady =
-            new Promise<void>(
-                resolve => {
-                    resolveUpload =
-                        resolve;
-                }
-            );
+            new Promise(resolve => {
+                resolveUpload = resolve;
+            });
 
         this.uploadStream =
-            new ReadableStream<Uint8Array>({
+            new ReadableStream({
                 start: controller => {
                     this.uploadController =
                         controller;
@@ -589,8 +478,7 @@ export class VoiceChatApex {
                 },
 
                 cancel: () => {
-                    this.uploadController =
-                        null;
+                    this.uploadController = null;
                 }
             });
 
@@ -599,12 +487,8 @@ export class VoiceChatApex {
                 `${this.serverUrl}/audio`,
                 {
                     method: "POST",
-                    body:
-                        this.uploadStream,
-
-                    credentials:
-                        "include",
-
+                    body: this.uploadStream,
+                    credentials: "include",
                     keepalive: true,
 
                     headers: {
@@ -671,8 +555,10 @@ export class VoiceChatApex {
     // RECEIVE AUDIO
     ///////////////////////////////
 
-    async readIncomingAudio(): Promise<void> {
-        if (!this.reader) return;
+    async readIncomingAudio() {
+        if (!this.reader) {
+            return;
+        }
 
         try {
             while (this.running) {
@@ -681,10 +567,7 @@ export class VoiceChatApex {
                     value
                 } = await this.reader.read();
 
-                if (
-                    done ||
-                    !value
-                ) {
+                if (done || !value) {
                     break;
                 }
 
@@ -702,33 +585,30 @@ export class VoiceChatApex {
                     );
 
                 const encrypted =
-                    value.slice(
-                        AES_IV_SIZE
-                    );
+                    value.slice(AES_IV_SIZE);
 
                 try {
                     const decrypted =
                         await crypto.subtle.decrypt(
                             {
-                                name:
-                                    "AES-GCM",
+                                name: "AES-GCM",
                                 iv
                             },
-                            this.sessionKey!,
+                            this.sessionKey,
                             encrypted
                         );
 
                     let pcm =
-                        this.opusDecoder!
-                            .decode(
-                                new Uint8Array(
-                                    decrypted
-                                )
-                            );
+                        this.opusDecoder.decode(
+                            new Uint8Array(
+                                decrypted
+                            )
+                        );
 
                     pcm =
-                        await this.ai!
-                            .process(pcm);
+                        await this.ai.process(
+                            pcm
+                        );
 
                     this.playAudio(pcm);
                 } catch (error) {
@@ -752,40 +632,26 @@ export class VoiceChatApex {
     // PLAY AUDIO
     ///////////////////////////////
 
-    playAudio(
-        pcm: Float32Array
-    ): void {
+    playAudio(pcm) {
         const channels =
-            this.listenerHardware
-                .channels;
+            this.listenerHardware.channels;
 
         const samplesPerChannel =
             Math.floor(
-                pcm.length /
-                this.listenerHardware.channels
+                pcm.length / channels
             );
 
-        if (
-            samplesPerChannel <= 0
-        ) {
+        if (samplesPerChannel <= 0) {
             return;
         }
 
         const buffer =
-            this.audioContext
-                .createBuffer(
-                    channels,
-                    samplesPerChannel,
-                    this.audioContext
-                        .sampleRate
-                );
+            this.audioContext.createBuffer(
+                channels,
+                samplesPerChannel,
+                this.audioContext.sampleRate
+            );
 
-        /*
-         * Decode output is expected to be
-         * interleaved:
-         *
-         * L R L R L R...
-         */
         for (
             let channel = 0;
             channel < channels;
@@ -820,11 +686,8 @@ export class VoiceChatApex {
             new PannerNode(
                 this.audioContext,
                 {
-                    panningModel:
-                        "HRTF",
-
-                    distanceModel:
-                        "inverse",
+                    panningModel: "HRTF",
+                    distanceModel: "inverse",
 
                     positionX: 0,
                     positionY: 0,
@@ -832,9 +695,7 @@ export class VoiceChatApex {
                 }
             );
 
-        this.configurePanner(
-            panner
-        );
+        this.configurePanner(panner);
 
         source
             .connect(panner)
@@ -845,12 +706,9 @@ export class VoiceChatApex {
         source.start();
     }
 
-    configurePanner(
-        panner: PannerNode
-    ): void {
+    configurePanner(panner) {
         const angle =
-            -this.listenerOrientation
-                .yaw *
+            -this.listenerOrientation.yaw *
             Math.PI /
             180;
 
@@ -864,16 +722,14 @@ export class VoiceChatApex {
             this.deviceType ===
             "airpods"
         ) {
-            panner.coneInnerAngle =
-                360;
+            panner.coneInnerAngle = 360;
         }
 
         if (
             this.deviceType ===
             "samsungbuds"
         ) {
-            panner.coneOuterAngle =
-                270;
+            panner.coneOuterAngle = 270;
         }
     }
 
@@ -881,9 +737,7 @@ export class VoiceChatApex {
     // SEND FRAME
     ///////////////////////////////
 
-    async sendFrame(
-        framePCM: Float32Array
-    ): Promise<void> {
+    async sendFrame(framePCM) {
         if (
             !this.ai ||
             !this.opusEncoder ||
@@ -914,8 +768,7 @@ export class VoiceChatApex {
         const encrypted =
             await crypto.subtle.encrypt(
                 {
-                    name:
-                        "AES-GCM",
+                    name: "AES-GCM",
                     iv
                 },
                 this.sessionKey,
@@ -931,9 +784,7 @@ export class VoiceChatApex {
         payload.set(iv, 0);
 
         payload.set(
-            new Uint8Array(
-                encrypted
-            ),
+            new Uint8Array(encrypted),
             iv.byteLength
         );
 
@@ -946,7 +797,7 @@ export class VoiceChatApex {
     // INACTIVITY
     ///////////////////////////////
 
-    startInactivityChecker(): void {
+    startInactivityChecker() {
         this.clearInactivityTimer();
 
         this.inactivityTimer =
@@ -965,37 +816,32 @@ export class VoiceChatApex {
     // HEARTBEAT
     ///////////////////////////////
 
-    startHeartbeat(): void {
+    startHeartbeat() {
         this.clearHeartbeatTimer();
 
-        const sendHeartbeat =
-            (): void => {
-                fetch(
-                    `${this.serverUrl}/heartbeat`,
-                    {
-                        method: "POST",
-                        credentials:
-                            "include",
+        const sendHeartbeat = () => {
+            fetch(
+                `${this.serverUrl}/heartbeat`,
+                {
+                    method: "POST",
+                    credentials: "include",
+                    keepalive: true,
 
-                        keepalive:
-                            true,
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
 
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
+                    body: JSON.stringify({
+                        sessionId:
+                            this.sessionId,
 
-                        body:
-                            JSON.stringify({
-                                sessionId:
-                                    this.sessionId,
-
-                                userId:
-                                    this.userId
-                            })
-                    }
-                ).catch(() => {});
-            };
+                        userId:
+                            this.userId
+                    })
+                }
+            ).catch(() => {});
+        };
 
         sendHeartbeat();
 
@@ -1010,7 +856,7 @@ export class VoiceChatApex {
     // CLEANUP
     ///////////////////////////////
 
-    async stop(): Promise<void> {
+    async stop() {
         if (!this.running) {
             this.cleanup();
             return;
@@ -1041,7 +887,7 @@ export class VoiceChatApex {
         this.cleanup();
     }
 
-    private cleanup(): void {
+    cleanup() {
         this.processorNode?.port.close();
         this.processorNode?.disconnect();
         this.processorNode = null;
@@ -1060,16 +906,13 @@ export class VoiceChatApex {
             this.inputStream = null;
         }
 
-        if (
-            this.orientationHandler
-        ) {
+        if (this.orientationHandler) {
             window.removeEventListener(
                 "deviceorientation",
                 this.orientationHandler
             );
 
-            this.orientationHandler =
-                null;
+            this.orientationHandler = null;
         }
 
         this.opusEncoder = null;
@@ -1082,7 +925,7 @@ export class VoiceChatApex {
             .catch(() => {});
     }
 
-    private clearInactivityTimer(): void {
+    clearInactivityTimer() {
         if (
             this.inactivityTimer !== null
         ) {
@@ -1094,7 +937,7 @@ export class VoiceChatApex {
         }
     }
 
-    private clearHeartbeatTimer(): void {
+    clearHeartbeatTimer() {
         if (
             this.heartbeatTimer !== null
         ) {
@@ -1110,7 +953,7 @@ export class VoiceChatApex {
     // WORKLET
     ///////////////////////////////
 
-    static voiceProcessorCode(): string {
+    static voiceProcessorCode() {
         return `
 class VoiceProcessor
     extends AudioWorkletProcessor {
