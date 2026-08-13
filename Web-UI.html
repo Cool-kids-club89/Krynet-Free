@@ -1,624 +1,1061 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1"
-    >
-
-    <meta
-        name="color-scheme"
-        content="dark"
-    >
-
-    <title>Krynet Chat</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-        }
-
-        body {
-            background: #0f1012;
-            color: #f2f3f5;
-            font-family:
-                system-ui,
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                sans-serif;
-            overflow: hidden;
-        }
-
-        button,
-        input,
-        textarea {
-            font: inherit;
-        }
-
-        button {
-            cursor: pointer;
-        }
-
-        /* -------------------------------------------------
-           APP
-        ------------------------------------------------- */
-
-        #app {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* -------------------------------------------------
-           HEADER
-        ------------------------------------------------- */
-
-        .header {
-            height: 56px;
-            flex-shrink: 0;
-
-            display: flex;
-            align-items: center;
-
-            padding: 0 18px;
-
-            background: #18191c;
-            border-bottom: 1px solid #292b2f;
-        }
-
-        .header-title {
-            font-size: 16px;
-            font-weight: 700;
-        }
-
-        .header-subtitle {
-            margin-left: 10px;
-
-            color: #72767d;
-            font-size: 13px;
-        }
-
-        /* -------------------------------------------------
-           MESSAGES
-        ------------------------------------------------- */
-
-        #messages {
-            flex: 1;
-
-            overflow-y: auto;
-            overflow-x: hidden;
-
-            padding: 18px 0 24px;
-        }
-
-        #messages::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        #messages::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        #messages::-webkit-scrollbar-thumb {
-            background: #202225;
-            border-radius: 10px;
-        }
-
-        .message {
-            position: relative;
-
-            display: flex;
-            gap: 12px;
-
-            padding: 7px 24px;
-
-            transition:
-                background 120ms ease;
-        }
-
-        .message:hover {
-            background: rgba(255, 255, 255, 0.025);
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            flex-shrink: 0;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            background: #5865f2;
-            border-radius: 50%;
-
-            font-size: 15px;
-            font-weight: 700;
-        }
-
-        .message-main {
-            min-width: 0;
-            flex: 1;
-        }
-
-        .message-header {
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-
-            min-height: 20px;
-        }
-
-        .username {
-            color: #ffffff;
-            font-size: 15px;
-            font-weight: 650;
-        }
-
-        .timestamp {
-            color: #72767d;
-            font-size: 11px;
-        }
-
-        .message-content {
-            color: #dcddde;
-            font-size: 15px;
-            line-height: 1.45;
-
-            overflow-wrap: anywhere;
-            white-space: pre-wrap;
-        }
-
-        .message-content a {
-            color: #00aff4;
-        }
-
-        /* -------------------------------------------------
-           EMBEDS
-        ------------------------------------------------- */
-
-        .message-embeds {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-
-            margin-top: 6px;
-        }
-
-        .kr-embed {
-            width: min(520px, 100%);
-
-            display: flex;
-
-            background: #2b2d31;
-            border-radius: 7px;
-
-            overflow: hidden;
-
-            margin-top: 4px;
-
-            border: 1px solid rgba(
-                255,
-                255,
-                255,
-                0.04
-            );
-        }
-
-        .kr-embed-bar {
-            width: 4px;
-            flex-shrink: 0;
-            background: #5865f2;
-        }
-
-        .kr-embed-body {
-            min-width: 0;
-            flex: 1;
-
-            padding: 10px;
-        }
-
-        .kr-embed-title {
-            display: block;
-
-            color: #00aff4;
-
-            font-size: 14px;
-            font-weight: 650;
-
-            text-decoration: none;
-
-            overflow-wrap: anywhere;
-        }
-
-        .kr-embed-description {
-            margin-top: 3px;
-
-            color: #b9bbbe;
-
-            font-size: 12px;
-            line-height: 1.4;
-
-            overflow-wrap: anywhere;
-        }
-
-        .kr-embed-provider {
-            margin-top: 6px;
-
-            color: #72767d;
-            font-size: 11px;
-        }
-
-        .kr-embed-image {
-            display: block;
-
-            width: 100%;
-            max-width: 500px;
-
-            margin-top: 8px;
-
-            border-radius: 5px;
-        }
-
-        .kr-embed-video {
-            display: block;
-
-            width: 100%;
-            max-width: 500px;
-
-            aspect-ratio: 16 / 9;
-
-            margin-top: 8px;
-
-            border: 0;
-            border-radius: 5px;
-
-            background: #000;
-        }
-
-        .kr-embed-media {
-            display: block;
-
-            width: 100%;
-            max-width: 500px;
-
-            margin-top: 8px;
-
-            border-radius: 5px;
-        }
-
-        .kr-embed-audio {
-            display: block;
-
-            width: 100%;
-            margin-top: 8px;
-        }
-
-        .kr-embed-file {
-            margin-top: 8px;
-
-            padding: 9px;
-
-            background: #202225;
-            border-radius: 5px;
-
-            color: #b9bbbe;
-            font-size: 13px;
-        }
-
-        /* -------------------------------------------------
-           REACTIONS
-        ------------------------------------------------- */
-
-        .message-actions {
-            position: absolute;
-
-            right: 24px;
-            top: -18px;
-
-            display: none;
-
-            background: #18191c;
-            border: 1px solid #292b2f;
-            border-radius: 7px;
-
-            padding: 4px;
-
-            z-index: 20;
-        }
-
-        .message:hover .message-actions {
-            display: flex;
-        }
-
-        .react-button {
-            width: 32px;
-            height: 30px;
-
-            border: 0;
-            border-radius: 5px;
-
-            background: transparent;
-            color: #b9bbbe;
-
-            font-size: 17px;
-        }
-
-        .react-button:hover {
-            background: #2f3136;
-            color: #ffffff;
-        }
-
-        .message-reactions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-
-            margin-top: 5px;
-        }
-
-        .reaction {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-
-            min-height: 24px;
-
-            padding: 2px 7px;
-
-            border: 1px solid #3f4147;
-            border-radius: 6px;
-
-            background: #2b2d31;
-
-            color: #dcddde;
-
-            font-size: 13px;
-        }
-
-        .reaction:hover {
-            border-color: #5865f2;
-        }
-
-        /* -------------------------------------------------
-           COMPOSER
-        ------------------------------------------------- */
-
-        .composer-wrap {
-            flex-shrink: 0;
-
-            padding: 10px 18px 18px;
-
-            background: #18191c;
-        }
-
-        .composer {
-            min-height: 52px;
-
-            display: flex;
-            align-items: flex-end;
-            gap: 8px;
-
-            padding: 8px;
-
-            background: #383a40;
-            border-radius: 8px;
-        }
-
-        #fileInput {
-            display: none;
-        }
-
-        .composer-button {
-            width: 34px;
-            height: 34px;
-
-            flex-shrink: 0;
-
-            border: 0;
-            border-radius: 6px;
-
-            background: transparent;
-            color: #b9bbbe;
-
-            font-size: 22px;
-        }
-
-        .composer-button:hover {
-            color: #ffffff;
-            background: #4a4c52;
-        }
-
-        #messageInput {
-            flex: 1;
-
-            min-height: 34px;
-            max-height: 180px;
-
-            resize: none;
-
-            padding: 7px 4px;
-
-            border: 0;
-            outline: 0;
-
-            background: transparent;
-            color: #ffffff;
-
-            line-height: 20px;
-        }
-
-        #messageInput::placeholder {
-            color: #72767d;
-        }
-
-        #sendButton {
-            width: 42px;
-            height: 34px;
-
-            flex-shrink: 0;
-
-            border: 0;
-            border-radius: 6px;
-
-            background: #5865f2;
-            color: white;
-
-            font-size: 16px;
-        }
-
-        #sendButton:hover {
-            background: #4752c4;
-        }
-
-        /* -------------------------------------------------
-           UPLOAD PREVIEW
-        ------------------------------------------------- */
-
-        #uploadPreview {
-            display: none;
-
-            margin-bottom: 8px;
-            padding: 10px;
-
-            background: #2b2d31;
-            border-radius: 7px;
-
-            color: #b9bbbe;
-            font-size: 13px;
-        }
-
-        #uploadPreview.active {
-            display: block;
-        }
-
-        .upload-name {
-            color: #ffffff;
-            font-weight: 600;
-        }
-
-        /* -------------------------------------------------
-           MOBILE
-        ------------------------------------------------- */
-
-        @media (max-width: 600px) {
-            .message {
-                padding-left: 12px;
-                padding-right: 12px;
-            }
-
-            .composer-wrap {
-                padding-left: 8px;
-                padding-right: 8px;
-            }
-
-            .message-actions {
-                right: 12px;
-            }
-
-            .avatar {
-                width: 34px;
-                height: 34px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+
+<title>Krynet Community</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    background: #111214;
+    color: #f2f3f5;
+    overflow: hidden;
+}
+
+/* =========================================================
+   APP
+========================================================= */
+
+.app {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+}
+
+/* =========================================================
+   SERVER SIDEBAR
+========================================================= */
+
+.server-sidebar {
+    width: 72px;
+    flex-shrink: 0;
+    background: #0b0c0e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-right: 1px solid #191a1e;
+}
+
+.server {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    border: 0;
+    background: #202225;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        border-radius .15s ease,
+        background .15s ease;
+}
+
+.server:hover {
+    border-radius: 13px;
+    background: #5865f2;
+}
+
+.server.active {
+    border-radius: 13px;
+    background: #5865f2;
+}
+
+.server-divider {
+    width: 32px;
+    height: 1px;
+    background: #292b30;
+}
+
+/* =========================================================
+   CHANNEL SIDEBAR
+========================================================= */
+
+.channel-sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: #18191c;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #101113;
+}
+
+.server-header {
+    height: 52px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #101113;
+    font-weight: 700;
+}
+
+.server-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.server-header button {
+    border: 0;
+    background: transparent;
+    color: #b5bac1;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.channel-section {
+    padding: 18px 10px 0;
+}
+
+.channel-section-title {
+    padding: 0 8px 8px;
+    color: #949ba4;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.channel {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: #949ba4;
+    padding: 9px 10px;
+    border-radius: 5px;
+    text-align: left;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.channel:hover {
+    color: #dbdee1;
+    background: #2a2c30;
+}
+
+.channel.active {
+    color: #fff;
+    background: #3b3d44;
+}
+
+.channel-icon {
+    color: #72767d;
+    font-size: 18px;
+}
+
+.channel.active .channel-icon {
+    color: #b5bac1;
+}
+
+/* =========================================================
+   USER PANEL
+========================================================= */
+
+.user-panel {
+    margin-top: auto;
+    padding: 10px;
+    background: #111214;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.avatar {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #5865f2;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+}
+
+.user-info {
+    min-width: 0;
+}
+
+.user-name {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.user-status {
+    color: #949ba4;
+    font-size: 11px;
+}
+
+.user-controls {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+}
+
+.user-controls button {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: #b5bac1;
+    cursor: pointer;
+}
+
+.user-controls button:hover {
+    background: #2b2d31;
+    color: #fff;
+}
+
+/* =========================================================
+   CHAT
+========================================================= */
+
+.chat {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #313338;
+}
+
+.chat-header {
+    height: 52px;
+    flex-shrink: 0;
+    padding: 0 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #202124;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+
+.chat-header-icon {
+    color: #949ba4;
+    font-size: 22px;
+}
+
+.chat-header-name {
+    font-weight: 700;
+}
+
+.chat-header-topic {
+    color: #949ba4;
+    font-size: 13px;
+    border-left: 1px solid #4a4d52;
+    padding-left: 10px;
+}
+
+.chat-header-spacer {
+    flex: 1;
+}
+
+.chat-header button {
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: #b5bac1;
+    cursor: pointer;
+    font-size: 17px;
+}
+
+.chat-header button:hover {
+    background: #3b3d44;
+    color: #fff;
+}
+
+/* =========================================================
+   MESSAGE AREA
+========================================================= */
+
+.messages {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 18px 0 20px;
+}
+
+.message {
+    position: relative;
+    padding: 4px 20px;
+    display: flex;
+    gap: 12px;
+}
+
+.message:hover {
+    background: rgba(4,4,5,.12);
+}
+
+.message-avatar {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #5865f2;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+}
+
+.message-content {
+    min-width: 0;
+    max-width: 720px;
+}
+
+.message-author-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.message-author {
+    color: #fff;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.message-time {
+    color: #949ba4;
+    font-size: 11px;
+}
+
+.message-text {
+    color: #dbdee1;
+    font-size: 15px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.message-text.hidden-link-text {
+    display: none;
+}
+
+/* =========================================================
+   EMBEDS
+========================================================= */
+
+.message-embeds {
+    margin-top: 7px;
+    max-width: 520px;
+}
+
+.kr-embed {
+    display: flex;
+    background: #2b2d31;
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 520px;
+    margin-top: 6px;
+    border: 1px solid #202225;
+}
+
+.kr-embed-accent {
+    width: 4px;
+    flex-shrink: 0;
+    background: #5865f2;
+}
+
+.kr-embed-body {
+    padding: 10px;
+    min-width: 0;
+    flex: 1;
+}
+
+.kr-embed-title {
+    color: #00aff4;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.kr-embed-description {
+    color: #b5bac1;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.kr-embed-provider {
+    color: #72767d;
+    font-size: 11px;
+    margin-top: 6px;
+}
+
+.kr-youtube {
+    width: 480px;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 0;
+    border-radius: 6px;
+    margin-top: 8px;
+    display: block;
+    background: #000;
+}
+
+/* =========================================================
+   REACTIONS
+========================================================= */
+
+.message-reactions {
+    margin-top: 7px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.kr-reactions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.kr-reaction {
+    min-width: 34px;
+    height: 28px;
+    padding: 0 8px;
+    border: 1px solid #4e5058;
+    border-radius: 7px;
+    background: #2b2d31;
+    color: #dbdee1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-size: 13px;
+}
+
+.kr-reaction:hover {
+    background: #3b3d44;
+    border-color: #5865f2;
+}
+
+.kr-reaction.active {
+    background: rgba(88,101,242,.25);
+    border-color: #5865f2;
+}
+
+.add-reaction {
+    opacity: 0;
+    position: absolute;
+    right: 18px;
+    top: -2px;
+    width: 32px;
+    height: 30px;
+    border: 1px solid #4e5058;
+    border-radius: 6px;
+    background: #2b2d31;
+    color: #b5bac1;
+    cursor: pointer;
+    transition: opacity .12s ease;
+}
+
+.message:hover .add-reaction {
+    opacity: 1;
+}
+
+.add-reaction:hover {
+    color: #fff;
+    background: #3b3d44;
+}
+
+/* =========================================================
+   COMPOSER
+========================================================= */
+
+.composer-wrap {
+    padding: 0 18px 18px;
+    flex-shrink: 0;
+}
+
+.composer {
+    min-height: 52px;
+    background: #383a40;
+    border-radius: 8px;
+    display: flex;
+    align-items: flex-end;
+    padding: 8px;
+    gap: 7px;
+}
+
+.composer button {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: #b5bac1;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.composer button:hover {
+    background: #45474e;
+    color: #fff;
+}
+
+#messageInput {
+    flex: 1;
+    min-width: 0;
+    max-height: 180px;
+    min-height: 36px;
+    resize: none;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #fff;
+    font: inherit;
+    line-height: 36px;
+}
+
+#messageInput::placeholder {
+    color: #949ba4;
+}
+
+.send-button {
+    background: #5865f2 !important;
+    color: #fff !important;
+}
+
+.send-button:hover {
+    background: #4752c4 !important;
+}
+
+#fileInput {
+    display: none;
+}
+
+/* =========================================================
+   MEMBERS
+========================================================= */
+
+.members-sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: #2b2d31;
+    border-left: 1px solid #202124;
+    padding: 22px 12px;
+    overflow-y: auto;
+}
+
+.members-title {
+    color: #949ba4;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0 8px 10px;
+}
+
+.member {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 8px;
+    border-radius: 5px;
+}
+
+.member:hover {
+    background: #383a40;
+}
+
+.member-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #4f545c;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.member-name {
+    font-size: 13px;
+    color: #dbdee1;
+}
+
+.member-online {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #23a55a;
+    margin-left: auto;
+}
+
+/* =========================================================
+   UPLOAD PREVIEW
+========================================================= */
+
+.upload-preview {
+    display: none;
+    margin: 0 0 8px;
+    padding: 8px 10px;
+    background: #2b2d31;
+    border-radius: 7px;
+    color: #b5bac1;
+    font-size: 12px;
+}
+
+.upload-preview.visible {
+    display: block;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 950px) {
+    .members-sidebar {
+        display: none;
+    }
+}
+
+@media (max-width: 700px) {
+    .server-sidebar {
+        width: 58px;
+    }
+
+    .server {
+        width: 42px;
+        height: 42px;
+    }
+
+    .channel-sidebar {
+        width: 190px;
+    }
+
+    .chat-header-topic {
+        display: none;
+    }
+}
+
+@media (max-width: 560px) {
+    .channel-sidebar {
+        display: none;
+    }
+
+    .message {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .composer-wrap {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+}
+</style>
 </head>
 
 <body>
 
-<div id="app">
+<div class="app">
 
-    <header class="header">
-        <div class="header-title">
-            Krynet
+    <!-- =====================================================
+         SERVER SIDEBAR
+    ====================================================== -->
+
+    <aside class="server-sidebar">
+
+        <button class="server active">K</button>
+        <button class="server">+</button>
+        <button class="server">★</button>
+
+        <div class="server-divider"></div>
+
+        <button class="server">C</button>
+        <button class="server">N</button>
+
+    </aside>
+
+
+    <!-- =====================================================
+         CHANNEL SIDEBAR
+    ====================================================== -->
+
+    <aside class="channel-sidebar">
+
+        <header class="server-header">
+            <span class="server-name">
+                Krynet Community
+            </span>
+
+            <button type="button">
+                ⋯
+            </button>
+        </header>
+
+
+        <section class="channel-section">
+
+            <div class="channel-section-title">
+                Text Channels
+            </div>
+
+            <button class="channel active">
+                <span class="channel-icon">#</span>
+                general
+            </button>
+
+            <button class="channel">
+                <span class="channel-icon">#</span>
+                development
+            </button>
+
+            <button class="channel">
+                <span class="channel-icon">#</span>
+                privacy
+            </button>
+
+            <button class="channel">
+                <span class="channel-icon">#</span>
+                off-topic
+            </button>
+
+        </section>
+
+
+        <section class="channel-section">
+
+            <div class="channel-section-title">
+                Voice Channels
+            </div>
+
+            <button class="channel">
+                <span class="channel-icon">🔊</span>
+                Lounge
+            </button>
+
+            <button class="channel">
+                <span class="channel-icon">🔊</span>
+                Development
+            </button>
+
+        </section>
+
+
+        <div class="user-panel">
+
+            <div class="avatar">
+                B
+            </div>
+
+            <div class="user-info">
+                <div class="user-name">
+                    Barney
+                </div>
+
+                <div class="user-status">
+                    Online
+                </div>
+            </div>
+
+            <div class="user-controls">
+                <button type="button">🎙</button>
+                <button type="button">⚙</button>
+            </div>
+
         </div>
 
-        <div class="header-subtitle">
-            # general
+    </aside>
+
+
+    <!-- =====================================================
+         CHAT
+    ====================================================== -->
+
+    <main class="chat">
+
+        <header class="chat-header">
+
+            <span class="chat-header-icon">
+                #
+            </span>
+
+            <span class="chat-header-name">
+                general
+            </span>
+
+            <span class="chat-header-topic">
+                Krynet community discussion
+            </span>
+
+            <span class="chat-header-spacer"></span>
+
+            <button type="button">🔔</button>
+            <button type="button">📌</button>
+            <button type="button">👥</button>
+            <button type="button">🔍</button>
+
+        </header>
+
+
+        <!-- =================================================
+             MESSAGES
+        ================================================== -->
+
+        <section
+            id="messages"
+            class="messages"
+            aria-live="polite"
+        >
+
+            <article class="message">
+
+                <div class="message-avatar">
+                    K
+                </div>
+
+                <div class="message-content">
+
+                    <div class="message-author-row">
+                        <span class="message-author">
+                            Krynet
+                        </span>
+
+                        <span class="message-time">
+                            Today at 5:00 AM
+                        </span>
+                    </div>
+
+                    <div class="message-text">
+                        Welcome to the Krynet Community.
+                    </div>
+
+                    <div class="message-reactions">
+                        <div class="kr-reactions">
+                            <button
+                                class="kr-reaction"
+                                type="button"
+                                data-emoji="👍"
+                            >
+                                👍 <span>2</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <button
+                    class="add-reaction"
+                    type="button"
+                    title="Add Reaction"
+                >
+                    😊
+                </button>
+
+            </article>
+
+
+            <article class="message">
+
+                <div class="message-avatar">
+                    B
+                </div>
+
+                <div class="message-content">
+
+                    <div class="message-author-row">
+                        <span class="message-author">
+                            Barney
+                        </span>
+
+                        <span class="message-time">
+                            Today at 5:01 AM
+                        </span>
+                    </div>
+
+                    <div class="message-text">
+                        This is the community chat.
+                    </div>
+
+                    <div class="message-reactions">
+                        <div class="kr-reactions"></div>
+                    </div>
+
+                </div>
+
+                <button
+                    class="add-reaction"
+                    type="button"
+                    title="Add Reaction"
+                >
+                    😊
+                </button>
+
+            </article>
+
+        </section>
+
+
+        <!-- =================================================
+             COMPOSER
+        ================================================== -->
+
+        <div class="composer-wrap">
+
+            <div
+                id="uploadPreview"
+                class="upload-preview"
+            ></div>
+
+            <form
+                id="messageForm"
+                class="composer"
+            >
+
+                <input
+                    id="fileInput"
+                    type="file"
+                    multiple
+                    accept="
+                        image/*,
+                        video/*,
+                        audio/*,
+                        .avif,
+                        .heif,
+                        .heic,
+                        .aac,
+                        .m4a,
+                        .mp4,
+                        .pdf
+                    "
+                >
+
+                <button
+                    id="uploadButton"
+                    type="button"
+                    title="Upload file"
+                >
+                    +
+                </button>
+
+                <textarea
+                    id="messageInput"
+                    rows="1"
+                    placeholder="Message #general"
+                    autocomplete="off"
+                ></textarea>
+
+                <button
+                    id="emojiButton"
+                    type="button"
+                    title="Emoji"
+                >
+                    ☺
+                </button>
+
+                <button
+                    class="send-button"
+                    type="submit"
+                    title="Send"
+                >
+                    ➤
+                </button>
+
+            </form>
+
         </div>
-    </header>
-
-
-    <main id="messages">
-
-        <!--
-            Messages are intentionally separate from their
-            embed container.
-
-            This is important:
-            .message
-              .message-main
-                .message-content
-                .message-embeds
-                .message-reactions
-
-            The embed never replaces the message.
-        -->
 
     </main>
 
 
-    <footer class="composer-wrap">
+    <!-- =====================================================
+         MEMBERS
+    ====================================================== -->
 
-        <div id="uploadPreview"></div>
+    <aside class="members-sidebar">
 
-        <div class="composer">
-
-            <label
-                class="composer-button"
-                title="Upload file"
-            >
-                +
-                <input
-                    id="fileInput"
-                    type="file"
-                    accept="image/*,video/*,audio/*,.pdf,.avif,.heif,.heic,.aac,.m4a,.mp4"
-                >
-            </label>
-
-            <textarea
-                id="messageInput"
-                rows="1"
-                placeholder="Message #general"
-                autocomplete="off"
-            ></textarea>
-
-            <button
-                id="sendButton"
-                type="button"
-                title="Send"
-            >
-                ➤
-            </button>
-
+        <div class="members-title">
+            Online — 4
         </div>
 
-    </footer>
+        <div class="member">
+            <div class="member-avatar">B</div>
+            <span class="member-name">Barney</span>
+            <span class="member-online"></span>
+        </div>
+
+        <div class="member">
+            <div class="member-avatar">K</div>
+            <span class="member-name">Krynet</span>
+            <span class="member-online"></span>
+        </div>
+
+        <div class="member">
+            <div class="member-avatar">A</div>
+            <span class="member-name">Anonymous</span>
+            <span class="member-online"></span>
+        </div>
+
+        <div class="member">
+            <div class="member-avatar">D</div>
+            <span class="member-name">Developer</span>
+            <span class="member-online"></span>
+        </div>
+
+    </aside>
 
 </div>
 
 
-<!-- =====================================================
-     YOUR JS FILES
-===================================================== -->
+<!-- =========================================================
+     EXISTING KRYNET SCRIPTS
+========================================================= -->
 
+<script src="./js/Cloudflare.js"></script>
+<script src="./js/anonymous-upload.js"></script>
+<script src="./js/blurNSFW.js"></script>
+<script src="./js/clearURLS.js"></script>
+<script src="./js/copyFileContents.js"></script>
+<script src="./js/country-blocker.js"></script>
+<script src="./js/dearrow.js"></script>
+<script src="./js/krysearch.js"></script>
+<script src="./js/markdownRenderer.js"></script>
+<script src="./js/openInApp.js"></script>
+<script src="./js/screenshare.js"></script>
+<script src="./js/sponsorblock.js"></script>
+<script src="./js/tpm.js"></script>
+<script src="./js/voicechat.js"></script>
+<script src="./js/webcam.js"></script>
+<script src="./js/youtubeAdblock.js"></script>
+
+<!-- ES modules -->
 <script
     type="module"
     src="./js/reactions.js"
-></script>
-
-<script
-    src="./js/anonymous-upload.js"
 ></script>
 
 <script
@@ -626,809 +1063,1016 @@
     src="./js/embed.js"
 ></script>
 
-<script
-    type="module"
-    src="./js/openInApp.js"
-></script>
 
+<!-- =========================================================
+     CHAT APPLICATION
+========================================================= -->
 
 <script type="module">
 
-    import { Embed } from "./js/embed.js";
+import { Reactions } from "./js/reactions.js";
+import { Embed } from "./js/embed.js";
 
-    /*
-     * ------------------------------------------------------
-     * ELEMENTS
-     * ------------------------------------------------------
-     */
 
-    const messages =
-        document.getElementById("messages");
+/* =========================================================
+   ELEMENTS
+========================================================= */
 
-    const input =
-        document.getElementById("messageInput");
+const messages =
+    document.getElementById("messages");
 
-    const sendButton =
-        document.getElementById("sendButton");
+const messageForm =
+    document.getElementById("messageForm");
 
-    const fileInput =
-        document.getElementById("fileInput");
+const messageInput =
+    document.getElementById("messageInput");
 
-    const uploadPreview =
-        document.getElementById("uploadPreview");
+const fileInput =
+    document.getElementById("fileInput");
 
+const uploadButton =
+    document.getElementById("uploadButton");
 
-    /*
-     * ------------------------------------------------------
-     * REACTION EMOJIS
-     * ------------------------------------------------------
-     */
+const uploadPreview =
+    document.getElementById("uploadPreview");
 
-    const REACTIONS = [
-        "👍",
-        "❤️",
-        "😂",
-        "🔥",
-        "😮",
-        "😢",
-        "🎉"
-    ];
 
+/* =========================================================
+   HELPERS
+========================================================= */
 
-    /*
-     * ------------------------------------------------------
-     * URL HELPERS
-     * ------------------------------------------------------
-     */
+function escapeText(value) {
+    return String(value);
+}
 
-    function escapeHTML(value) {
-        const div =
-            document.createElement("div");
 
-        div.textContent = value;
+function getYouTubeId(value) {
 
-        return div.innerHTML;
-    }
+    try {
 
-
-    function linkify(text) {
-        const fragment =
-            document.createDocumentFragment();
-
-        const regex =
-            /https?:\/\/[^\s<>"']+/gi;
-
-        let lastIndex = 0;
-
-        for (
-            const match of text.matchAll(regex)
-        ) {
-            const start =
-                match.index;
-
-            const url =
-                match[0];
-
-            if (start > lastIndex) {
-                fragment.appendChild(
-                    document.createTextNode(
-                        text.slice(
-                            lastIndex,
-                            start
-                        )
-                    )
-                );
-            }
-
-            const anchor =
-                document.createElement("a");
-
-            anchor.href = url;
-            anchor.target = "_blank";
-            anchor.rel =
-                "noopener noreferrer";
-
-            anchor.textContent = url;
-
-            fragment.appendChild(anchor);
-
-            lastIndex =
-                start + url.length;
-        }
-
-        if (lastIndex < text.length) {
-            fragment.appendChild(
-                document.createTextNode(
-                    text.slice(lastIndex)
-                )
-            );
-        }
-
-        return fragment;
-    }
-
-
-    /*
-     * ------------------------------------------------------
-     * MESSAGE
-     * ------------------------------------------------------
-     */
-
-    function createMessage(
-        username,
-        text,
-        file = null
-    ) {
-        const message =
-            document.createElement("article");
-
-        message.className =
-            "message";
-
-
-        /*
-         * Avatar
-         */
-
-        const avatar =
-            document.createElement("div");
-
-        avatar.className =
-            "avatar";
-
-        avatar.textContent =
-            username
-                .slice(0, 1)
-                .toUpperCase();
-
-
-        /*
-         * Main
-         */
-
-        const main =
-            document.createElement("div");
-
-        main.className =
-            "message-main";
-
-
-        /*
-         * Header
-         */
-
-        const header =
-            document.createElement("div");
-
-        header.className =
-            "message-header";
-
-
-        const name =
-            document.createElement("span");
-
-        name.className =
-            "username";
-
-        name.textContent =
-            username;
-
-
-        const timestamp =
-            document.createElement("span");
-
-        timestamp.className =
-            "timestamp";
-
-        timestamp.textContent =
-            "just now";
-
-
-        header.append(
-            name,
-            timestamp
-        );
-
-
-        /*
-         * Actual message text.
-         *
-         * IMPORTANT:
-         * We do NOT hide or replace this.
-         */
-
-        const content =
-            document.createElement("div");
-
-        content.className =
-            "message-content";
-
-        content.appendChild(
-            linkify(text)
-        );
-
-
-        /*
-         * Embed container.
-         *
-         * Embed.js puts embeds HERE.
-         * It does not replace the message.
-         */
-
-        const embeds =
-            document.createElement("div");
-
-        embeds.className =
-            "message-embeds";
-
-
-        /*
-         * Reactions.
-         */
-
-        const reactions =
-            document.createElement("div");
-
-        reactions.className =
-            "message-reactions";
-
-
-        /*
-         * Reaction button.
-         */
-
-        const actions =
-            document.createElement("div");
-
-        actions.className =
-            "message-actions";
-
-
-        const reactionButton =
-            document.createElement("button");
-
-        reactionButton.type =
-            "button";
-
-        reactionButton.className =
-            "react-button";
-
-        reactionButton.title =
-            "Add reaction";
-
-        reactionButton.textContent =
-            "😊";
-
-
-        reactionButton.addEventListener(
-            "click",
-            event => {
-                event.stopPropagation();
-
-                showReactionPicker(
-                    reactionButton,
-                    reactions
-                );
-            }
-        );
-
-
-        actions.appendChild(
-            reactionButton
-        );
-
-
-        /*
-         * Put everything together.
-         */
-
-        main.append(
-            header,
-            content,
-            embeds,
-            reactions
-        );
-
-        message.append(
-            avatar,
-            main,
-            actions
-        );
-
-
-        /*
-         * File attachment.
-         */
-
-        if (file) {
-            createFileEmbed(
-                file,
-                embeds
-            );
-        }
-
-
-        /*
-         * Ask embed.js to scan THIS message.
-         *
-         * The important part is that Embed receives
-         * the message element, while its implementation
-         * inserts the embed into .message-embeds.
-         */
-
-        queueMicrotask(() => {
-            Embed.scanMessages(
-                ".message"
-            );
-        });
-
-
-        return message;
-    }
-
-
-    /*
-     * ------------------------------------------------------
-     * REACTION PICKER
-     * ------------------------------------------------------
-     */
-
-    function showReactionPicker(
-        button,
-        reactions
-    ) {
-        const existing =
-            button.parentElement.querySelector(
-                ".reaction-picker"
-            );
-
-        if (existing) {
-            existing.remove();
-            return;
-        }
-
-        const picker =
-            document.createElement("div");
-
-        picker.className =
-            "reaction-picker";
-
-        Object.assign(
-            picker.style,
-            {
-                position: "absolute",
-                right: "0",
-                top: "36px",
-                zIndex: "100",
-                display: "flex",
-                gap: "3px",
-                padding: "6px",
-                background: "#18191c",
-                border: "1px solid #292b2f",
-                borderRadius: "7px",
-                boxShadow:
-                    "0 8px 24px rgba(0,0,0,.35)"
-            }
-        );
-
-
-        for (
-            const emoji of REACTIONS
-        ) {
-            const option =
-                document.createElement("button");
-
-            option.type =
-                "button";
-
-            option.textContent =
-                emoji;
-
-            Object.assign(
-                option.style,
-                {
-                    width: "30px",
-                    height: "30px",
-                    border: "0",
-                    borderRadius: "5px",
-                    background: "transparent",
-                    color: "white",
-                    fontSize: "17px",
-                    cursor: "pointer"
-                }
-            );
-
-
-            option.addEventListener(
-                "mouseenter",
-                () => {
-                    option.style.background =
-                        "#2f3136";
-                }
-            );
-
-
-            option.addEventListener(
-                "mouseleave",
-                () => {
-                    option.style.background =
-                        "transparent";
-                }
-            );
-
-
-            option.addEventListener(
-                "click",
-                () => {
-                    addReaction(
-                        reactions,
-                        emoji
-                    );
-
-                    picker.remove();
-                }
-            );
-
-
-            picker.appendChild(option);
-        }
-
-
-        button.parentElement.appendChild(
-            picker
-        );
-    }
-
-
-    /*
-     * ------------------------------------------------------
-     * ADD REACTION
-     * ------------------------------------------------------
-     */
-
-    function addReaction(
-        container,
-        emoji
-    ) {
-        const existing =
-            Array.from(
-                container.children
-            ).find(
-                element =>
-                    element.dataset.emoji ===
-                    emoji
-            );
-
-
-        if (existing) {
-            const count =
-                Number(
-                    existing.dataset.count || 1
-                ) + 1;
-
-            existing.dataset.count =
-                String(count);
-
-            existing.querySelector(
-                ".reaction-count"
-            ).textContent =
-                String(count);
-
-            return;
-        }
-
-
-        const reaction =
-            document.createElement("button");
-
-        reaction.type =
-            "button";
-
-        reaction.className =
-            "reaction";
-
-        reaction.dataset.emoji =
-            emoji;
-
-        reaction.dataset.count =
-            "1";
-
-        reaction.innerHTML = `
-            <span>${emoji}</span>
-            <span class="reaction-count">1</span>
-        `;
-
-
-        reaction.addEventListener(
-            "click",
-            () => {
-                const count =
-                    Number(
-                        reaction.dataset.count
-                    ) - 1;
-
-                if (count <= 0) {
-                    reaction.remove();
-                    return;
-                }
-
-                reaction.dataset.count =
-                    String(count);
-
-                reaction.querySelector(
-                    ".reaction-count"
-                ).textContent =
-                    String(count);
-            }
-        );
-
-
-        container.appendChild(
-            reaction
-        );
-    }
-
-
-    /*
-     * ------------------------------------------------------
-     * FILE EMBED
-     * ------------------------------------------------------
-     */
-
-    function createFileEmbed(
-        file,
-        container
-    ) {
         const url =
-            URL.createObjectURL(file);
+            new URL(value);
 
-
-        if (file.type.startsWith("image/")) {
-            const image =
-                document.createElement("img");
-
-            image.className =
-                "kr-embed-media";
-
-            image.src = url;
-            image.alt = file.name;
-            image.loading = "lazy";
-
-            container.appendChild(
-                image
-            );
-
-            return;
+        if (
+            url.hostname === "youtu.be" ||
+            url.hostname === "www.youtu.be"
+        ) {
+            return url.pathname
+                .slice(1)
+                .split("/")[0];
         }
 
+        if (
+            url.hostname === "youtube.com" ||
+            url.hostname === "www.youtube.com" ||
+            url.hostname === "m.youtube.com"
+        ) {
 
-        if (file.type.startsWith("video/")) {
-            const video =
-                document.createElement("video");
+            if (
+                url.pathname === "/watch"
+            ) {
+                return url.searchParams.get("v");
+            }
 
-            video.className =
-                "kr-embed-media";
+            if (
+                url.pathname.startsWith("/shorts/")
+            ) {
+                return url.pathname
+                    .split("/")[2];
+            }
 
-            video.src = url;
-            video.controls = true;
-            video.preload = "metadata";
-
-            container.appendChild(
-                video
-            );
-
-            return;
+            if (
+                url.pathname.startsWith("/embed/")
+            ) {
+                return url.pathname
+                    .split("/")[2];
+            }
         }
 
-
-        if (file.type.startsWith("audio/")) {
-            const audio =
-                document.createElement("audio");
-
-            audio.className =
-                "kr-embed-audio";
-
-            audio.src = url;
-            audio.controls = true;
-
-            container.appendChild(
-                audio
-            );
-
-            return;
-        }
-
-
-        const fileCard =
-            document.createElement("div");
-
-        fileCard.className =
-            "kr-embed-file";
-
-        fileCard.textContent =
-            file.name;
-
-        container.appendChild(
-            fileCard
-        );
+    } catch {
+        return null;
     }
 
+    return null;
+}
+
+
+function getURLs(text) {
+
+    const matches =
+        text.match(
+            /https?:\/\/[^\s<>"']+/gi
+        );
+
+    if (!matches) {
+        return [];
+    }
+
+    return [
+        ...new Set(
+            matches
+                .map(url => {
+                    return url.replace(
+                        /[),.!?]+$/,
+                        ""
+                    );
+                })
+        )
+    ];
+}
+
+
+/* =========================================================
+   YOUTUBE EMBED
+========================================================= */
+
+function createYouTubeEmbed(url) {
+
+    const id =
+        getYouTubeId(url);
+
+    if (!id) {
+        return null;
+    }
+
+    const embed =
+        document.createElement("div");
+
+    embed.className =
+        "kr-embed";
+
+    const accent =
+        document.createElement("div");
+
+    accent.className =
+        "kr-embed-accent";
+
+    const body =
+        document.createElement("div");
+
+    body.className =
+        "kr-embed-body";
+
+    const title =
+        document.createElement("a");
+
+    title.className =
+        "kr-embed-title";
+
+    title.href =
+        url;
+
+    title.target =
+        "_blank";
+
+    title.rel =
+        "noopener noreferrer";
+
+    title.textContent =
+        "YouTube video";
+
+    const iframe =
+        document.createElement("iframe");
+
+    iframe.className =
+        "kr-youtube";
 
     /*
-     * ------------------------------------------------------
-     * SEND
-     * ------------------------------------------------------
+     * The raw watch URL never gets displayed.
+     * Only the actual player appears in the message.
      */
 
-    function sendMessage() {
-        const text =
-            input.value.trim();
+    iframe.src =
+        `https://www.youtube.com/embed/${encodeURIComponent(id)}?rel=0`;
 
-        const file =
-            fileInput.files?.[0] || null;
+    iframe.title =
+        "YouTube video";
 
+    iframe.loading =
+        "lazy";
 
-        if (!text && !file) {
-            return;
-        }
+    iframe.allow =
+        "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
 
+    iframe.allowFullscreen =
+        true;
 
-        const message =
-            createMessage(
-                "Barney",
-                text,
-                file
-            );
+    body.append(
+        title,
+        iframe
+    );
 
+    embed.append(
+        accent,
+        body
+    );
 
-        messages.appendChild(
-            message
-        );
-
-
-        input.value = "";
-
-        fileInput.value = "";
-
-        uploadPreview.classList.remove(
-            "active"
-        );
-
-        uploadPreview.replaceChildren();
+    return embed;
+}
 
 
-        messages.scrollTop =
-            messages.scrollHeight;
+/* =========================================================
+   GENERIC WEBSITE EMBED
+========================================================= */
 
+async function createWebsiteEmbed(url) {
 
-        /*
-         * Scan after the element is actually
-         * attached to the DOM.
-         */
+    /*
+     * Let the existing embed.js handle normal URLs.
+     *
+     * YouTube is handled separately because it needs
+     * an actual iframe player rather than a thumbnail.
+     */
+
+    const youtube =
+        createYouTubeEmbed(url);
+
+    if (youtube) {
+        return youtube;
+    }
+
+    const wrapper =
+        document.createElement("div");
+
+    wrapper.className =
+        "message-embeds";
+
+    /*
+     * Ask embed.js to process a temporary message.
+     */
+
+    const temporary =
+        document.createElement("div");
+
+    temporary.className =
+        "embed-source-message";
+
+    temporary.innerText =
+        url;
+
+    wrapper.appendChild(
+        temporary
+    );
+
+    /*
+     * The supplied Embed module scans message elements
+     * and appends embeds to them.
+     */
+
+    try {
 
         Embed.scanMessages(
-            ".message"
+            ".embed-source-message"
+        );
+
+        await new Promise(
+            resolve =>
+                setTimeout(resolve, 250)
+        );
+
+        const generated =
+            temporary.querySelector(
+                ".kr-embed"
+            );
+
+        if (generated) {
+
+            wrapper.replaceChildren(
+                generated
+            );
+
+            return wrapper;
+        }
+
+    } catch (error) {
+
+        console.warn(
+            "[Krynet] Website embed failed:",
+            error
         );
     }
 
+    return null;
+}
 
-    sendButton.addEventListener(
+
+/* =========================================================
+   MESSAGE REACTIONS
+========================================================= */
+
+function setupMessageReactions(message) {
+
+    const reactions =
+        message.querySelector(
+            ".message-reactions"
+        );
+
+    if (!reactions) {
+        return;
+    }
+
+    const reactionArea =
+        reactions.querySelector(
+            ".kr-reactions"
+        );
+
+    if (!reactionArea) {
+        return;
+    }
+
+    if (
+        reactionArea.dataset.initialized ===
+        "true"
+    ) {
+        return;
+    }
+
+    reactionArea.dataset.initialized =
+        "true";
+
+    /*
+     * Use the reactions.js implementation when available.
+     */
+
+    try {
+        new Reactions(
+            reactionArea
+        );
+    } catch {
+        /*
+         * Fallback is handled below.
+         */
+    }
+}
+
+
+function addReactionButton(message) {
+
+    const button =
+        message.querySelector(
+            ".add-reaction"
+        );
+
+    if (!button) {
+        return;
+    }
+
+    button.addEventListener(
         "click",
-        sendMessage
-    );
-
-
-    input.addEventListener(
-        "keydown",
         event => {
-            if (
-                event.key === "Enter" &&
-                !event.shiftKey
-            ) {
-                event.preventDefault();
-                sendMessage();
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            const emoji =
+                prompt(
+                    "Reaction emoji:",
+                    "👍"
+                );
+
+            if (!emoji) {
+                return;
             }
-        }
-    );
 
+            const area =
+                message.querySelector(
+                    ".kr-reactions"
+                );
 
-    /*
-     * ------------------------------------------------------
-     * TEXTAREA AUTO GROW
-     * ------------------------------------------------------
-     */
+            if (!area) {
+                return;
+            }
 
-    input.addEventListener(
-        "input",
-        () => {
-            input.style.height =
-                "auto";
+            let existing =
+                [...area.querySelectorAll(
+                    ".kr-reaction"
+                )]
+                .find(
+                    item =>
+                        item.dataset.emoji ===
+                        emoji
+                );
 
-            input.style.height =
-                Math.min(
-                    input.scrollHeight,
-                    180
-                ) + "px";
-        }
-    );
+            if (existing) {
 
+                const count =
+                    existing.querySelector(
+                        "span"
+                    );
 
-    /*
-     * ------------------------------------------------------
-     * UPLOAD PREVIEW
-     * ------------------------------------------------------
-     */
+                count.textContent =
+                    String(
+                        Number(count.textContent || 0) +
+                        1
+                    );
 
-    fileInput.addEventListener(
-        "change",
-        () => {
-            const file =
-                fileInput.files?.[0];
-
-            uploadPreview.replaceChildren();
-
-            if (!file) {
-                uploadPreview.classList.remove(
+                existing.classList.add(
                     "active"
                 );
 
                 return;
             }
 
+            existing =
+                document.createElement(
+                    "button"
+                );
 
-            uploadPreview.classList.add(
-                "active"
+            existing.type =
+                "button";
+
+            existing.className =
+                "kr-reaction active";
+
+            existing.dataset.emoji =
+                emoji;
+
+            existing.innerHTML =
+                `${escapeText(emoji)} <span>1</span>`;
+
+            area.appendChild(
+                existing
             );
 
+            existing.addEventListener(
+                "click",
+                () => {
 
-            const label =
-                document.createElement("span");
+                    const count =
+                        existing.querySelector(
+                            "span"
+                        );
 
-            label.textContent =
-                "Attachment: ";
+                    const next =
+                        Number(
+                            count.textContent || 0
+                        ) - 1;
 
+                    if (next <= 0) {
+                        existing.remove();
+                        return;
+                    }
 
-            const name =
-                document.createElement("span");
+                    count.textContent =
+                        String(next);
 
-            name.className =
-                "upload-name";
-
-            name.textContent =
-                file.name;
-
-
-            uploadPreview.append(
-                label,
-                name
+                }
             );
+
         }
     );
+}
 
 
-    /*
-     * ------------------------------------------------------
-     * DEMO MESSAGE
-     * ------------------------------------------------------
-     */
+/* =========================================================
+   CREATE MESSAGE
+========================================================= */
 
-    messages.appendChild(
-        createMessage(
-            "Krynet",
-            "Paste a YouTube link or any supported URL and the embed will appear underneath the message."
-        )
+async function createMessage(text) {
+
+    const urls =
+        getURLs(text);
+
+    const message =
+        document.createElement(
+            "article"
+        );
+
+    message.className =
+        "message";
+
+    const avatar =
+        document.createElement("div");
+
+    avatar.className =
+        "message-avatar";
+
+    avatar.textContent =
+        "B";
+
+    const content =
+        document.createElement("div");
+
+    content.className =
+        "message-content";
+
+    const authorRow =
+        document.createElement("div");
+
+    authorRow.className =
+        "message-author-row";
+
+    const author =
+        document.createElement("span");
+
+    author.className =
+        "message-author";
+
+    author.textContent =
+        "Barney";
+
+    const time =
+        document.createElement("span");
+
+    time.className =
+        "message-time";
+
+    time.textContent =
+        "Just now";
+
+    authorRow.append(
+        author,
+        time
     );
 
 
+    /* =====================================================
+       MESSAGE TEXT
+    ====================================================== */
+
+    const textElement =
+        document.createElement("div");
+
+    textElement.className =
+        "message-text";
+
     /*
-     * ------------------------------------------------------
-     * INITIAL EMBED SCAN
-     * ------------------------------------------------------
+     * If the message is ONLY a URL, don't show the URL.
+     * Discord-style behavior: username + embed.
      */
+
+    const trimmed =
+        text.trim();
+
+    const isOnlyURL =
+        urls.length === 1 &&
+        trimmed === urls[0];
+
+    if (isOnlyURL) {
+
+        textElement.textContent =
+            "";
+
+        textElement.classList.add(
+            "hidden-link-text"
+        );
+
+    } else {
+
+        textElement.textContent =
+            text;
+    }
+
+
+    content.append(
+        authorRow,
+        textElement
+    );
+
+
+    /* =====================================================
+       EMBEDS
+    ====================================================== */
+
+    if (urls.length) {
+
+        const embedContainer =
+            document.createElement(
+                "div"
+            );
+
+        embedContainer.className =
+            "message-embeds";
+
+        for (const url of urls) {
+
+            const youtube =
+                createYouTubeEmbed(url);
+
+            if (youtube) {
+
+                /*
+                 * IMPORTANT:
+                 *
+                 * The YouTube URL is NOT appended
+                 * as message text.
+                 *
+                 * The player lives directly underneath
+                 * the username/message content.
+                 */
+
+                embedContainer.appendChild(
+                    youtube
+                );
+
+                continue;
+            }
+
+            /*
+             * For normal websites/files, use the existing
+             * embed module.
+             */
+
+            try {
+
+                const temporary =
+                    document.createElement(
+                        "div"
+                    );
+
+                temporary.className =
+                    "embed-source-message";
+
+                temporary.innerText =
+                    url;
+
+                document.body.appendChild(
+                    temporary
+                );
+
+                Embed.scanMessages(
+                    ".embed-source-message"
+                );
+
+                await new Promise(
+                    resolve =>
+                        setTimeout(resolve, 150)
+                );
+
+                const generated =
+                    temporary.querySelector(
+                        ".kr-embed"
+                    );
+
+                if (generated) {
+
+                    embedContainer.appendChild(
+                        generated
+                    );
+                }
+
+                temporary.remove();
+
+            } catch (error) {
+
+                console.warn(
+                    "[Krynet] Embed failed:",
+                    url,
+                    error
+                );
+            }
+        }
+
+        if (
+            embedContainer.children.length
+        ) {
+            content.appendChild(
+                embedContainer
+            );
+        }
+    }
+
+
+    /* =====================================================
+       REACTIONS
+    ====================================================== */
+
+    const reactionRow =
+        document.createElement(
+            "div"
+        );
+
+    reactionRow.className =
+        "message-reactions";
+
+    const reactionArea =
+        document.createElement(
+            "div"
+        );
+
+    reactionArea.className =
+        "kr-reactions";
+
+    reactionRow.appendChild(
+        reactionArea
+    );
+
+    content.appendChild(
+        reactionRow
+    );
+
+
+    /* =====================================================
+       ADD REACTION
+    ====================================================== */
+
+    const addReaction =
+        document.createElement(
+            "button"
+        );
+
+    addReaction.type =
+        "button";
+
+    addReaction.className =
+        "add-reaction";
+
+    addReaction.title =
+        "Add Reaction";
+
+    addReaction.textContent =
+        "😊";
+
+
+    message.append(
+        avatar,
+        content,
+        addReaction
+    );
+
+    messages.appendChild(
+        message
+    );
+
+    setupMessageReactions(
+        message
+    );
+
+    addReactionButton(
+        message
+    );
+
+    messages.scrollTop =
+        messages.scrollHeight;
+}
+
+
+/* =========================================================
+   SEND
+========================================================= */
+
+messageForm.addEventListener(
+    "submit",
+    async event => {
+
+        event.preventDefault();
+
+        const text =
+            messageInput.value.trim();
+
+        if (!text) {
+            return;
+        }
+
+        messageInput.value =
+            "";
+
+        messageInput.style.height =
+            "36px";
+
+        await createMessage(
+            text
+        );
+    }
+);
+
+
+/* =========================================================
+   ENTER TO SEND
+========================================================= */
+
+messageInput.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key === "Enter" &&
+            !event.shiftKey
+        ) {
+            event.preventDefault();
+
+            messageForm.requestSubmit();
+        }
+    }
+);
+
+
+/* =========================================================
+   AUTO RESIZE
+========================================================= */
+
+messageInput.addEventListener(
+    "input",
+    () => {
+
+        messageInput.style.height =
+            "36px";
+
+        messageInput.style.height =
+            Math.min(
+                messageInput.scrollHeight,
+                180
+            ) + "px";
+    }
+);
+
+
+/* =========================================================
+   FILE UPLOAD
+========================================================= */
+
+uploadButton.addEventListener(
+    "click",
+    () => {
+        fileInput.click();
+    }
+);
+
+
+fileInput.addEventListener(
+    "change",
+    () => {
+
+        const files =
+            Array.from(
+                fileInput.files || []
+            );
+
+        if (!files.length) {
+
+            uploadPreview.classList.remove(
+                "visible"
+            );
+
+            uploadPreview.textContent =
+                "";
+
+            return;
+        }
+
+        uploadPreview.classList.add(
+            "visible"
+        );
+
+        uploadPreview.textContent =
+            files.length === 1
+                ? `Selected: ${files[0].name}`
+                : `${files.length} files selected`;
+    }
+);
+
+
+/* =========================================================
+   CHANNEL BUTTONS
+========================================================= */
+
+document
+    .querySelectorAll(".channel")
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                document
+                    .querySelectorAll(
+                        ".channel"
+                    )
+                    .forEach(
+                        item =>
+                            item.classList.remove(
+                                "active"
+                            )
+                    );
+
+                button.classList.add(
+                    "active"
+                );
+
+                const name =
+                    button.textContent
+                        .trim()
+                        .replace(/^#/, "");
+
+                document
+                    .querySelector(
+                        ".chat-header-name"
+                    )
+                    .textContent =
+                    name;
+            }
+        );
+    });
+
+
+/* =========================================================
+   INITIALIZE EXISTING REACTIONS
+========================================================= */
+
+document
+    .querySelectorAll(".message")
+    .forEach(message => {
+
+        setupMessageReactions(
+            message
+        );
+
+        addReactionButton(
+            message
+        );
+    });
+
+
+/* =========================================================
+   INITIAL EMBEDS
+========================================================= */
+
+try {
 
     Embed.scanMessages(
         ".message"
     );
+
+} catch (error) {
+
+    console.warn(
+        "[Krynet] Initial embed scan failed:",
+        error
+    );
+}
+
+
+/* =========================================================
+   WATCH FOR NEW MESSAGES
+========================================================= */
+
+/*
+ * MutationObserver is useful here because the chat is
+ * dynamically adding message nodes after the initial page
+ * has loaded. :contentReference[oaicite:1]{index=1}
+ */
+
+const observer =
+    new MutationObserver(
+        mutations => {
+
+            for (const mutation of mutations) {
+
+                for (
+                    const node
+                    of mutation.addedNodes
+                ) {
+
+                    if (
+                        !(node instanceof Element)
+                    ) {
+                        continue;
+                    }
+
+                    if (
+                        node.matches?.(
+                            ".message"
+                        )
+                    ) {
+
+                        setupMessageReactions(
+                            node
+                        );
+
+                        addReactionButton(
+                            node
+                        );
+                    }
+
+                    node
+                        .querySelectorAll?.(
+                            ".message"
+                        )
+                        .forEach(
+                            message => {
+
+                                setupMessageReactions(
+                                    message
+                                );
+
+                                addReactionButton(
+                                    message
+                                );
+                            }
+                        );
+                }
+            }
+        }
+    );
+
+
+observer.observe(
+    messages,
+    {
+        childList: true,
+        subtree: true
+    }
+);
 
 </script>
 
