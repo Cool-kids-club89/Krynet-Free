@@ -2,30 +2,10 @@
     "use strict";
 
     /* ---------------------------------------------------------
-       TYPES
-    --------------------------------------------------------- */
-
-    type Method =
-        | "random"
-        | "consistent"
-        | "timestamp";
-
-    interface AnonSettings {
-        anonymiseByDefault: boolean;
-        method: Method;
-        randomLength: number;
-        consistentName: string;
-    }
-
-    interface InputState {
-        anonymised: boolean;
-    }
-
-    /* ---------------------------------------------------------
        SETTINGS
     --------------------------------------------------------- */
 
-    const settings: AnonSettings = {
+    const settings = {
         anonymiseByDefault: true,
         method: "random",
         randomLength: 7,
@@ -36,17 +16,14 @@
        STATE
     --------------------------------------------------------- */
 
-    const inputStates =
-        new WeakMap<HTMLInputElement, InputState>();
-
-    const originalFiles =
-        new WeakMap<HTMLInputElement, File[]>();
+    const inputStates = new WeakMap();
+    const originalFiles = new WeakMap();
 
     /* ---------------------------------------------------------
        GENERATE NAME
     --------------------------------------------------------- */
 
-    function getExtension(filename: string): string {
+    function getExtension(filename) {
         const lastDot = filename.lastIndexOf(".");
 
         if (
@@ -59,7 +36,7 @@
         return filename.slice(lastDot);
     }
 
-    function generateRandomName(length: number): string {
+    function generateRandomName(length) {
         const chars =
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
@@ -76,19 +53,14 @@
         return result;
     }
 
-    function generateName(
-        originalName: string,
-        method: Method
-    ): string {
-        const extension =
-            getExtension(originalName);
+    function generateName(originalName, method) {
+        const extension = getExtension(originalName);
 
         switch (method) {
             case "random":
                 return (
-                    generateRandomName(
-                        settings.randomLength
-                    ) + extension
+                    generateRandomName(settings.randomLength) +
+                    extension
                 );
 
             case "consistent":
@@ -98,9 +70,7 @@
                 );
 
             case "timestamp":
-                return (
-                    `${Date.now()}${extension}`
-                );
+                return `${Date.now()}${extension}`;
 
             default:
                 return originalName;
@@ -111,9 +81,7 @@
        CREATE ANONYMOUS FILE
     --------------------------------------------------------- */
 
-    function anonymiseFile(
-        file: File
-    ): File {
+    function anonymiseFile(file) {
         const newName = generateName(
             file.name,
             settings.method
@@ -133,13 +101,9 @@
        REPLACE INPUT FILES
     --------------------------------------------------------- */
 
-    function setInputFiles(
-        input: HTMLInputElement,
-        files: File[]
-    ): boolean {
+    function setInputFiles(input, files) {
         try {
-            const dataTransfer =
-                new DataTransfer();
+            const dataTransfer = new DataTransfer();
 
             for (const file of files) {
                 dataTransfer.items.add(file);
@@ -162,23 +126,16 @@
        ANONYMISE INPUT
     --------------------------------------------------------- */
 
-    function anonymiseInput(
-        input: HTMLInputElement
-    ): void {
+    function anonymiseInput(input) {
         if (!input.files?.length) {
             return;
         }
 
-        const files =
-            Array.from(input.files);
+        const files = Array.from(input.files);
 
-        // Keep the original files around so toggling back
-        // restores the actual original filenames.
+        // Keep the original files so the user can restore them.
         if (!originalFiles.has(input)) {
-            originalFiles.set(
-                input,
-                files
-            );
+            originalFiles.set(input, files);
         }
 
         const anonymisedFiles =
@@ -189,8 +146,7 @@
             anonymisedFiles
         );
 
-        const state =
-            inputStates.get(input);
+        const state = inputStates.get(input);
 
         if (state) {
             state.anonymised = true;
@@ -201,11 +157,8 @@
        RESTORE ORIGINAL INPUT
     --------------------------------------------------------- */
 
-    function restoreInput(
-        input: HTMLInputElement
-    ): void {
-        const originals =
-            originalFiles.get(input);
+    function restoreInput(input) {
+        const originals = originalFiles.get(input);
 
         if (!originals) {
             return;
@@ -216,8 +169,7 @@
             originals
         );
 
-        const state =
-            inputStates.get(input);
+        const state = inputStates.get(input);
 
         if (state) {
             state.anonymised = false;
@@ -228,28 +180,24 @@
        HANDLE FILE SELECTION
     --------------------------------------------------------- */
 
-    function handleChange(
-        event: Event
-    ): void {
-        const input =
-            event.target as HTMLInputElement | null;
+    function handleChange(event) {
+        const input = event.target;
 
         if (
-            !input ||
+            !(input instanceof HTMLInputElement) ||
             input.type !== "file" ||
             !input.files?.length
         ) {
             return;
         }
 
-        // Save originals before changing anything.
+        // Save originals before changing their names.
         originalFiles.set(
             input,
             Array.from(input.files)
         );
 
-        const state =
-            inputStates.get(input);
+        const state = inputStates.get(input);
 
         const shouldAnonymise =
             state?.anonymised ??
@@ -264,16 +212,14 @@
        TOGGLE BUTTON
     --------------------------------------------------------- */
 
-    function createToggleButton(
-        input: HTMLInputElement
-    ): HTMLButtonElement {
+    function createToggleButton(input) {
         const button =
             document.createElement("button");
 
         button.type = "button";
         button.dataset.anonToggle = "true";
 
-        const state: InputState = {
+        const state = {
             anonymised:
                 settings.anonymiseByDefault
         };
@@ -285,7 +231,7 @@
 
         button.style.marginLeft = "0.5rem";
 
-        function updateLabel(): void {
+        function updateLabel() {
             button.textContent =
                 state.anonymised
                     ? "Disable Anonymise"
@@ -298,9 +244,7 @@
                 state.anonymised =
                     !state.anonymised;
 
-                if (
-                    !input.files?.length
-                ) {
+                if (!input.files?.length) {
                     updateLabel();
                     return;
                 }
@@ -324,12 +268,8 @@
        INITIALIZE INPUT
     --------------------------------------------------------- */
 
-    function initializeInput(
-        input: HTMLInputElement
-    ): void {
-        if (
-            input.dataset.anon === "true"
-        ) {
+    function initializeInput(input) {
+        if (input.dataset.anon === "true") {
             return;
         }
 
@@ -348,11 +288,8 @@
        SCAN INPUTS
     --------------------------------------------------------- */
 
-    function scan(
-        root: ParentNode = document
-    ): void {
-        const inputs: HTMLInputElement[] =
-            [];
+    function scan(root = document) {
+        const inputs = [];
 
         if (
             root instanceof HTMLInputElement &&
@@ -362,9 +299,7 @@
         }
 
         root
-            .querySelectorAll<HTMLInputElement>(
-                'input[type="file"]'
-            )
+            .querySelectorAll('input[type="file"]')
             .forEach(input => {
                 inputs.push(input);
             });
@@ -379,29 +314,23 @@
     --------------------------------------------------------- */
 
     const observer =
-        new MutationObserver(
-            mutations => {
-                for (const mutation of mutations) {
-                    for (
-                        const node of mutation.addedNodes
-                    ) {
-                        if (
-                            !(node instanceof Element)
-                        ) {
-                            continue;
-                        }
-
-                        scan(node);
+        new MutationObserver(mutations => {
+            for (const mutation of mutations) {
+                for (const node of mutation.addedNodes) {
+                    if (!(node instanceof Element)) {
+                        continue;
                     }
+
+                    scan(node);
                 }
             }
-        );
+        });
 
     /* ---------------------------------------------------------
        INITIALIZE
     --------------------------------------------------------- */
 
-    function initialize(): void {
+    function initialize() {
         scan();
 
         if (!document.body) {
@@ -426,9 +355,7 @@
         );
     }
 
-    if (
-        document.readyState === "loading"
-    ) {
+    if (document.readyState === "loading") {
         document.addEventListener(
             "DOMContentLoaded",
             initialize,
