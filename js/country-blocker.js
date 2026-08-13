@@ -1,34 +1,10 @@
-type RateLimitConfig = {
-    maxRequests: number;
-    windowMs: number;
-    maxTrackedIPs: number;
-};
+"use strict";
 
-type GeoIPRange = {
-    start: number;
-    end: number;
-    country: string;
-};
+/* ---------------------------------------------------------
+   CONFIG
+--------------------------------------------------------- */
 
-type RawGeoIPRange = {
-    start: string;
-    end: string;
-    country: string;
-};
-
-type RateLimitEntry = {
-    timestamps: number[];
-    lastSeen: number;
-};
-
-type Config = {
-    blockedCountries: Set<string>;
-    geoIPRanges: GeoIPRange[];
-    abusiveIPs: Set<string>;
-    rateLimit: RateLimitConfig;
-};
-
-const CONFIG: Config = {
+const CONFIG = {
     blockedCountries: new Set([
         "CN",
         "RU",
@@ -48,7 +24,7 @@ const CONFIG: Config = {
 
     geoIPRanges: [],
 
-    abusiveIPs: new Set<string>(),
+    abusiveIPs: new Set(),
 
     rateLimit: {
         maxRequests: 5,
@@ -58,14 +34,15 @@ const CONFIG: Config = {
 };
 
 const ipAccess =
-    new Map<string, RateLimitEntry>();
+    new Map();
 
 /* ---------------------------------------------------------
    IPv4
 --------------------------------------------------------- */
 
-function ipToNumber(ip: string): number {
-    const parts = ip.trim().split(".");
+function ipToNumber(ip) {
+    const parts =
+        ip.trim().split(".");
 
     if (parts.length !== 4) {
         throw new Error(
@@ -109,7 +86,7 @@ function ipToNumber(ip: string): number {
    RATE LIMITING
 --------------------------------------------------------- */
 
-function isRateLimited(ip: string): boolean {
+function isRateLimited(ip) {
     const now = Date.now();
 
     let entry = ipAccess.get(ip);
@@ -130,7 +107,8 @@ function isRateLimited(ip: string): boolean {
 
     entry.timestamps =
         entry.timestamps.filter(
-            timestamp => timestamp > cutoff
+            timestamp =>
+                timestamp > cutoff
         );
 
     if (
@@ -149,7 +127,7 @@ function isRateLimited(ip: string): boolean {
    RATE LIMIT MEMORY CLEANUP
 --------------------------------------------------------- */
 
-function cleanupRateLimitCache(): void {
+function cleanupRateLimitCache() {
     const now = Date.now();
 
     const cutoff =
@@ -161,7 +139,8 @@ function cleanupRateLimitCache(): void {
     ) {
         entry.timestamps =
             entry.timestamps.filter(
-                timestamp => timestamp > cutoff
+                timestamp =>
+                    timestamp > cutoff
             );
 
         if (
@@ -172,10 +151,6 @@ function cleanupRateLimitCache(): void {
         }
     }
 
-    /*
-     * Hard upper bound so a flood of unique IPs
-     * cannot grow this Map forever.
-     */
     if (
         ipAccess.size <=
         CONFIG.rateLimit.maxTrackedIPs
@@ -210,19 +185,18 @@ function cleanupRateLimitCache(): void {
    GEOIP LOOKUP
 --------------------------------------------------------- */
 
-function getCountryFromIP(
-    ip: string
-): string | null {
+function getCountryFromIP(ip) {
     if (
         CONFIG.geoIPRanges.length === 0
     ) {
         return null;
     }
 
-    let ipNumber: number;
+    let ipNumber;
 
     try {
-        ipNumber = ipToNumber(ip);
+        ipNumber =
+            ipToNumber(ip);
     } catch {
         return null;
     }
@@ -258,9 +232,7 @@ function getCountryFromIP(
    BLOCKING
 --------------------------------------------------------- */
 
-function isBlocked(
-    ip: string
-): boolean {
+function isBlocked(ip) {
     if (isRateLimited(ip)) {
         return true;
     }
@@ -277,7 +249,7 @@ function isBlocked(
     /*
      * Fail closed when GeoIP data is unavailable.
      *
-     * If this is not what you want, change this
+     * If this is not desired, change this
      * to `return false`.
      */
     if (!country) {
@@ -289,9 +261,7 @@ function isBlocked(
     );
 }
 
-function handleAccess(
-    ip: string
-): boolean {
+function handleAccess(ip) {
     return !isBlocked(ip);
 }
 
@@ -299,10 +269,8 @@ function handleAccess(
    GEOIP LOADING
 --------------------------------------------------------- */
 
-function loadGeoIPRanges(
-    ranges: RawGeoIPRange[]
-): void {
-    const parsed: GeoIPRange[] = [];
+function loadGeoIPRanges(ranges) {
+    const parsed = [];
 
     for (const range of ranges) {
         try {
@@ -335,7 +303,8 @@ function loadGeoIPRanges(
     }
 
     parsed.sort(
-        (a, b) => a.start - b.start
+        (a, b) =>
+            a.start - b.start
     );
 
     CONFIG.geoIPRanges = parsed;
@@ -345,9 +314,7 @@ function loadGeoIPRanges(
    FETCH TEXT FEED
 --------------------------------------------------------- */
 
-async function fetchTextFeed(
-    url: string
-): Promise<string[]> {
+async function fetchTextFeed(url) {
     try {
         const response =
             await fetch(url, {
@@ -386,20 +353,19 @@ async function fetchTextFeed(
    LOAD ABUSE FEEDS
 --------------------------------------------------------- */
 
-async function loadAbusiveIPs(
-    feeds: string[]
-): Promise<void> {
+async function loadAbusiveIPs(feeds) {
     const results =
         await Promise.allSettled(
             feeds.map(fetchTextFeed)
         );
 
     const addresses =
-        new Set<string>();
+        new Set();
 
     for (const result of results) {
         if (
-            result.status !== "fulfilled"
+            result.status !==
+            "fulfilled"
         ) {
             continue;
         }
@@ -411,10 +377,6 @@ async function loadAbusiveIPs(
             /*
              * Only accept individual IPv4
              * addresses here.
-             *
-             * CIDR/range feeds need a separate
-             * parser and shouldn't be silently
-             * treated as individual addresses.
              */
             try {
                 ipToNumber(address);
@@ -425,7 +387,8 @@ async function loadAbusiveIPs(
         }
     }
 
-    CONFIG.abusiveIPs = addresses;
+    CONFIG.abusiveIPs =
+        addresses;
 
     console.log(
         `[IPBlock] Loaded ${addresses.size} abusive IPs.`
@@ -436,9 +399,7 @@ async function loadAbusiveIPs(
    GEOIP FEED
 --------------------------------------------------------- */
 
-async function loadGeoIPFromPublicFeed(
-    url: string
-): Promise<void> {
+async function loadGeoIPFromPublicFeed(url) {
     try {
         const response =
             await fetch(url, {
@@ -460,9 +421,7 @@ async function loadGeoIPFromPublicFeed(
             );
         }
 
-        loadGeoIPRanges(
-            data as RawGeoIPRange[]
-        );
+        loadGeoIPRanges(data);
 
         console.log(
             `[IPBlock] Loaded ${CONFIG.geoIPRanges.length} GeoIP ranges.`
@@ -474,9 +433,8 @@ async function loadGeoIPFromPublicFeed(
         );
 
         /*
-         * Important:
-         * Don't destroy the existing working
-         * database because a refresh failed.
+         * Keep the existing database if
+         * refreshing the feed fails.
          */
     }
 }
@@ -488,9 +446,9 @@ async function loadGeoIPFromPublicFeed(
 let refreshRunning = false;
 
 async function refreshFeeds(
-    geoIPUrl: string,
-    abuseFeeds: string[]
-): Promise<void> {
+    geoIPUrl,
+    abuseFeeds
+) {
     if (refreshRunning) {
         return;
     }
@@ -516,10 +474,10 @@ async function refreshFeeds(
 --------------------------------------------------------- */
 
 function scheduleFeedRefresh(
-    geoIPUrl: string,
-    abuseFeeds: string[],
-    intervalMs: number
-): ReturnType<typeof setInterval> {
+    geoIPUrl,
+    abuseFeeds,
+    intervalMs
+) {
     void refreshFeeds(
         geoIPUrl,
         abuseFeeds
@@ -549,7 +507,7 @@ setInterval(
 const GEOIP_PUBLIC_URL =
     "https://raw.githubusercontent.com/hotcakex/official-iana-ip-blocks/main/country-split/ip4.json";
 
-const ABUSE_PUBLIC_FEEDS: string[] = [
+const ABUSE_PUBLIC_FEEDS = [
     "https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/ciarmy.ipset",
     "https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/dshield.netset",
     "https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/ipsum.list",
