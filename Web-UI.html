@@ -389,7 +389,7 @@
 
         .message-content {
             min-width: 0;
-            max-width: min(850px,100%);
+            max-width: min(850px, 100%);
         }
 
         .message-author-row {
@@ -414,7 +414,11 @@
             font-size: 15px;
             line-height: 1.45;
             overflow-wrap: anywhere;
-            white-space: pre-wrap;
+            min-width: 0;
+        }
+
+        .message-text img {
+            max-width: 100%;
         }
 
         .message.link-only .message-text {
@@ -1331,14 +1335,10 @@
 <script src="./js/blurNSFW.js"></script>
 <script src="./js/clearURLS.js"></script>
 <script src="./js/copyFileContents.js"></script>
-<script type="module" src="./krynet-markdown.js"></script>
 
 
 <!-- =========================================================
-     MODULE APPLICATION
-     
-     krysearch.js MUST be imported here because it exports
-     initKrySearch and KrySearch.
+     APPLICATION
 ========================================================= -->
 
 <script type="module">
@@ -1347,7 +1347,147 @@
     import { Reactions } from "./js/reactions.js";
     import { KrySearch } from "./js/krysearch.js";
 
+    /*
+     * Reuse the existing Krynet Markdown module.
+     *
+     * Nothing here implements Markdown itself.
+     */
+    import * as KrynetMarkdownModule
+        from "./krynet-markdown.js";
+
     "use strict";
+
+
+    /* ========================================================
+       KRYMARKDOWN
+    ======================================================== */
+
+    const KrynetMarkdown =
+        KrynetMarkdownModule.KrynetMarkdown ||
+        KrynetMarkdownModule.default ||
+        window.KrynetMarkdown;
+
+
+    function renderMarkdown(
+        element,
+        text
+    ) {
+        if (!text) {
+            element.replaceChildren();
+            return;
+        }
+
+        if (!KrynetMarkdown) {
+            console.error(
+                "[KrynetMarkdown] Existing module was not found."
+            );
+
+            element.textContent =
+                text;
+
+            return;
+        }
+
+        try {
+
+            /*
+             * Reuse the existing renderer.
+             *
+             * Supports the common APIs your existing
+             * KrynetMarkdown module may expose without
+             * adding another Markdown implementation.
+             */
+
+            if (
+                typeof KrynetMarkdown.render ===
+                "function"
+            ) {
+
+                const result =
+                    KrynetMarkdown.render(
+                        text
+                    );
+
+                if (result instanceof Node) {
+                    element.replaceChildren(
+                        result
+                    );
+                } else {
+                    element.innerHTML =
+                        String(result);
+                }
+
+                return;
+            }
+
+            if (
+                typeof KrynetMarkdown.parse ===
+                "function"
+            ) {
+
+                const result =
+                    KrynetMarkdown.parse(
+                        text
+                    );
+
+                if (result instanceof Node) {
+                    element.replaceChildren(
+                        result
+                    );
+                } else {
+                    element.innerHTML =
+                        String(result);
+                }
+
+                return;
+            }
+
+            /*
+             * If your existing module initializes
+             * Markdown automatically and exposes a
+             * processor instead, use it.
+             */
+
+            if (
+                typeof KrynetMarkdown.process ===
+                "function"
+            ) {
+
+                const result =
+                    KrynetMarkdown.process(
+                        text
+                    );
+
+                if (result instanceof Node) {
+                    element.replaceChildren(
+                        result
+                    );
+                } else {
+                    element.innerHTML =
+                        String(result);
+                }
+
+                return;
+            }
+
+            console.error(
+                "[KrynetMarkdown] No render/parse/process API found."
+            );
+
+            element.textContent =
+                text;
+
+        } catch (error) {
+
+            console.error(
+                "[KrynetMarkdown] Render failed:",
+                error
+            );
+
+            element.textContent =
+                text;
+        }
+    }
 
 
     /* ========================================================
@@ -2196,8 +2336,16 @@
         textElement.className =
             "message-text";
 
-        textElement.textContent =
-            text;
+        /*
+         * THIS is the important part:
+         *
+         * Use the existing Krynet Markdown renderer
+         * instead of textContent.
+         */
+        renderMarkdown(
+            textElement,
+            text
+        );
 
         content.append(
             authorRow,
@@ -2831,9 +2979,7 @@
                             : "#";
 
                     messageInput.placeholder =
-                        type === "voice"
-                            ? `Message #${name}`
-                            : `Message #${name}`;
+                        `Message #${name}`;
 
                     updateVoiceControls();
                 }
@@ -2948,6 +3094,41 @@
     ======================================================== */
 
     updateVoiceControls();
+
+
+    /* ========================================================
+       MARKDOWN TEST MESSAGE
+       
+       Remove this block after testing if you don't want
+       the test message on startup.
+    ======================================================== */
+
+    requestAnimationFrame(() => {
+
+        addMessage({
+            author: "Markdown Test",
+            text:
+`# Markdown test
+
+**Bold text** · *italic text* · ~~strikethrough~~
+
+Here is \`inline code\`.
+
+> This is a blockquote.
+
+- First item
+- Second item
+- Third item
+
+[Example link](https://example.com)
+
+\`\`\`js
+const krynet = "community";
+console.log(krynet);
+\`\`\``
+        });
+
+    });
 
 </script>
 
