@@ -8,27 +8,7 @@ class KrynetBlurNSFW {
         "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js";
 
     static NSFWJS_URL =
-        "https://unpkg.com/nsfwjs@4.2.1/dist/browser/nsfwjs.min.js";
-
-    /*
-     * HOST THE NSFWJS MODEL IN YOUR OWN REPOSITORY.
-     *
-     * Expected:
-     *
-     * /Krynet-Free/
-     *   models/
-     *     mobilenet_v2/
-     *       model.json
-     *       group1-shard1of5.bin
-     *       group1-shard2of5.bin
-     *       ...
-     *
-     * GitHub Pages will then serve this as:
-     *
-     * https://cool-kids-club89.github.io/Krynet-Free/models/mobilenet_v2/
-     */
-    static MODEL_PATH =
-        "/Krynet-Free/models/mobilenet_v2/";
+        "https://cdn.jsdelivr.net/npm/nsfwjs@4.3.0/dist/nsfwjs.min.js";
 
     static IMAGE_SELECTOR = "img";
     static MESSAGE_SELECTOR = ".message";
@@ -151,15 +131,8 @@ class KrynetBlurNSFW {
             }
 
             const existing =
-                Array.from(
-                    document.scripts
-                ).find(
-                    script =>
-                        script.src ===
-                        new URL(
-                            src,
-                            document.baseURI
-                        ).href
+                document.querySelector(
+                    `script[src="${CSS.escape(src)}"]`
                 );
 
             if (existing) {
@@ -218,7 +191,7 @@ class KrynetBlurNSFW {
 
     /* =========================================================
        MODEL LOADING
-    ========================================================= */
+       ========================================================= */
 
     async loadModel() {
         if (this.model) {
@@ -231,9 +204,7 @@ class KrynetBlurNSFW {
 
         this.modelLoading = (async () => {
             try {
-                /*
-                 * TensorFlow first.
-                 */
+                /* TensorFlow */
 
                 if (
                     typeof window.tf ===
@@ -253,9 +224,7 @@ class KrynetBlurNSFW {
                     );
                 }
 
-                /*
-                 * NSFWJS second.
-                 */
+                /* NSFWJS */
 
                 if (
                     typeof window.nsfwjs ===
@@ -275,44 +244,20 @@ class KrynetBlurNSFW {
                     );
                 }
 
-                /*
-                 * TensorFlow backend must be ready
-                 * before loading the model.
-                 */
-
                 await window.tf.ready();
 
-                if (
-                    typeof window.tf.enableProdMode ===
-                    "function"
-                ) {
-                    window.tf.enableProdMode();
-                }
-
                 /*
-                 * Check the configured model URL
-                 * before asking NSFWJS to load it.
-                 */
-
-                const modelURL =
-                    new URL(
-                        KrynetBlurNSFW.MODEL_PATH,
-                        document.baseURI
-                    ).href;
-
-                console.log(
-                    "[KrynetNSFW] Loading model:",
-                    modelURL
-                );
-
-                /*
-                 * NSFWJS accepts the directory
-                 * containing model.json.
+                 * IMPORTANT:
+                 *
+                 * Do NOT provide a remote model path.
+                 *
+                 * NSFWJS bundles the MobileNetV2
+                 * model with the library.
                  */
 
                 this.model =
                     await window.nsfwjs.load(
-                        modelURL
+                        "MobileNetV2"
                     );
 
                 console.log(
@@ -326,13 +271,6 @@ class KrynetBlurNSFW {
                     "[KrynetNSFW] Model loading failed:",
                     error
                 );
-
-                /*
-                 * Allow another attempt after
-                 * a failed network/model load.
-                 */
-
-                this.model = null;
 
                 throw error;
 
@@ -368,25 +306,7 @@ class KrynetBlurNSFW {
                                     .length
                             ) {
                                 this.scan();
-                                break;
-                            }
-
-                            if (
-                                mutation.type ===
-                                "attributes" &&
-                                mutation.attributeName ===
-                                "src"
-                            ) {
-                                if (
-                                    mutation.target
-                                    instanceof
-                                    HTMLImageElement
-                                ) {
-                                    this.queueImage(
-                                        mutation.target,
-                                        true
-                                    );
-                                }
+                                return;
                             }
                         }
                     }
@@ -397,11 +317,7 @@ class KrynetBlurNSFW {
                     document.body,
                     {
                         childList: true,
-                        subtree: true,
-                        attributes: true,
-                        attributeFilter: [
-                            "src"
-                        ]
+                        subtree: true
                     }
                 );
             }
@@ -462,10 +378,7 @@ class KrynetBlurNSFW {
        QUEUE
     ========================================================= */
 
-    queueImage(
-        image,
-        force = false
-    ) {
+    queueImage(image) {
         if (
             !(image instanceof
                 HTMLImageElement)
@@ -474,21 +387,11 @@ class KrynetBlurNSFW {
         }
 
         if (
+            this.scannedImages.has(image) ||
             this.pendingImages.has(image)
         ) {
             return;
         }
-
-        if (
-            !force &&
-            this.scannedImages.has(image)
-        ) {
-            return;
-        }
-
-        /*
-         * Ignore tracking pixels.
-         */
 
         if (
             image.naturalWidth <= 1 &&
@@ -497,27 +400,7 @@ class KrynetBlurNSFW {
             return;
         }
 
-        /*
-         * New src = new image.
-         */
-
-        const src =
-            image.currentSrc ||
-            image.src ||
-            "";
-
-        if (
-            force &&
-            image.dataset.krNsfwSrc === src
-        ) {
-            return;
-        }
-
         this.pendingImages.add(image);
-
-        /*
-         * Image is already loaded.
-         */
 
         if (
             image.complete &&
@@ -526,10 +409,6 @@ class KrynetBlurNSFW {
             void this.analyzeImage(image);
             return;
         }
-
-        /*
-         * Wait for load.
-         */
 
         image.addEventListener(
             "load",
@@ -545,7 +424,7 @@ class KrynetBlurNSFW {
     }
 
     /* =========================================================
-       ANALYZE IMAGE
+       ANALYZE
     ========================================================= */
 
     async analyzeImage(image) {
@@ -557,9 +436,7 @@ class KrynetBlurNSFW {
                 return;
             }
 
-            if (
-                !this.settings.enabled
-            ) {
+            if (!this.settings.enabled) {
                 return;
             }
 
@@ -576,32 +453,14 @@ class KrynetBlurNSFW {
                     KrynetBlurNSFW.MESSAGE_SELECTOR
                 );
 
-            /*
-             * Not a message image.
-             */
-
             if (!message) {
                 return;
             }
 
-            /*
-             * Capture the current source so
-             * an image changing while the
-             * model loads cannot apply an old
-             * classification to the new image.
-             */
-
-            const source =
-                image.currentSrc ||
-                image.src ||
-                "";
-
             const model =
                 await this.loadModel();
 
-            if (
-                !this.settings.enabled
-            ) {
+            if (!this.settings.enabled) {
                 return;
             }
 
@@ -613,67 +472,11 @@ class KrynetBlurNSFW {
                 return;
             }
 
-            const currentSource =
-                image.currentSrc ||
-                image.src ||
-                "";
-
-            if (
-                currentSource !== source
-            ) {
-                this.pendingImages.delete(
-                    image
-                );
-
-                this.queueImage(
-                    image,
-                    true
-                );
-
-                return;
-            }
-
-            /*
-             * Run NSFWJS.
-             */
-
             const predictions =
                 await model.classify(
                     image,
                     5
                 );
-
-            /*
-             * Image may have changed while
-             * classification was running.
-             */
-
-            const finalSource =
-                image.currentSrc ||
-                image.src ||
-                "";
-
-            if (
-                finalSource !== source
-            ) {
-                image.dataset.krNsfwChecked =
-                    "false";
-
-                this.scannedImages.delete(
-                    image
-                );
-
-                this.updateMessageBlur(
-                    message
-                );
-
-                this.queueImage(
-                    image,
-                    true
-                );
-
-                return;
-            }
 
             const result =
                 this.getNSFWResult(
@@ -681,7 +484,8 @@ class KrynetBlurNSFW {
                 );
 
             /*
-             * Store result on THIS image.
+             * Store the classification on
+             * the actual image.
              */
 
             image.dataset.krNsfwChecked =
@@ -693,11 +497,9 @@ class KrynetBlurNSFW {
             image.dataset.krNsfwClass =
                 result.className;
 
-            image.dataset.krNsfwSrc =
-                source;
-
             /*
-             * Recalculate the entire message.
+             * Recalculate only the message
+             * containing this image.
              */
 
             this.updateMessageBlur(
@@ -713,7 +515,6 @@ class KrynetBlurNSFW {
                 "[KrynetNSFW] Image analysis failed:",
                 error
             );
-
         } finally {
             this.pendingImages.delete(
                 image
@@ -744,10 +545,6 @@ class KrynetBlurNSFW {
                     prediction.probability
                 ) || 0;
 
-            /*
-             * Porn and Hentai.
-             */
-
             if (
                 name === "porn" ||
                 name === "hentai"
@@ -763,10 +560,6 @@ class KrynetBlurNSFW {
                         prediction.className;
                 }
             }
-
-            /*
-             * Sexy.
-             */
 
             if (
                 name === "sexy" &&
@@ -794,15 +587,14 @@ class KrynetBlurNSFW {
                 nsfwScore >=
                 this.settings.threshold,
 
-            score:
-                nsfwScore,
+            score: nsfwScore,
 
             className
         };
     }
 
     /* =========================================================
-       MESSAGE RESULT
+       UPDATE MESSAGE
     ========================================================= */
 
     updateMessageBlur(message) {
@@ -816,14 +608,6 @@ class KrynetBlurNSFW {
                     KrynetBlurNSFW.IMAGE_SELECTOR
                 )
             );
-
-        /*
-         * ANY confirmed NSFW image means
-         * the message is blurred.
-         *
-         * Unchecked images do not clear a
-         * previously confirmed NSFW image.
-         */
 
         const nsfwImage =
             images.some(image => {
@@ -920,17 +704,6 @@ class KrynetBlurNSFW {
 
         this.pendingImages =
             new WeakSet();
-
-        document
-            .querySelectorAll(
-                KrynetBlurNSFW.IMAGE_SELECTOR
-            )
-            .forEach(image => {
-                delete image.dataset.krNsfwChecked;
-                delete image.dataset.krNsfwScore;
-                delete image.dataset.krNsfwClass;
-                delete image.dataset.krNsfwSrc;
-            });
 
         this.clearAllBlurs();
         this.scan();
