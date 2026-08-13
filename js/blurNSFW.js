@@ -8,7 +8,7 @@ class KrynetBlurNSFW {
         "https://cdn.jsdelivr.net/npm/nsfwjs@4.2.1/dist/nsfwjs.min.js";
 
     static MODEL_PATH =
-        "https://cdn.jsdelivr.net/npm/nsfwjs@4.2.1/example/nsfw_model/";
+        "https://unpkg.com/nsfwjs@4.2.1/dist/nsfwjs.min.js";
 
     static IMAGE_SELECTOR = "img";
     static MESSAGE_SELECTOR = ".message";
