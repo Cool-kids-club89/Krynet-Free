@@ -991,7 +991,6 @@
                 <span>development</span>
             </button>
 
-
             <div class="channel-category">
                 Voice Channels
             </div>
@@ -1071,9 +1070,6 @@
             <span class="chat-header-topic">
                 Krynet Community
             </span>
-
-
-            <!-- VC CONTROLS -->
 
             <div
                 class="call-controls"
@@ -1178,7 +1174,7 @@
                         Welcome to the Krynet Community.
                     </div>
 
-                    <div class="message-reactions"></div>
+                    <div class="kr-message-reactions"></div>
 
                 </div>
 
@@ -1338,7 +1334,9 @@
 <script src="./js/screenshare.js"></script>
 
 <script src="./js/voicechat.js"></script>
+
 <script src="./js/blurNSFW.js"></script>
+
 
 <!-- =========================================================
      CLEARURLS
@@ -2258,7 +2256,6 @@ window.KrynetCopyFile =
     ======================================================== */
 
     function getTime() {
-
         return new Date().toLocaleTimeString(
             [],
             {
@@ -2268,18 +2265,14 @@ window.KrynetCopyFile =
         );
     }
 
-
     function getInitial(name) {
-
         return (
             name.trim().charAt(0).toUpperCase() ||
             "?"
         );
     }
 
-
     function isURLOnly(text) {
-
         const value =
             text.trim();
 
@@ -2288,7 +2281,6 @@ window.KrynetCopyFile =
         }
 
         try {
-
             const url =
                 new URL(value);
 
@@ -2298,16 +2290,12 @@ window.KrynetCopyFile =
             );
 
         } catch {
-
             return false;
         }
     }
 
-
     function isYouTubeURL(value) {
-
         try {
-
             const url =
                 new URL(value);
 
@@ -2323,16 +2311,12 @@ window.KrynetCopyFile =
             );
 
         } catch {
-
             return false;
         }
     }
 
-
     function getYouTubeVideoId(value) {
-
         try {
-
             const url =
                 new URL(value);
 
@@ -2341,9 +2325,7 @@ window.KrynetCopyFile =
                     .toLowerCase()
                     .replace(/^www\./, "");
 
-
             if (host === "youtu.be") {
-
                 return (
                     url.pathname
                         .split("/")
@@ -2352,12 +2334,10 @@ window.KrynetCopyFile =
                 );
             }
 
-
             if (
                 host === "youtube.com" ||
                 host === "youtube-nocookie.com"
             ) {
-
                 if (
                     url.pathname === "/watch"
                 ) {
@@ -2390,31 +2370,80 @@ window.KrynetCopyFile =
             return null;
 
         } catch {
-
             return null;
         }
     }
 
+    function createYouTubeEmbed(url) {
+        const videoId =
+            getYouTubeVideoId(url);
+
+        if (!videoId) {
+            return null;
+        }
+
+        const wrapper =
+            document.createElement("div");
+
+        wrapper.className =
+            "youtube-embed";
+
+        const bar =
+            document.createElement("div");
+
+        bar.className =
+            "youtube-embed-bar";
+
+        const body =
+            document.createElement("div");
+
+        body.className =
+            "youtube-embed-body";
+
+        const iframe =
+            document.createElement("iframe");
+
+        iframe.src =
+            `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}`;
+
+        iframe.title =
+            "YouTube video";
+
+        iframe.loading =
+            "lazy";
+
+        iframe.allow =
+            "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+
+        iframe.allowFullscreen =
+            true;
+
+        body.appendChild(
+            iframe
+        );
+
+        wrapper.append(
+            bar,
+            body
+        );
+
+        return wrapper;
+    }
 
     function removeWelcome() {
-
         messages
             .querySelector(".welcome")
             ?.remove();
     }
 
-
     function isVoiceChannel(channel) {
-
         return (
             channel === "Lounge" ||
             channel === "Gaming"
         );
     }
 
-
     function getSelectedChannelType() {
-
         const active =
             document.querySelector(
                 ".channel.active"
@@ -2429,13 +2458,11 @@ window.KrynetCopyFile =
     ======================================================== */
 
     function updateVoiceControls() {
-
         const type =
             getSelectedChannelType();
 
         const voiceChannel =
             type === "voice";
-
 
         callControls.classList.toggle(
             "voice-available",
@@ -2447,9 +2474,7 @@ window.KrynetCopyFile =
             voiceJoined
         );
 
-
         if (voiceJoined) {
-
             channelIcon.textContent =
                 "🔊";
 
@@ -2459,9 +2484,7 @@ window.KrynetCopyFile =
             userStatus.classList.add(
                 "in-vc"
             );
-
         } else {
-
             userStatus.textContent =
                 "Online";
 
@@ -2471,16 +2494,13 @@ window.KrynetCopyFile =
         }
     }
 
-
     function markVoiceChannelConnected(
         channel,
         connected
     ) {
-
         document
             .querySelectorAll(".channel.voice")
             .forEach(element => {
-
                 element.classList.toggle(
                     "connected",
                     connected &&
@@ -2495,30 +2515,25 @@ window.KrynetCopyFile =
     ======================================================== */
 
     async function createVoiceChat() {
-
         if (
             !VOICE_SERVER_URL ||
             !VOICE_SESSION_ID ||
             !VOICE_USER_ID ||
             !VOICE_SERVER_PUBLIC_KEY
         ) {
-
             throw new Error(
                 "Voice chat configuration is missing"
             );
         }
 
-
         if (
             typeof window.VoiceChatApex !==
             "function"
         ) {
-
             throw new Error(
                 "voicechat.js did not expose VoiceChatApex"
             );
         }
-
 
         const instance =
             new window.VoiceChatApex(
@@ -2531,26 +2546,21 @@ window.KrynetCopyFile =
                 }
             );
 
-
         await instance.init();
 
         return instance;
     }
 
-
     async function joinVoiceChannel(
         channel
     ) {
-
         if (
             !isVoiceChannel(channel)
         ) {
             return;
         }
 
-
         if (voiceJoined) {
-
             if (
                 currentVoiceChannel ===
                 channel
@@ -2561,22 +2571,17 @@ window.KrynetCopyFile =
             await leaveVoiceChannel();
         }
 
-
         showCallPanel(
             channel,
             "Connecting to voice..."
         );
 
-
         joinVoiceButton.disabled =
             true;
 
-
         try {
-
             voiceChat =
                 await createVoiceChat();
-
 
             currentVoiceChannel =
                 channel;
@@ -2587,7 +2592,6 @@ window.KrynetCopyFile =
             microphoneMuted =
                 false;
 
-
             muteButton.textContent =
                 "🎤";
 
@@ -2595,15 +2599,12 @@ window.KrynetCopyFile =
                 "active"
             );
 
-
             markVoiceChannelConnected(
                 channel,
                 true
             );
 
-
             updateVoiceControls();
-
 
             callTitle.textContent =
                 `🔊 ${channel}`;
@@ -2611,21 +2612,17 @@ window.KrynetCopyFile =
             callStatus.textContent =
                 "Connected to voice";
 
-
         } catch (error) {
-
             console.error(
                 "[Krynet] Voice connection failed:",
                 error
             );
-
 
             try {
                 await voiceChat?.stop();
             } catch {
                 // Ignore cleanup errors.
             }
-
 
             voiceChat =
                 null;
@@ -2636,7 +2633,6 @@ window.KrynetCopyFile =
             voiceJoined =
                 false;
 
-
             markVoiceChannelConnected(
                 channel,
                 false
@@ -2644,25 +2640,19 @@ window.KrynetCopyFile =
 
             updateVoiceControls();
 
-
             callStatus.textContent =
                 error?.message ||
                 "Could not connect to voice";
 
-
         } finally {
-
             joinVoiceButton.disabled =
                 false;
         }
     }
 
-
     async function leaveVoiceChannel() {
-
         const previousChannel =
             currentVoiceChannel;
-
 
         voiceJoined =
             false;
@@ -2670,36 +2660,27 @@ window.KrynetCopyFile =
         currentVoiceChannel =
             null;
 
-
         try {
-
             await voiceChat?.stop();
-
         } catch (error) {
-
             console.warn(
                 "[Krynet] Voice cleanup failed:",
                 error
             );
         }
 
-
         voiceChat =
             null;
 
-
         if (previousChannel) {
-
             markVoiceChannelConnected(
                 previousChannel,
                 false
             );
         }
 
-
         await stopWebcam();
         await stopScreenshare();
-
 
         microphoneMuted =
             false;
@@ -2711,9 +2692,7 @@ window.KrynetCopyFile =
         muteButton.textContent =
             "🎤";
 
-
         updateVoiceControls();
-
         hideCallPanel();
     }
 
@@ -2725,21 +2704,17 @@ window.KrynetCopyFile =
     muteButton.addEventListener(
         "click",
         () => {
-
             if (!voiceJoined) {
                 return;
             }
 
-
             microphoneMuted =
                 !microphoneMuted;
-
 
             muteButton.classList.toggle(
                 "active",
                 microphoneMuted
             );
-
 
             muteButton.textContent =
                 microphoneMuted
@@ -2756,13 +2731,11 @@ window.KrynetCopyFile =
     joinVoiceButton.addEventListener(
         "click",
         async () => {
-
             if (!isVoiceChannel(
                 channelName.textContent
             )) {
                 return;
             }
-
 
             await joinVoiceChannel(
                 channelName.textContent
@@ -2778,7 +2751,6 @@ window.KrynetCopyFile =
     leaveVoiceButton.addEventListener(
         "click",
         async () => {
-
             await leaveVoiceChannel();
         }
     );
@@ -2792,7 +2764,6 @@ window.KrynetCopyFile =
         file,
         content = null
     ) {
-
         const url =
             URL.createObjectURL(file);
 
@@ -2802,11 +2773,9 @@ window.KrynetCopyFile =
         wrapper.className =
             "kr-embed";
 
-
         if (
             file.type.startsWith("image/")
         ) {
-
             const image =
                 document.createElement("img");
 
@@ -2826,11 +2795,9 @@ window.KrynetCopyFile =
             return wrapper;
         }
 
-
         if (
             file.type.startsWith("video/")
         ) {
-
             const video =
                 document.createElement("video");
 
@@ -2850,11 +2817,9 @@ window.KrynetCopyFile =
             return wrapper;
         }
 
-
         if (
             file.type.startsWith("audio/")
         ) {
-
             const audio =
                 document.createElement("audio");
 
@@ -2874,13 +2839,11 @@ window.KrynetCopyFile =
             return wrapper;
         }
 
-
         const card =
             document.createElement("div");
 
         card.className =
             "kr-file-card";
-
 
         const icon =
             document.createElement("span");
@@ -2891,7 +2854,6 @@ window.KrynetCopyFile =
         icon.textContent =
             "📎";
 
-
         const name =
             document.createElement("span");
 
@@ -2901,18 +2863,15 @@ window.KrynetCopyFile =
         name.textContent =
             file.name;
 
-
         card.append(
             icon,
             name
         );
 
-
         if (
             content !== null &&
             window.KrynetCopyFile
         ) {
-
             const copyFile = {
                 name: file.name,
                 type: file.type,
@@ -2932,7 +2891,6 @@ window.KrynetCopyFile =
             }
         }
 
-
         wrapper.appendChild(
             card
         );
@@ -2951,9 +2909,7 @@ window.KrynetCopyFile =
         file = null,
         fileContent = null
     }) {
-
         removeWelcome();
-
 
         const article =
             document.createElement("article");
@@ -2964,7 +2920,6 @@ window.KrynetCopyFile =
         article.dataset.messageId =
             crypto.randomUUID();
 
-
         const linkOnly =
             isURLOnly(text);
 
@@ -2973,7 +2928,6 @@ window.KrynetCopyFile =
                 "link-only"
             );
         }
-
 
         const avatar =
             document.createElement("div");
@@ -2984,20 +2938,17 @@ window.KrynetCopyFile =
         avatar.textContent =
             getInitial(author);
 
-
         const content =
             document.createElement("div");
 
         content.className =
             "message-content";
 
-
         const authorRow =
             document.createElement("div");
 
         authorRow.className =
             "message-author-row";
-
 
         const authorElement =
             document.createElement("span");
@@ -3008,7 +2959,6 @@ window.KrynetCopyFile =
         authorElement.textContent =
             author;
 
-
         const time =
             document.createElement("span");
 
@@ -3018,12 +2968,10 @@ window.KrynetCopyFile =
         time.textContent =
             `Today at ${getTime()}`;
 
-
         authorRow.append(
             authorElement,
             time
         );
-
 
         const textElement =
             document.createElement("div");
@@ -3034,15 +2982,12 @@ window.KrynetCopyFile =
         textElement.textContent =
             text;
 
-
         content.append(
             authorRow,
             textElement
         );
 
-
         if (file) {
-
             content.appendChild(
                 createLocalFileEmbed(
                     file,
@@ -3051,13 +2996,10 @@ window.KrynetCopyFile =
             );
         }
 
-
         if (linkOnly) {
-
             if (
                 isYouTubeURL(text)
             ) {
-
                 const youtube =
                     createYouTubeEmbed(
                         text.trim()
@@ -3068,53 +3010,38 @@ window.KrynetCopyFile =
                         youtube
                     );
                 }
-
             } else {
-
                 requestAnimationFrame(() => {
-
                     Embed.scanMessages(
                         `.message[data-message-id="${CSS.escape(article.dataset.messageId)}"]`
                     );
-
                 });
             }
         }
 
-
+        /*
+         * Reactions.js expects this container
+         * inside .message-content.
+         */
         const reactions =
             document.createElement("div");
 
         reactions.className =
             "kr-message-reactions";
 
-
-        try {
-
-            new Reactions(
-                reactions
-            );
-
-        } catch (error) {
-
-            console.warn(
-                "[Krynet] Reactions failed:",
-                error
-            );
-        }
-
-
         content.appendChild(
             reactions
         );
 
-
+        /*
+         * The existing message action bar
+         * provides the reaction button.
+         */
         const actions =
             document.createElement("div");
 
         actions.className =
             "message-actions";
-
 
         const reactButton =
             document.createElement("button");
@@ -3134,7 +3061,6 @@ window.KrynetCopyFile =
         reactButton.textContent =
             "😊";
 
-
         const replyButton =
             document.createElement("button");
 
@@ -3153,12 +3079,10 @@ window.KrynetCopyFile =
         replyButton.textContent =
             "↩";
 
-
         actions.append(
             reactButton,
             replyButton
         );
-
 
         article.append(
             avatar,
@@ -3166,45 +3090,17 @@ window.KrynetCopyFile =
             actions
         );
 
-
         messages.appendChild(
             article
         );
 
-
-        try {
-
-            if (
-                typeof Reactions.attach ===
-                "function"
-            ) {
-
-                Reactions.attach(
-                    reactions
-                );
-            }
-
-        } catch {
-            // Constructor-based implementations
-            // initialize themselves.
-        }
-
-
-        reactButton.addEventListener(
-            "click",
-            () => {
-
-                reactions.dispatchEvent(
-                    new CustomEvent(
-                        "krynet:add-reaction",
-                        {
-                            bubbles: true
-                        }
-                    )
-                );
-            }
+        /*
+         * Initialize reactions.js against the
+         * container we just created.
+         */
+        new Reactions(
+            reactions
         );
-
 
         messages.scrollTop =
             messages.scrollHeight;
@@ -3218,10 +3114,8 @@ window.KrynetCopyFile =
     ======================================================== */
 
     async function sendMessage() {
-
         const text =
             messageInput.value.trim();
-
 
         if (
             !text &&
@@ -3229,14 +3123,6 @@ window.KrynetCopyFile =
         ) {
             return;
         }
-
-
-        /*
-         * Clean URLs before creating the local
-         * message. ClearURLs also handles pasted
-         * textarea content, but this makes locally
-         * created messages clean immediately.
-         */
 
         let cleanedText =
             text;
@@ -3250,14 +3136,12 @@ window.KrynetCopyFile =
                 );
         }
 
-
         addMessage({
             author: "Barney",
             text: cleanedText,
             file: selectedFile,
             fileContent: selectedFileContent
         });
-
 
         messageInput.value =
             "";
@@ -3274,25 +3158,20 @@ window.KrynetCopyFile =
     ======================================================== */
 
     async function showAttachment(file) {
-
         selectedFile =
             file;
 
         selectedFileContent =
             null;
 
-
         attachmentPreview.classList.add(
             "visible"
         );
 
-
         attachmentName.textContent =
             file.name;
 
-
         attachmentContent.replaceChildren();
-
 
         if (
             window.KrynetCopyFile &&
@@ -3300,14 +3179,10 @@ window.KrynetCopyFile =
             file.size <=
                 window.KrynetCopyFile.MAX_COPY_SIZE
         ) {
-
             try {
-
                 selectedFileContent =
                     await file.text();
-
             } catch (error) {
-
                 console.warn(
                     "[KrynetCopyFile] Failed to read file:",
                     error
@@ -3315,11 +3190,9 @@ window.KrynetCopyFile =
             }
         }
 
-
         if (
             file.type.startsWith("image/")
         ) {
-
             const image =
                 document.createElement("img");
 
@@ -3336,11 +3209,9 @@ window.KrynetCopyFile =
             return;
         }
 
-
         if (
             file.type.startsWith("video/")
         ) {
-
             const video =
                 document.createElement("video");
 
@@ -3356,9 +3227,7 @@ window.KrynetCopyFile =
         }
     }
 
-
     function clearAttachment() {
-
         selectedFile =
             null;
 
@@ -3387,7 +3256,6 @@ window.KrynetCopyFile =
         title,
         status
     ) {
-
         callTitle.textContent =
             title;
 
@@ -3399,9 +3267,7 @@ window.KrynetCopyFile =
         );
     }
 
-
     function hideCallPanel() {
-
         callPanel.classList.remove(
             "visible"
         );
@@ -3418,40 +3284,30 @@ window.KrynetCopyFile =
     ======================================================== */
 
     async function stopWebcam() {
-
         if (!webcamSession) {
             return;
         }
 
-
         try {
-
             webcamSession.stop();
-
         } catch {
             // Ignore shutdown errors.
         }
 
-
         webcamSession =
             null;
-
 
         cameraButton.classList.remove(
             "active"
         );
     }
 
-
     async function startWebcam() {
-
         if (!voiceJoined) {
             return;
         }
 
-
         if (webcamSession) {
-
             await stopWebcam();
 
             if (!screenSession) {
@@ -3461,12 +3317,10 @@ window.KrynetCopyFile =
             return;
         }
 
-
         if (
             typeof window.startWebcamStream !==
             "function"
         ) {
-
             showCallPanel(
                 "Camera",
                 "webcam.js is not loaded"
@@ -3475,23 +3329,18 @@ window.KrynetCopyFile =
             return;
         }
 
-
         try {
-
             showCallPanel(
                 `🔊 ${currentVoiceChannel}`,
                 "Starting camera..."
             );
 
-
             webcamSession =
                 await window.startWebcamStream();
-
 
             if (
                 webcamSession?.stream
             ) {
-
                 callVideo.srcObject =
                     webcamSession.stream;
 
@@ -3500,26 +3349,20 @@ window.KrynetCopyFile =
                     .catch(() => {});
             }
 
-
             cameraButton.classList.add(
                 "active"
             );
 
-
             callStatus.textContent =
                 "Camera active";
 
-
         } catch (error) {
-
             webcamSession =
                 null;
-
 
             callStatus.textContent =
                 error?.message ||
                 "Could not start camera";
-
 
             console.error(
                 "[Krynet] Camera failed:",
@@ -3527,7 +3370,6 @@ window.KrynetCopyFile =
             );
         }
     }
-
 
     cameraButton.addEventListener(
         "click",
@@ -3540,40 +3382,30 @@ window.KrynetCopyFile =
     ======================================================== */
 
     async function stopScreenshare() {
-
         if (!screenSession) {
             return;
         }
 
-
         try {
-
             screenSession.stop();
-
         } catch {
             // Ignore shutdown errors.
         }
 
-
         screenSession =
             null;
-
 
         screenButton.classList.remove(
             "active"
         );
     }
 
-
     async function startScreenshare() {
-
         if (!voiceJoined) {
             return;
         }
 
-
         if (screenSession) {
-
             await stopScreenshare();
 
             if (!webcamSession) {
@@ -3583,12 +3415,10 @@ window.KrynetCopyFile =
             return;
         }
 
-
         if (
             typeof window.startMonitorAdaptiveScreenshare !==
             "function"
         ) {
-
             showCallPanel(
                 "Screen Share",
                 "screenshare.js is not loaded"
@@ -3597,24 +3427,19 @@ window.KrynetCopyFile =
             return;
         }
 
-
         const wsUrl =
             window.KRYNET_SCREEN_WS_URL ||
             "wss://localhost:8443/screenshare";
-
 
         const wtUrl =
             window.KRYNET_SCREEN_WT_URL ||
             "https://localhost:8443/screenshare";
 
-
         try {
-
             showCallPanel(
                 `🔊 ${currentVoiceChannel}`,
                 "Starting screen capture..."
             );
-
 
             screenSession =
                 await window.startMonitorAdaptiveScreenshare(
@@ -3628,11 +3453,9 @@ window.KrynetCopyFile =
                     }
                 );
 
-
             if (
                 screenSession?.stream
             ) {
-
                 callVideo.srcObject =
                     screenSession.stream;
 
@@ -3641,26 +3464,20 @@ window.KrynetCopyFile =
                     .catch(() => {});
             }
 
-
             screenButton.classList.add(
                 "active"
             );
 
-
             callStatus.textContent =
                 "Screen sharing active";
 
-
         } catch (error) {
-
             screenSession =
                 null;
-
 
             callStatus.textContent =
                 error?.message ||
                 "Could not start screen share";
-
 
             console.error(
                 "[Krynet] Screen share failed:",
@@ -3668,7 +3485,6 @@ window.KrynetCopyFile =
             );
         }
     }
-
 
     screenButton.addEventListener(
         "click",
@@ -3683,9 +3499,7 @@ window.KrynetCopyFile =
     callClose.addEventListener(
         "click",
         async () => {
-
             if (voiceJoined) {
-
                 await stopWebcam();
                 await stopScreenshare();
 
@@ -3710,17 +3524,14 @@ window.KrynetCopyFile =
         }
     );
 
-
     uploadButton.addEventListener(
         "click",
         () => fileInput.click()
     );
 
-
     fileInput.addEventListener(
         "change",
         () => {
-
             const file =
                 fileInput.files?.[0];
 
@@ -3732,22 +3543,18 @@ window.KrynetCopyFile =
         }
     );
 
-
     removeAttachment.addEventListener(
         "click",
         clearAttachment
     );
 
-
     messageInput.addEventListener(
         "keydown",
         event => {
-
             if (
                 event.key === "Enter" &&
                 !event.shiftKey
             ) {
-
                 event.preventDefault();
 
                 void sendMessage();
@@ -3755,11 +3562,9 @@ window.KrynetCopyFile =
         }
     );
 
-
     messageInput.addEventListener(
         "input",
         () => {
-
             messageInput.style.height =
                 "auto";
 
@@ -3792,7 +3597,6 @@ window.KrynetCopyFile =
                         channel.dataset.type ||
                         "text";
 
-
                     if (
                         voiceJoined &&
                         (
@@ -3800,45 +3604,34 @@ window.KrynetCopyFile =
                             name !== currentVoiceChannel
                         )
                     ) {
-
                         await leaveVoiceChannel();
                     }
-
 
                     document
                         .querySelectorAll(".channel")
                         .forEach(item => {
-
                             item.classList.remove(
                                 "active"
                             );
                         });
 
-
                     channel.classList.add(
                         "active"
                     );
 
-
                     channelName.textContent =
                         name;
 
-
                     if (type === "voice") {
-
                         channelIcon.textContent =
                             "🔊";
-
                     } else {
-
                         channelIcon.textContent =
                             "#";
                     }
 
-
                     messageInput.placeholder =
                         `Message #${name}`;
-
 
                     updateVoiceControls();
                 }
@@ -3880,11 +3673,13 @@ window.KrynetCopyFile =
     ======================================================== */
 
     requestAnimationFrame(() => {
-
         Embed.scanMessages(
             ".message"
         );
 
+        Reactions.scan(
+            messages
+        );
     });
 
 
@@ -3898,7 +3693,6 @@ window.KrynetCopyFile =
 
                 let shouldScan =
                     false;
-
 
                 for (
                     const mutation of mutations
@@ -3915,23 +3709,24 @@ window.KrynetCopyFile =
                                 node.querySelector?.(".message")
                             )
                         ) {
-
                             shouldScan =
                                 true;
                         }
                     }
                 }
 
-
                 if (shouldScan) {
 
                     Embed.scanMessages(
                         ".message"
                     );
+
+                    Reactions.scan(
+                        messages
+                    );
                 }
             }
         );
-
 
     messageObserver.observe(
         messages,
