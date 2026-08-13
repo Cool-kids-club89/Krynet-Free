@@ -10,51 +10,22 @@
         scanDelay: 100,
         seekCooldown: 500,
         maxCacheEntries: 100
-    } as const;
-
-    /* ---------------------------------------------------------
-       TYPES
-    --------------------------------------------------------- */
-
-    type Segment = {
-        start: number;
-        end: number;
-        category: string;
-    };
-
-    type RawSegment = {
-        segment?: [number, number];
-        category?: string;
-    };
-
-    type PlayerState = {
-        audio: HTMLMediaElement;
-        segments: Segment[];
-        lastSegment: Segment | null;
-        lastSeek: number;
-        onTimeUpdate: () => void;
-        onReset: () => void;
-    };
-
-    type ProtectedEmbed = HTMLElement & {
-        __sponsorBlockState?: PlayerState;
-        __sponsorBlockProcessing?: boolean;
     };
 
     /* ---------------------------------------------------------
        STATE
     --------------------------------------------------------- */
 
-    const segmentCache = new Map<string, Segment[]>();
-    const pendingRequests = new Map<string, Promise<Segment[]>>();
+    const segmentCache = new Map();
+    const pendingRequests = new Map();
 
-    let scanTimer: ReturnType<typeof setTimeout> | null = null;
+    let scanTimer = null;
 
     /* ---------------------------------------------------------
        SPOTIFY ID
     --------------------------------------------------------- */
 
-    function getSpotifyID(embed: Element): string | null {
+    function getSpotifyID(embed) {
         const explicitID = embed.getAttribute(
             "data-spotify-episode-id"
         );
@@ -63,11 +34,9 @@
             return explicitID;
         }
 
-        const iframe = embed.querySelector<HTMLIFrameElement>(
-            "iframe"
-        );
+        const iframe = embed.querySelector("iframe");
 
-        if (!iframe?.src) {
+        if (!iframe || !iframe.src) {
             return null;
         }
 
@@ -78,7 +47,7 @@
                 /(?:embed\/)?episode\/([a-zA-Z0-9]+)/
             );
 
-            return match?.[1] ?? null;
+            return match ? match[1] : null;
         } catch {
             return null;
         }
@@ -88,22 +57,15 @@
        MEDIA
     --------------------------------------------------------- */
 
-    function getMedia(
-        embed: Element
-    ): HTMLMediaElement | null {
-        return embed.querySelector<HTMLMediaElement>(
-            "audio, video"
-        );
+    function getMedia(embed) {
+        return embed.querySelector("audio, video");
     }
 
     /* ---------------------------------------------------------
        FETCH
     --------------------------------------------------------- */
 
-    async function fetchJSON<T>(
-        url: string | URL,
-        options: RequestInit = {}
-    ): Promise<T> {
+    async function fetchJSON(url, options = {}) {
         const controller = new AbortController();
 
         const timeout = setTimeout(
@@ -123,7 +85,7 @@
                 );
             }
 
-            return await response.json() as T;
+            return await response.json();
         } finally {
             clearTimeout(timeout);
         }
@@ -133,9 +95,7 @@
        SEGMENT NORMALIZATION
     --------------------------------------------------------- */
 
-    function normalizeSegments(
-        data: RawSegment[]
-    ): Segment[] {
+    function normalizeSegments(data) {
         if (!Array.isArray(data)) {
             return [];
         }
@@ -158,18 +118,21 @@
                 );
             })
             .map(item => ({
-                start: item.segment![0],
-                end: item.segment![1],
-                category: item.category ?? "unknown"
+                start: item.segment[0],
+                end: item.segment[1],
+                category: item.category || "unknown"
             }))
-            .sort((a, b) => a.start - b.start);
+            .sort(
+                (a, b) =>
+                    a.start - b.start
+            );
     }
 
     /* ---------------------------------------------------------
        CACHE
     --------------------------------------------------------- */
 
-    function trimCache(): void {
+    function trimCache() {
         while (
             segmentCache.size >
             CONFIG.maxCacheEntries
@@ -189,16 +152,16 @@
        GET SEGMENTS
     --------------------------------------------------------- */
 
-    async function getSegments(
-        id: string
-    ): Promise<Segment[]> {
-        const cached = segmentCache.get(id);
+    async function getSegments(id) {
+        const cached =
+            segmentCache.get(id);
 
         if (cached) {
             return cached;
         }
 
-        const pending = pendingRequests.get(id);
+        const pending =
+            pendingRequests.get(id);
 
         if (pending) {
             return pending;
@@ -221,14 +184,15 @@
                 );
 
                 const data =
-                    await fetchJSON<RawSegment[]>(
-                        url
-                    );
+                    await fetchJSON(url);
 
                 const segments =
                     normalizeSegments(data);
 
-                segmentCache.set(id, segments);
+                segmentCache.set(
+                    id,
+                    segments
+                );
 
                 trimCache();
 
@@ -243,7 +207,10 @@
             }
         })();
 
-        pendingRequests.set(id, request);
+        pendingRequests.set(
+            id,
+            request
+        );
 
         try {
             return await request;
@@ -257,9 +224,9 @@
     --------------------------------------------------------- */
 
     function findSegment(
-        segments: Segment[],
-        time: number
-    ): Segment | null {
+        segments,
+        time
+    ) {
         let low = 0;
         let high = segments.length - 1;
 
@@ -267,7 +234,8 @@
             const middle =
                 (low + high) >> 1;
 
-            const segment = segments[middle];
+            const segment =
+                segments[middle];
 
             if (time < segment.start) {
                 high = middle - 1;
@@ -289,9 +257,7 @@
        SKIPPING
     --------------------------------------------------------- */
 
-    function skipCurrentSegment(
-        state: PlayerState
-    ): void {
+    function skipCurrentSegment(state) {
         const {
             audio,
             segments
@@ -301,7 +267,8 @@
             return;
         }
 
-        const now = performance.now();
+        const now =
+            performance.now();
 
         if (
             now - state.lastSeek <
@@ -310,10 +277,11 @@
             return;
         }
 
-        const segment = findSegment(
-            segments,
-            audio.currentTime
-        );
+        const segment =
+            findSegment(
+                segments,
+                audio.currentTime
+            );
 
         if (!segment) {
             state.lastSegment = null;
@@ -321,7 +289,8 @@
         }
 
         if (
-            state.lastSegment === segment
+            state.lastSegment ===
+            segment
         ) {
             return;
         }
@@ -330,7 +299,8 @@
         state.lastSeek = now;
 
         try {
-            audio.currentTime = segment.end;
+            audio.currentTime =
+                segment.end;
         } catch {
             // Player may have been destroyed.
         }
@@ -340,9 +310,7 @@
        CLEANUP
     --------------------------------------------------------- */
 
-    function cleanup(
-        embed: ProtectedEmbed
-    ): void {
+    function cleanup(embed) {
         const state =
             embed.__sponsorBlockState;
 
@@ -374,10 +342,10 @@
     --------------------------------------------------------- */
 
     function addMarkUI(
-        embed: ProtectedEmbed,
-        audio: HTMLMediaElement,
-        id: string
-    ): void {
+        embed,
+        audio,
+        id
+    ) {
         if (
             embed.querySelector(
                 "[data-sponsor-mark]"
@@ -387,28 +355,35 @@
         }
 
         const button =
-            document.createElement("button");
+            document.createElement(
+                "button"
+            );
 
         button.type = "button";
-        button.dataset.sponsorMark = "true";
-        button.textContent = "Mark Sponsor";
+        button.dataset.sponsorMark =
+            "true";
+        button.textContent =
+            "Mark Sponsor";
 
-        Object.assign(button.style, {
-            position: "absolute",
-            bottom: "10px",
-            right: "10px",
-            zIndex: "9999",
-            padding: "7px 10px",
-            background: "#1DB954",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontSize: "12px",
-            fontFamily: "inherit"
-        });
+        Object.assign(
+            button.style,
+            {
+                position: "absolute",
+                bottom: "10px",
+                right: "10px",
+                zIndex: "9999",
+                padding: "7px 10px",
+                background: "#1DB954",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "12px",
+                fontFamily: "inherit"
+            }
+        );
 
-        let markStart: number | null = null;
+        let markStart = null;
         let submitting = false;
 
         button.addEventListener(
@@ -422,13 +397,20 @@
                     audio.currentTime;
 
                 if (markStart === null) {
-                    markStart = currentTime;
-                    button.textContent = "Mark End";
+                    markStart =
+                        currentTime;
+
+                    button.textContent =
+                        "Mark End";
+
                     return;
                 }
 
-                const start = markStart;
-                const end = currentTime;
+                const start =
+                    markStart;
+
+                const end =
+                    currentTime;
 
                 markStart = null;
 
@@ -437,7 +419,9 @@
                         "Invalid Segment";
 
                     setTimeout(() => {
-                        if (button.isConnected) {
+                        if (
+                            button.isConnected
+                        ) {
                             button.textContent =
                                 "Mark Sponsor";
                         }
@@ -448,13 +432,11 @@
 
                 submitting = true;
                 button.disabled = true;
-                button.textContent = "Submitting...";
+                button.textContent =
+                    "Submitting...";
 
                 try {
-                    await fetchJSON<{
-                        success?: boolean;
-                        error?: string;
-                    }>(
+                    await fetchJSON(
                         `${API}/submitSegment`,
                         {
                             method: "POST",
@@ -468,11 +450,15 @@
 
                             body: JSON.stringify({
                                 videoID: id,
+
                                 segment: [
                                     start,
                                     end
                                 ],
-                                category: "sponsor",
+
+                                category:
+                                    "sponsor",
+
                                 service:
                                     CONFIG.service
                             })
@@ -493,11 +479,15 @@
                     submitting = false;
 
                     setTimeout(() => {
-                        if (!button.isConnected) {
+                        if (
+                            !button.isConnected
+                        ) {
                             return;
                         }
 
-                        button.disabled = false;
+                        button.disabled =
+                            false;
+
                         button.textContent =
                             "Mark Sponsor";
                     }, 1500);
@@ -506,13 +496,17 @@
         );
 
         if (
-            getComputedStyle(embed).position ===
-            "static"
+            getComputedStyle(
+                embed
+            ).position === "static"
         ) {
-            embed.style.position = "relative";
+            embed.style.position =
+                "relative";
         }
 
-        embed.appendChild(button);
+        embed.appendChild(
+            button
+        );
     }
 
     /* ---------------------------------------------------------
@@ -520,10 +514,10 @@
     --------------------------------------------------------- */
 
     async function attachSponsorBlock(
-        embed: ProtectedEmbed,
-        audio: HTMLMediaElement,
-        id: string
-    ): Promise<void> {
+        embed,
+        audio,
+        id
+    ) {
         if (
             embed.__sponsorBlockState ||
             embed.__sponsorBlockProcessing
@@ -531,26 +525,28 @@
             return;
         }
 
-        // Set before awaiting anything so the observer
-        // cannot initialize the same embed twice.
-        embed.__sponsorBlockProcessing = true;
+        embed.__sponsorBlockProcessing =
+            true;
 
-        const state: PlayerState = {
+        const state = {
             audio,
             segments: [],
             lastSegment: null,
             lastSeek: 0,
 
-            onTimeUpdate: () => {
-                skipCurrentSegment(state);
+            onTimeUpdate() {
+                skipCurrentSegment(
+                    state
+                );
             },
 
-            onReset: () => {
+            onReset() {
                 state.lastSegment = null;
             }
         };
 
-        embed.__sponsorBlockState = state;
+        embed.__sponsorBlockState =
+            state;
 
         try {
             state.segments =
@@ -596,9 +592,7 @@
        PROCESS EMBED
     --------------------------------------------------------- */
 
-    function processEmbed(
-        embed: ProtectedEmbed
-    ): void {
+    function processEmbed(embed) {
         if (
             embed.__sponsorBlockProcessing ||
             embed.__sponsorBlockState
@@ -606,13 +600,15 @@
             return;
         }
 
-        const id = getSpotifyID(embed);
+        const id =
+            getSpotifyID(embed);
 
         if (!id) {
             return;
         }
 
-        const audio = getMedia(embed);
+        const audio =
+            getMedia(embed);
 
         if (!audio) {
             return;
@@ -635,28 +631,24 @@
        SCAN
     --------------------------------------------------------- */
 
-    function scan(
-        root: ParentNode = document
-    ): void {
-        const embeds: ProtectedEmbed[] = [];
+    function scan(root = document) {
+        const embeds = [];
 
         if (
             root instanceof Element &&
-            root.matches(CONFIG.embedSelector)
+            root.matches(
+                CONFIG.embedSelector
+            )
         ) {
-            embeds.push(
-                root as ProtectedEmbed
-            );
+            embeds.push(root);
         }
 
         root
-            .querySelectorAll<HTMLElement>(
+            .querySelectorAll(
                 CONFIG.embedSelector
             )
             .forEach(element => {
-                embeds.push(
-                    element as ProtectedEmbed
-                );
+                embeds.push(element);
             });
 
         for (const embed of embeds) {
@@ -668,7 +660,7 @@
        DEBOUNCED SCAN
     --------------------------------------------------------- */
 
-    function scheduleScan(): void {
+    function scheduleScan() {
         if (scanTimer !== null) {
             return;
         }
@@ -684,69 +676,86 @@
     --------------------------------------------------------- */
 
     const observer =
-        new MutationObserver(mutations => {
-            for (const mutation of mutations) {
-                if (
-                    mutation.addedNodes.length
+        new MutationObserver(
+            mutations => {
+                for (
+                    const mutation
+                    of mutations
                 ) {
-                    scheduleScan();
-                    return;
+                    if (
+                        mutation.addedNodes
+                            .length
+                    ) {
+                        scheduleScan();
+                        return;
+                    }
                 }
             }
-        });
+        );
 
     /* ---------------------------------------------------------
        REMOVAL CLEANUP
     --------------------------------------------------------- */
 
     const removalObserver =
-        new MutationObserver(mutations => {
-            for (const mutation of mutations) {
-                for (const node of mutation.removedNodes) {
-                    if (
-                        !(node instanceof Element)
+        new MutationObserver(
+            mutations => {
+                for (
+                    const mutation
+                    of mutations
+                ) {
+                    for (
+                        const node
+                        of mutation.removedNodes
                     ) {
-                        continue;
-                    }
+                        if (
+                            !(node instanceof Element)
+                        ) {
+                            continue;
+                        }
 
-                    if (
-                        node.matches(
-                            CONFIG.embedSelector
-                        )
-                    ) {
-                        cleanup(
-                            node as ProtectedEmbed
-                        );
-                    }
+                        if (
+                            node.matches(
+                                CONFIG.embedSelector
+                            )
+                        ) {
+                            cleanup(node);
+                        }
 
-                    node
-                        .querySelectorAll<HTMLElement>(
-                            CONFIG.embedSelector
-                        )
-                        .forEach(element => {
-                            cleanup(
-                                element as ProtectedEmbed
+                        node
+                            .querySelectorAll(
+                                CONFIG.embedSelector
+                            )
+                            .forEach(
+                                element => {
+                                    cleanup(
+                                        element
+                                    );
+                                }
                             );
-                        });
+                    }
                 }
             }
-        });
+        );
 
     /* ---------------------------------------------------------
        INITIALIZE
     --------------------------------------------------------- */
 
-    function initialize(): void {
+    function initialize() {
         scan();
 
         if (!document.body) {
             return;
         }
 
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
+        observer.observe(
+            document.body,
+            {
+                childList: true,
+                subtree: true
+            }
+        );
 
         removalObserver.observe(
             document.body,
@@ -762,7 +771,8 @@
     }
 
     if (
-        document.readyState === "loading"
+        document.readyState ===
+        "loading"
     ) {
         document.addEventListener(
             "DOMContentLoaded",
