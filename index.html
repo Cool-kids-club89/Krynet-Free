@@ -1,53 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" href="favicon.ico" type="image/x-icon" />
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Krynet – Anonymous & Secure</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <meta
+    name="color-scheme"
+    content="dark"
+  >
+
+  <meta
+    name="description"
+    content="KrynetAI.free — an unofficial community client with end-to-end encrypted messaging."
+  >
+
+  <title>KrynetAI.free — Anonymous & Secure</title>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
     body {
       margin: 0;
-      font-family: 'Inter', sans-serif;
-      background-color: #0a0a0a;
+      min-height: 100%;
+    }
+
+    body {
+      font-family: "Inter", sans-serif;
+      background: #0a0a0a;
       color: #fff;
     }
 
+    button,
+    input {
+      font: inherit;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    /* =====================================================
+       HEADER
+    ===================================================== */
+
     header {
-      background-color: #1a0000;
+      background: #160000;
       padding: 1rem 2rem;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+      border-bottom: 1px solid #400000;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, .45);
     }
 
     header h1 {
-      color: #ff4d4d;
       margin: 0;
+      color: #ff4d4d;
+      font-size: 1.7rem;
     }
 
     header p {
-      color: #ff4d4d;
+      margin: .25rem 0 1rem;
+      color: #ff7070;
+      font-size: .85rem;
       font-style: italic;
-      font-size: 0.9rem;
-      margin: 0.2rem 0 1rem 0;
     }
 
     nav {
-      display: flex;
-      gap: 1rem;
       width: 100%;
-      justify-content: flex-start;
+      display: flex;
       align-items: center;
+      gap: 1rem;
     }
 
     nav a {
-      color: #fff;
+      color: #ddd;
       text-decoration: none;
+      font-size: .95rem;
       font-weight: 500;
-      transition: color 0.2s ease;
+      transition: color .2s;
     }
 
     nav a:hover {
@@ -55,305 +99,1112 @@
     }
 
     .nav-login {
-      background: transparent;
-      color: white;
-      border: none;
-      font-size: 1rem;
       margin-left: auto;
+      padding: .45rem .9rem;
+      border: 1px solid #600000;
+      border-radius: .5rem;
+      background: #1d0000;
+      color: #fff;
       cursor: pointer;
-      font-weight: 500;
     }
 
     .nav-login:hover {
+      background: #300000;
+      color: #ff7070;
+    }
+
+    /* =====================================================
+       HERO
+    ===================================================== */
+
+    .main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 6rem 2rem 4rem;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      margin-bottom: 1.25rem;
+      padding: .4rem .8rem;
+      border: 1px solid #500000;
+      border-radius: 999px;
+      background: #160000;
+      color: #ff7070;
+      font-size: .8rem;
+      font-weight: 600;
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #ff4d4d;
+      box-shadow: 0 0 8px #ff4d4d;
+    }
+
+    .main h2 {
+      max-width: 800px;
+      margin: 0 auto 1rem;
+      font-size: clamp(2.3rem, 6vw, 4.5rem);
+      line-height: 1;
+      letter-spacing: -.04em;
+    }
+
+    .main h2 span {
       color: #ff4d4d;
     }
 
-    .main {
-      text-align: center;
-      padding: 5rem 2rem;
+    .main-description {
+      max-width: 650px;
+      margin: 0 auto 2rem;
+      color: #bbb;
+      font-size: 1.05rem;
+      line-height: 1.7;
     }
 
-    .main p {
-      color: #ccc;
-      max-width: 600px;
+    .notice {
+      max-width: 650px;
       margin: 0 auto 2rem;
-      font-size: 1.1rem;
+      padding: 1rem 1.2rem;
+      border: 1px solid #400000;
+      border-radius: .75rem;
+      background: #140000;
+      color: #aaa;
+      font-size: .9rem;
+      line-height: 1.5;
     }
+
+    .notice strong {
+      color: #ff5c5c;
+    }
+
+    /* =====================================================
+       BUTTONS
+    ===================================================== */
 
     .button-group {
       display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
       justify-content: center;
-      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: .8rem;
+      margin-bottom: 3rem;
     }
 
     .button {
-      background-color: #ff1a1a;
-      color: white;
-      border: none;
-      padding: 0.8rem 2rem;
-      font-size: 1rem;
-      border-radius: 1.5rem;
+      padding: .85rem 1.7rem;
+      border: 0;
+      border-radius: .65rem;
+      background: #ff1a1a;
+      color: #fff;
       cursor: pointer;
-      transition: background-color 0.2s ease, transform 0.2s ease;
+      font-weight: 600;
+      transition:
+        background .2s,
+        transform .2s,
+        box-shadow .2s;
     }
 
     .button:hover {
-      background-color: #cc0000;
+      background: #cc0000;
       transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255, 0, 0, .2);
     }
 
-    .button:focus {
-      outline: 2px solid #ff4d4d;
-      outline-offset: 2px;
+    .button.secondary {
+      background: #1b1b1b;
+      border: 1px solid #444;
     }
+
+    .button.secondary:hover {
+      background: #252525;
+      border-color: #ff4d4d;
+    }
+
+    /* =====================================================
+       FEATURES
+    ===================================================== */
 
     .features {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-      padding: 2rem;
+      grid-template-columns:
+        repeat(auto-fit, minmax(230px, 1fr));
+      gap: 1rem;
       max-width: 1000px;
       margin: 0 auto;
+      padding: 0 2rem 4rem;
     }
 
     .card {
-      background-color: #1a0000;
-      border: 1px solid #400000;
-      padding: 2rem;
-      text-align: center;
-      border-radius: 1rem;
-      transition: transform 0.2s ease;
+      padding: 1.6rem;
+      border: 1px solid #320000;
+      border-radius: .9rem;
+      background: #130000;
+      text-align: left;
+      transition:
+        transform .2s,
+        border-color .2s,
+        background .2s;
     }
 
     .card:hover {
-      transform: scale(1.03);
+      transform: translateY(-4px);
+      border-color: #650000;
+      background: #180000;
+    }
+
+    .card-icon {
+      margin-bottom: .8rem;
+      font-size: 1.6rem;
     }
 
     .card h3 {
-      margin-bottom: 0.5rem;
-      font-size: 1.3rem;
-      color: #ff4d4d;
+      margin: 0 0 .5rem;
+      color: #ff5c5c;
+      font-size: 1.1rem;
     }
 
     .card p {
-      color: #bbb;
+      margin: 0;
+      color: #999;
+      font-size: .9rem;
+      line-height: 1.6;
     }
 
+    /* =====================================================
+       FOOTER
+    ===================================================== */
+
     footer {
-      text-align: center;
-      color: #888;
       padding: 2rem;
-      border-top: 1px solid #400000;
-      background-color: #0a0a0a;
+      border-top: 1px solid #300000;
+      background: #080808;
+      color: #777;
+      text-align: center;
+      font-size: .85rem;
+      line-height: 1.8;
     }
+
+    footer a {
+      color: #ff4d4d;
+      margin: 0 .5rem;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      color: #ff8080;
+    }
+
+    /* =====================================================
+       MODAL
+    ===================================================== */
 
     .modal {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0, 0, 0, 0.7);
+      inset: 0;
+      z-index: 1000;
+
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 1000;
+
+      padding: 1rem;
+      background: rgba(0, 0, 0, .78);
+      backdrop-filter: blur(6px);
+    }
+
+    .modal.visible {
+      display: flex;
     }
 
     .modal-content {
-      background-color: #1a1a1a;
-      padding: 30px;
-      border-radius: 10px;
-      width: 300px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-      text-align: center;
       position: relative;
+      width: 340px;
+      max-width: 100%;
+      padding: 2rem;
+
+      border: 1px solid #4b0000;
+      border-radius: .9rem;
+      background: #171717;
+
+      box-shadow:
+        0 20px 60px rgba(0, 0, 0, .65);
+
+      text-align: center;
     }
 
     .modal-content h2 {
-      margin-bottom: 20px;
-      color: #fff;
+      margin: 0 0 1.4rem;
+    }
+
+    .modal-content p {
+      color: #aaa;
+      font-size: .9rem;
+      line-height: 1.5;
+    }
+
+    .modal-content a {
+      color: #ff4d4d;
     }
 
     .modal-content input {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border: none;
-      border-radius: 5px;
-      font-size: 1em;
-      background-color: #333;
+      margin-bottom: .8rem;
+      padding: .75rem;
+
+      border: 1px solid #333;
+      border-radius: .5rem;
+      outline: none;
+
+      background: #252525;
       color: #fff;
+    }
+
+    .modal-content input:focus {
+      border-color: #ff4d4d;
     }
 
     .modal-content button {
       width: 100%;
-      padding: 10px;
-      font-size: 1em;
-      border: none;
-      border-radius: 5px;
-      background-color: #ff4d4d;
-      color: white;
+      margin-top: .4rem;
+      padding: .75rem;
+
+      border: 0;
+      border-radius: .5rem;
+
+      background: #ff4d4d;
+      color: #fff;
+
       cursor: pointer;
+      font-weight: 600;
     }
 
     .modal-content button:hover {
-      background-color: #cc0000;
+      background: #cc0000;
+    }
+
+    .modal-content .success {
+      background: #198754;
+    }
+
+    .modal-content .success:hover {
+      background: #157347;
+    }
+
+    .modal-content .danger {
+      background: #8b2020;
+    }
+
+    .modal-content .danger:hover {
+      background: #a52a2a;
+    }
+
+    /* =====================================================
+       MOBILE
+    ===================================================== */
+
+    @media (max-width: 600px) {
+
+      header {
+        padding: 1rem;
+      }
+
+      nav {
+        gap: .7rem;
+      }
+
+      nav a {
+        font-size: .8rem;
+      }
+
+      .main {
+        padding: 4rem 1rem 3rem;
+      }
+
+      .features {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+
+      .nav-login {
+        padding: .35rem .6rem;
+        font-size: .8rem;
+      }
     }
   </style>
 </head>
+
 <body>
+
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
+
   <header>
+
     <h1>KrynetAI.free</h1>
-    <p>Not affiliated with Krynet.ai and not official.</p>
-    <nav>
-      <a href="#">Home</a>
-      <a href="https://krynet.ai">Features</a>
-      <a href="https://krynet.ai/legal">Compliance</a>
-    </nav>
-  </header>
-  <main class="main">
+
     <p>
-      <strong>Note:</strong> This is <span style="color:#ff4d4d">KrynetAI.free</span>, not Krynet.ai.<br>
-      KrynetAI.free is if you could get all Krynet Premium | Enterprise tiers for free, bypassing the paywall.
+      Unofficial community project — not affiliated with Krynet.ai.
     </p>
+
+    <nav>
+
+      <a href="/">
+        Home
+      </a>
+
+      <a
+        href="https://krynet.ai"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Krynet.ai
+      </a>
+
+      <a
+        href="https://krynet.ai/legal"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Compliance
+      </a>
+
+      <button
+        class="nav-login"
+        id="navLogin"
+        type="button"
+      >
+        Login
+      </button>
+
+    </nav>
+
+  </header>
+
+
+  <!-- =====================================================
+       HERO
+  ====================================================== -->
+
+  <main class="main">
+
+    <div class="badge">
+      <span class="badge-dot"></span>
+      End-to-end encrypted community client
+    </div>
+
+    <h2>
+      Private communication,
+      <span>without the noise.</span>
+    </h2>
+
+    <p class="main-description">
+      KrynetAI.free is an unofficial community project
+      providing a privacy-focused client experience with
+      end-to-end encrypted messaging.
+    </p>
+
+    <div class="notice">
+      <strong>Important:</strong>
+      This project is not Krynet.ai and is not affiliated
+      with or operated by Krynet.ai.
+    </div>
+
     <div class="button-group">
-      <button class="button" id="joinNow">Join Now</button>
-      <button class="button" id="installBtn">Install App</button>
+
+      <button
+        class="button"
+        id="joinNow"
+        type="button"
+      >
+        Join Community
+      </button>
+
+      <button
+        class="button secondary"
+        id="installBtn"
+        type="button"
+      >
+        Visit Krynet.ai
+      </button>
+
     </div>
+
   </main>
-<footer>
-  © 2025 KrynetAI.free<br />
-  <a href="https://x.com/krynetapp" target="_blank" style="color:#ff4d4d; text-decoration:none; margin-right:1rem;">X (Twitter)</a>
-  <a href="https://www.youtube.com/@crynetapp" target="_blank" style="color:#ff4d4d; text-decoration:none;">YouTube</a>
-</footer>
-  <!-- Login Modal -->
-  <div class="modal" id="loginModal">
+
+
+  <!-- =====================================================
+       FEATURES
+  ====================================================== -->
+
+  <section class="features">
+
+    <article class="card">
+
+      <div class="card-icon">
+        🔐
+      </div>
+
+      <h3>
+        End-to-End Encryption
+      </h3>
+
+      <p>
+        Messages are encrypted on the client before
+        they are sent. The relay should only handle
+        encrypted message packets.
+      </p>
+
+    </article>
+
+
+    <article class="card">
+
+      <div class="card-icon">
+        🗝️
+      </div>
+
+      <h3>
+        Client-Side Keys
+      </h3>
+
+      <p>
+        Encryption identities are generated locally
+        using the browser Web Crypto API and can be
+        persisted locally.
+      </p>
+
+    </article>
+
+
+    <article class="card">
+
+      <div class="card-icon">
+        🛡️
+      </div>
+
+      <h3>
+        Authenticated Encryption
+      </h3>
+
+      <p>
+        Messages use AES-256-GCM with unique nonces
+        and authenticated message data.
+      </p>
+
+    </article>
+
+
+    <article class="card">
+
+      <div class="card-icon">
+        🌐
+      </div>
+
+      <h3>
+        Open Community
+      </h3>
+
+      <p>
+        The project is built around an open community
+        client rather than pretending to be the official
+        Krynet service.
+      </p>
+
+    </article>
+
+  </section>
+
+
+  <!-- =====================================================
+       FOOTER
+  ====================================================== -->
+
+  <footer>
+
+    © 2026 KrynetAI.free
+
+    <br>
+
+    <a
+      href="https://x.com/krynetapp"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      X
+    </a>
+
+    <a
+      href="https://www.youtube.com/@crynetapp"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      YouTube
+    </a>
+
+  </footer>
+
+
+  <!-- =====================================================
+       LOGIN MODAL
+  ====================================================== -->
+
+  <div
+    class="modal"
+    id="loginModal"
+  >
+
     <div class="modal-content">
-      <h2>Login to Use Web</h2>
-      <input type="text" id="username" placeholder="Username" />
-      <input type="password" id="password" placeholder="Password" />
-      <button onclick="login()">Login</button>
+
+      <h2>
+        Login
+      </h2>
+
+      <input
+        type="text"
+        id="username"
+        placeholder="Username or email"
+        autocomplete="username"
+      >
+
+      <input
+        type="password"
+        id="password"
+        placeholder="Password"
+        autocomplete="current-password"
+      >
+
+      <button
+        id="loginButton"
+        type="button"
+      >
+        Login
+      </button>
+
     </div>
+
   </div>
 
+
+  <!-- =====================================================
+       TERMS MODAL
+  ====================================================== -->
+
+  <div
+    class="modal"
+    id="termsModal"
+  >
+
+    <div class="modal-content">
+
+      <h2>
+        Terms & Privacy
+      </h2>
+
+      <p>
+        Before entering the community client, please
+        review the Terms and Privacy Policy.
+      </p>
+
+      <p>
+        <a
+          href="https://krynet.ai/tos"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Read Terms and Privacy Policy
+        </a>
+      </p>
+
+      <button
+        class="success"
+        id="agreeBtn"
+        type="button"
+      >
+        I Agree
+      </button>
+
+      <button
+        class="danger"
+        id="disagreeBtn"
+        type="button"
+      >
+        I Do Not Agree
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       E2EE CLIENT
+       
+       message.js contains the actual client-side
+       encryption/decryption implementation.
+
+       It is NOT loaded on the landing page's inline
+       messaging logic because this page does not send
+       messages.
+  ====================================================== -->
+
+  <script src="./js/message.js"></script>
+
+
+  <!-- =====================================================
+       PAGE LOGIC
+  ====================================================== -->
+
   <script>
+    "use strict";
+
     let krynetApiConfig = null;
 
-    // Fetch API config on page load
-    fetch('api.json')
-      .then(res => {
-        if (!res.ok) throw new Error('API config load failed');
-        return res.json();
-      })
-      .then(data => {
-        krynetApiConfig = data.krynet_api;
-        console.log('Krynet API config loaded:', krynetApiConfig);
-      })
-      .catch(err => {
-        console.error('Failed to load API config:', err);
-        alert('API config loading failed — some features may break.');
-      });
-
     let isLoggedIn = false;
-    const modal = document.getElementById("loginModal");
 
-    const termsModalHTML = `
-      <div class="modal" id="termsModal" style="display:none; align-items:center; justify-content:center; position:fixed; top:0; left:0; width:100%; height:100%; background-color: rgba(0,0,0,0.7); z-index:1100;">
-        <div class="modal-content" style="width:350px; max-width:90%; text-align:center;">
-          <h2>Agree to Terms & Privacy</h2>
-          <p>Please <a href="https://krynet.ai/tos" target="_blank" style="color:#ff4d4d; text-decoration:underline;">read our Terms and Privacy Policy</a>.</p>
-          <p>Do you agree to the Terms and Privacy Policy?</p>
-          <button id="agreeBtn" style="margin-bottom:10px; background-color:#28a745;">Yes</button>
-          <button id="disagreeBtn" style="background-color:#dc3545;">No</button>
-        </div>
-      </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', termsModalHTML);
-    const termsModal = document.getElementById("termsModal");
-    const agreeBtn = document.getElementById("agreeBtn");
-    const disagreeBtn = document.getElementById("disagreeBtn");
-    const joinNowBtn = document.getElementById("joinNow");
 
-    joinNowBtn.addEventListener("click", () => modal.style.display = "flex");
+    /* =====================================================
+       ELEMENTS
+    ===================================================== */
 
-    window.addEventListener("click", (e) => {
-      if (e.target === modal) modal.style.display = "none";
-      if (e.target === termsModal) termsModal.style.display = "none";
-    });
+    const loginModal =
+      document.getElementById(
+        "loginModal"
+      );
 
-    async function loginWithApi(username, password, mfaCode = null) {
+    const termsModal =
+      document.getElementById(
+        "termsModal"
+      );
+
+    const joinNow =
+      document.getElementById(
+        "joinNow"
+      );
+
+    const navLogin =
+      document.getElementById(
+        "navLogin"
+      );
+
+    const loginButton =
+      document.getElementById(
+        "loginButton"
+      );
+
+    const agreeButton =
+      document.getElementById(
+        "agreeBtn"
+      );
+
+    const disagreeButton =
+      document.getElementById(
+        "disagreeBtn"
+      );
+
+    const installButton =
+      document.getElementById(
+        "installBtn"
+      );
+
+
+    /* =====================================================
+       API CONFIG
+    ===================================================== */
+
+    async function loadApiConfig() {
+
+      try {
+
+        const response =
+          await fetch(
+            "api.json",
+            {
+              cache: "no-store"
+            }
+          );
+
+        if (!response.ok) {
+          throw new Error(
+            `HTTP ${response.status}`
+          );
+        }
+
+        const data =
+          await response.json();
+
+        krynetApiConfig =
+          data.krynet_api;
+
+        console.log(
+          "[Krynet] API configuration loaded"
+        );
+
+      } catch (error) {
+
+        console.error(
+          "[Krynet] Failed to load API config:",
+          error
+        );
+      }
+    }
+
+
+    void loadApiConfig();
+
+
+    /* =====================================================
+       MODALS
+    ===================================================== */
+
+    function showModal(modal) {
+
+      modal.classList.add(
+        "visible"
+      );
+    }
+
+
+    function hideModal(modal) {
+
+      modal.classList.remove(
+        "visible"
+      );
+    }
+
+
+    joinNow.addEventListener(
+      "click",
+      () => showModal(loginModal)
+    );
+
+
+    navLogin.addEventListener(
+      "click",
+      () => showModal(loginModal)
+    );
+
+
+    window.addEventListener(
+      "click",
+      event => {
+
+        if (
+          event.target === loginModal
+        ) {
+          hideModal(loginModal);
+        }
+
+        if (
+          event.target === termsModal
+        ) {
+          hideModal(termsModal);
+        }
+      }
+    );
+
+
+    /* =====================================================
+       LOGIN
+    ===================================================== */
+
+    async function loginWithApi(
+      username,
+      password,
+      mfaCode = null
+    ) {
+
       if (!krynetApiConfig) {
-        alert("API config not loaded yet. Try again in a sec.");
+
+        alert(
+          "The API configuration has not loaded yet. Try again."
+        );
+
         return null;
       }
-      const loginEndpoint = krynetApiConfig.endpoints.accounts.login;
-      const url = krynetApiConfig.base_url.replace(/\/$/, '') + loginEndpoint.path;
+
+      const loginEndpoint =
+        krynetApiConfig
+          ?.endpoints
+          ?.accounts
+          ?.login;
+
+      if (!loginEndpoint) {
+
+        alert(
+          "Login endpoint is not configured."
+        );
+
+        return null;
+      }
+
+      const baseUrl =
+        String(
+          krynetApiConfig.base_url || ""
+        ).replace(/\/$/, "");
+
+      const url =
+        baseUrl +
+        loginEndpoint.path;
 
       const body = {
-        username_or_email: username,
-        password: password,
-        ...(mfaCode ? { mfa_code: mfaCode } : {})
+        username_or_email:
+          username,
+
+        password:
+          password
       };
+
+      if (mfaCode) {
+        body.mfa_code =
+          mfaCode;
+      }
+
       try {
-        const response = await fetch(url, {
-          method: loginEndpoint.method,
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(body)
-        });
+
+        const response =
+          await fetch(
+            url,
+            {
+              method:
+                loginEndpoint.method ||
+                "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body:
+                JSON.stringify(body)
+            }
+          );
+
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Login failed: ${response.status} ${errorText}`);
+
+          const errorText =
+            await response.text();
+
+          throw new Error(
+            `${response.status} ${errorText}`
+          );
         }
-        const data = await response.json();
-        return data;
+
+        return await response.json();
+
       } catch (error) {
-        alert(`Login error: ${error.message}`);
+
+        console.error(
+          "[Krynet] Login failed:",
+          error
+        );
+
+        alert(
+          `Login error: ${error.message}`
+        );
+
         return null;
       }
     }
 
+
     async function login() {
-      const user = document.getElementById('username').value.trim();
-      const pass = document.getElementById('password').value.trim();
-      if (!user || !pass) {
-        alert("Please enter username and password.");
+
+      const username =
+        document
+          .getElementById("username")
+          .value
+          .trim();
+
+      const password =
+        document
+          .getElementById("password")
+          .value;
+
+      if (!username || !password) {
+
+        alert(
+          "Please enter your username and password."
+        );
+
         return;
       }
-      // Login attempt without MFA, MFA not required
-      const loginResult = await loginWithApi(user, pass);
-      if (!loginResult || !loginResult.token) {
-        alert("Login failed, check your credentials.");
-        document.getElementById('password').value = "";
+
+      loginButton.disabled =
+        true;
+
+      loginButton.textContent =
+        "Logging in...";
+
+      const result =
+        await loginWithApi(
+          username,
+          password
+        );
+
+      loginButton.disabled =
+        false;
+
+      loginButton.textContent =
+        "Login";
+
+      if (
+        !result ||
+        !result.token
+      ) {
+
+        alert(
+          "Login failed. Check your credentials."
+        );
+
+        document
+          .getElementById("password")
+          .value = "";
+
         return;
       }
-      modal.style.display = "none";
-      isLoggedIn = true;
-      alert("Login successful! Welcome.");
 
-      termsModal.style.display = "flex";
+      /*
+       * Keep the authentication token available
+       * to the /web client.
+       *
+       * The E2EE identity itself is handled separately
+       * by message.js.
+       */
 
-      agreeBtn.onclick = () => {
-        termsModal.style.display = "none";
-        window.location.href = "/web";
-      };
+      sessionStorage.setItem(
+        "krynet_auth_token",
+        result.token
+      );
 
-      disagreeBtn.onclick = () => {
-        alert("You must agree to the Terms and Privacy Policy to proceed.");
-        termsModal.style.display = "none";
-        modal.style.display = "flex";
-        document.getElementById('password').value = "";
-      };
+      if (result.user) {
+
+        sessionStorage.setItem(
+          "krynet_user",
+          JSON.stringify(result.user)
+        );
+      }
+
+      isLoggedIn =
+        true;
+
+      hideModal(loginModal);
+      showModal(termsModal);
     }
-    // Install button always available
-    document.getElementById("installBtn").addEventListener("click", () => {
-      const proceed = confirm("You are about to leave KrynetAI.free to visit Krynet.ai.\n\nDo you want to continue?");
-      if (proceed) {
-        window.location.href = "https://krynet.ai";
+
+
+    loginButton.addEventListener(
+      "click",
+      () => {
+        void login();
       }
-    });
+    );
+
+
+    document
+      .getElementById("password")
+      .addEventListener(
+        "keydown",
+        event => {
+
+          if (
+            event.key === "Enter"
+          ) {
+            void login();
+          }
+        }
+      );
+
+
+    /* =====================================================
+       TERMS
+    ===================================================== */
+
+    agreeButton.addEventListener(
+      "click",
+      () => {
+
+        if (!isLoggedIn) {
+          return;
+        }
+
+        hideModal(termsModal);
+
+        window.location.href =
+          "/web";
+      }
+    );
+
+
+    disagreeButton.addEventListener(
+      "click",
+      () => {
+
+        hideModal(termsModal);
+
+        document
+          .getElementById("password")
+          .value = "";
+
+        alert(
+          "You must agree to the Terms and Privacy Policy to continue."
+        );
+
+        showModal(loginModal);
+      }
+    );
+
+
+    /* =====================================================
+       INSTALL / OFFICIAL SITE
+    ===================================================== */
+
+    installButton.addEventListener(
+      "click",
+      () => {
+
+        const proceed =
+          confirm(
+            "You are about to leave KrynetAI.free and visit Krynet.ai.\n\nContinue?"
+          );
+
+        if (!proceed) {
+          return;
+        }
+
+        window.location.href =
+          "https://krynet.ai";
+      }
+    );
+
+
+    /* =====================================================
+       E2EE INITIALIZATION CHECK
+       
+       We don't create an encryption identity here.
+       Identity creation happens when the actual
+       messaging client loads.
+    ===================================================== */
+
+    if (
+      !window.KrynetMessage
+    ) {
+
+      console.warn(
+        "[Krynet E2EE] message.js was not loaded."
+      );
+
+    } else {
+
+      console.log(
+        "[Krynet E2EE] Messaging crypto layer available."
+      );
+    }
   </script>
+
 </body>
 </html>
