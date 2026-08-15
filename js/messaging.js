@@ -2,7 +2,7 @@
 
 /*
  * Krynet Community
- * message.js
+ * messaging.js
  *
  * End-to-end encrypted messaging layer.
  *
@@ -13,10 +13,7 @@
  *
  * The server should only ever receive encrypted packets.
  *
- * IMPORTANT:
- * ECDH provides encryption, but authentication must still
- * happen somewhere. The exported public-key fingerprint can
- * be displayed to users and verified out-of-band.
+ * Reply metadata is encrypted together with the message body.
  */
 
 const KrynetMessage = (() => {
@@ -451,6 +448,119 @@ const KrynetMessage = (() => {
 
 
     /* ========================================================
+       ENCRYPT MESSAGE CONTENT
+       
+       Reply information is included INSIDE the encrypted
+       plaintext so the transport/server cannot read it.
+    ======================================================== */
+
+    async function encryptMessageContent(
+        session,
+        text,
+        replyTo = null,
+        metadata = {}
+    ) {
+
+        const payload = {
+            type: "krynet-message-content",
+            version: VERSION,
+
+            text:
+                String(text ?? ""),
+
+            replyTo:
+                normalizeReply(replyTo)
+        };
+
+        return encrypt(
+            session,
+            JSON.stringify(payload),
+            metadata
+        );
+    }
+
+
+    /* ========================================================
+       REPLY VALIDATION
+    ======================================================== */
+
+    function normalizeReply(replyTo) {
+
+        if (!replyTo) {
+            return null;
+        }
+
+        if (
+            typeof replyTo !== "object"
+        ) {
+            return null;
+        }
+
+        if (!replyTo.messageId) {
+            return null;
+        }
+
+        return {
+            messageId:
+                String(replyTo.messageId),
+
+            author:
+                String(replyTo.author || ""),
+
+            text:
+                String(replyTo.text || "")
+        };
+    }
+
+
+    function decodeMessageContent(
+        text
+    ) {
+
+        /*
+         * New messages use an encrypted JSON envelope.
+         *
+         * Old messages were encrypted as plain strings.
+         * Keep supporting those so existing history does
+         * not break.
+         */
+
+        try {
+
+            const payload =
+                JSON.parse(text);
+
+            if (
+                payload &&
+                payload.type ===
+                    "krynet-message-content"
+            ) {
+
+                return {
+                    text:
+                        String(
+                            payload.text ?? ""
+                        ),
+
+                    replyTo:
+                        normalizeReply(
+                            payload.replyTo
+                        )
+                };
+            }
+
+        } catch {
+            // Old-format plaintext.
+        }
+
+        return {
+            text,
+            replyTo: null
+        };
+    }
+
+
+    /* ========================================================
        DECRYPT
     ======================================================== */
 
@@ -520,6 +630,16 @@ const KrynetMessage = (() => {
                     ciphertext
                 );
 
+            const rawText =
+                decoder.decode(
+                    plaintext
+                );
+
+            const content =
+                decodeMessageContent(
+                    rawText
+                );
+
             return {
                 messageId:
                     packet.messageId,
@@ -531,9 +651,10 @@ const KrynetMessage = (() => {
                     packet.channel,
 
                 text:
-                    decoder.decode(
-                        plaintext
-                    )
+                    content.text,
+
+                replyTo:
+                    content.replyTo
             };
 
         } catch {
@@ -554,13 +675,21 @@ const KrynetMessage = (() => {
         session,
         text,
         channel,
-        sender
+        sender,
+        replyTo
     }) {
 
+        if (!identity?.publicKey) {
+            throw new Error(
+                "A local identity is required"
+            );
+        }
+
         const encrypted =
-            await encrypt(
+            await encryptMessageContent(
                 session,
                 text,
+                replyTo,
                 {
                     channel
                 }
@@ -629,7 +758,8 @@ const KrynetMessage = (() => {
 
     async function saveIdentity(
         identity,
-        storageKey = "krynet:e2ee:identity"
+        storageKey =
+            "krynet:e2ee:identity"
     ) {
 
         const exported =
@@ -645,7 +775,8 @@ const KrynetMessage = (() => {
 
 
     async function loadIdentity(
-        storageKey = "krynet:e2ee:identity"
+        storageKey =
+            "krynet:e2ee:identity"
     ) {
 
         const value =
@@ -742,6 +873,8 @@ const KrynetMessage = (() => {
         encrypt,
         decrypt,
 
+        encryptMessageContent,
+
         createPacket,
         readPacket,
 
@@ -753,19 +886,16 @@ const KrynetMessage = (() => {
         importPublicKey,
         fingerprintPublicKey,
 
-        isEncryptedPacket
+        isEncryptedPacket,
+
+        normalizeReply
     });
+
 })();
 
 
 /*
  * Global compatibility API.
- *
- * Other Krynet modules can use:
- *
- *   window.KrynetMessage.createPacket(...)
- *
- * without importing this file.
  */
 
 window.KrynetMessage =
